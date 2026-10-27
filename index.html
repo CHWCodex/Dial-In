@@ -289,7 +289,7 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .stat{padding:12px}
 .stat b{display:block;font:var(--fw-d) var(--fs-stat)/1.3 var(--font-num);margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .up{color:var(--up)} .down{color:var(--down)}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .tab{min-height:44px;border:0;background:var(--pip-bg);font:var(--fw-d) var(--fs-label) var(--font-display);cursor:pointer;color:var(--pip-text);border-radius:var(--r-sm);text-transform:var(--tt);transition:background var(--dur-2)}
 .tab[aria-selected="true"]{background:var(--sel-bg);color:var(--sel-text)}
 .lb{list-style:none;margin:0;padding:0}
@@ -301,6 +301,7 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .lb .sc{font:var(--fw-d) var(--fs-row) var(--font-num)}
 .lb li.me{background:var(--me-bg);outline:2px solid var(--gold)}
 .lb li.me .r{color:var(--gold)}
+.lb li.gap{display:block;background:none;padding:0 10px;text-align:center;color:var(--text-2);letter-spacing:4px}
 .empty{text-align:center;padding:22px 8px;color:var(--text-2)}
 .empty .mascot{margin:0 auto 12px}
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding:8px;background:var(--inset);border-radius:var(--r)}
@@ -3143,7 +3144,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, friendNames:{}, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -3629,52 +3630,86 @@ function mpJoin(){
   });
 }
 
-/* ---- Leaderboards (daily) ---- */
+// Display names for the friend codes in Settings
+async function loadFriendNames(){
+  if (!Backend.on || DEV.on || !S.friends.length) return;
+  try {
+    const rows = await Backend.rpc('friend_names', { p_codes: S.friends });
+    for (const r of rows || []) App.friendNames[r.friend_code] = r.display_name;
+    if (App.view === 'settings') render(false);
+  } catch(e){}
+}
+
+/* ---- Leaderboards ----
+   Four boards: everyone or just you and your friends, for today's puzzle or added up over every day played. */
+const BOARD_LIMIT = 50;
+const BOARDS = {
+  daily:  { label:'Daily',               total:false, friends:false, note: () => `Everyone’s score for today’s puzzle (#${DateUK.puzzleNo(App.today)}). A new board starts at midnight UK time.` },
+  all:    { label:'All-time',            total:true,  friends:false, note: () => 'Everyone’s points added up over every daily puzzle they’ve played.' },
+  fdaily: { label:'Friends · Daily',     total:false, friends:true,  note: () => 'You and your friends on today’s puzzle.' },
+  fall:   { label:'Friends · All-time',  total:true,  friends:true,  note: () => 'You and your friends, points added up over every daily puzzle played.' }
+};
+const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
 function viewBoard(){
-  const tabs = [['daily','Today'],['all','All-time'],['friends','Friends']].map(([k,l]) =>
-    `<button class="tab" role="tab" aria-selected="${App.boardTab===k}" data-act="tab" data-tab="${k}">${l}</button>`).join('');
+  const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today];
+  const tabs = Object.keys(BOARDS).map(k =>
+    `<button class="tab" role="tab" aria-selected="${kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('');
+  const playNudge = !B.total && (!day || !day.done) && Backend.on && !DEV.on
+    ? `<p class="banner">You haven’t finished today’s puzzle yet. Play it to get on this board.<br><button class="btn btn-mint" data-act="play" style="margin-top:8px">Play today</button></p>` : '';
   return `<section class="stack">
-    <h1 class="label" tabindex="-1">Daily leaderboards</h1>
+    <h1 class="label" tabindex="-1">Leaderboards</h1>
     ${DEV.on ? '<p class="banner"><b>DEV SANDBOX</b><br>Leaderboards are switched off here so tests never post real scores.</p>' : Backend.on ? '' : '<p class="banner"><b>DEMO MODE</b><br>Online leaderboards aren’t switched on, so only results from <b>this device</b> are shown. Nobody else is on these boards.</p>'}
-    <div class="tabs" role="tablist">${tabs}</div>
+    <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
+    <p class="small muted">${B.note()}</p>
+    ${playNudge}
     <div id="board-body" aria-live="polite">${Backend.on && !DEV.on ? '<p class="empty">Loading…</p>' : demoBoard()}</div>
   </section>`;
 }
 function lbRows(rows, meId, kind){
   if (!rows.length) return '';
-  return `<ol class="lb">${rows.map(r => { const me = r.player_id === meId;
-    const sc = kind === 'all' ? fmtNum(Number(r.total_score)) : fmtNum(Number(r.score));
-    const sub = kind === 'all' ? `${r.days_played} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
-    return `<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
+  const B = BOARDS[kind];
+  return `<ol class="lb">${rows.map((r, i) => { const me = r.player_id === meId;
+    const sc = B.total ? fmtNum(Number(r.total_score)) : fmtNum(Number(r.score));
+    const days = Number(r.days_played);
+    const sub = B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
+    // the global boards list the top 50 plus your own row: mark the jump when you're further down
+    const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
+    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
+const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
 function demoBoard(){
-  const st = getStats(App.today), day = S.days[App.today];
-  if (App.boardTab === 'friends') return emptyState('Friends leaderboards aren’t switched on for this site yet. For now, share your results card with friends to compare.');
-  if (App.boardTab === 'daily') {
+  const kind = boardKind(), st = getStats(App.today), day = S.days[App.today];
+  if (BOARDS[kind].friends) return emptyState('Friends leaderboards need online mode. For now, share your results card with friends to compare.');
+  if (kind === 'daily') {
     if (!day || !day.done) return emptyState('Finish today’s puzzle to post a score.<br><br><button class="btn btn-mint" data-act="play">Play today</button>');
-    return lbRows([{ rank:1, player_id:'me', display_name:displayName(), score:dayTotal(day), exact_count:day.answers.filter(a=>a.s===1000).length }], 'me', 'daily');
+    return lbRows([{ rank:1, player_id:'me', display_name:displayName(), score:dayTotal(day), exact_count:day.answers.filter(a=>a.s===1000).length }], 'me', kind);
   }
   if (!st.played) return emptyState('No completed puzzles yet on this device.');
-  return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', 'all');
+  return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
 async function loadBoard(){
   if (!Backend.on || DEV.on || App.view !== 'board') return;
-  const token = ++App.boardToken, el = $('#board-body');
+  const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
   try {
     await Backend.sync();
-    let rows, kind = App.boardTab;
-    if (kind === 'daily') rows = await Backend.rpc('get_daily_leaderboard', { p_date: App.today, p_limit: 50 });
-    else if (kind === 'all') rows = await Backend.rpc('get_alltime_leaderboard', { p_limit: 50 });
-    else rows = S.friends.length ? await Backend.rpc('get_friends_leaderboard', { p_date: App.today, p_codes: S.friends }) : [];
+    if (token !== App.boardToken || App.view !== 'board') return;
+    if (BOARDS[kind].friends && !S.friends.length) { el.innerHTML = noFriendsState(); return; }
+    const rows = kind === 'daily' ? await Backend.rpc('get_daily_leaderboard', { p_date: App.today, p_limit: BOARD_LIMIT })
+      : kind === 'all' ? await Backend.rpc('get_alltime_leaderboard', { p_limit: BOARD_LIMIT })
+      : kind === 'fdaily' ? await Backend.rpc('get_friends_leaderboard', { p_date: App.today, p_codes: S.friends })
+      : await Backend.rpc('get_friends_alltime_leaderboard', { p_codes: S.friends });
     if (token !== App.boardToken || App.view !== 'board') return;
     const me = Backend.sess && Backend.sess.user_id;
-    if (!rows || !rows.length) el.innerHTML = emptyState(kind === 'friends' && !S.friends.length ? 'No friends added yet. Swap friend codes in Settings.' : kind === 'friends' ? 'None of your friends have finished today yet.' : 'No scores yet today. Be the first!', 'happy');
+    if (!rows || !rows.length) el.innerHTML = emptyState(
+      kind === 'daily' ? 'No scores yet today. Be the first!'
+      : kind === 'fdaily' ? 'Nobody in your friends list has finished today’s puzzle yet.'
+      : 'No finished daily puzzles yet. Scores appear here once a daily puzzle is complete.', 'happy');
     else { el.innerHTML = lbRows(rows, me, kind); const m = el.querySelector('.me'); if (m) m.scrollIntoView({ block:'nearest' }); }
   } catch(e) {
     if (token !== App.boardToken) return;
-    el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${App.boardTab}">Try again</button>`, 'sad');
+    el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
   }
 }
 
@@ -3703,7 +3738,8 @@ function viewStats(){
 
 /* ---- Settings ---- */
 function viewSettings(){
-  const friends = S.friends.map(c => `<li>${c}<button data-act="rmfriend" data-code="${c}" aria-label="Remove friend ${c}">×</button></li>`).join('');
+  const friends = S.friends.map(c => { const n = App.friendNames[c];
+    return `<li>${n ? `${esc(n)} <small class="muted">${c}</small>` : c}<button data-act="rmfriend" data-code="${c}" aria-label="Remove friend ${n ? esc(n) : c}">×</button></li>`; }).join('');
   const cloud = Cloud.kind === 'claude' ? 'Saved on this device and to your Claude account, so it follows you to any device where you open this page.'
     : Cloud.kind === 'online' ? 'Saved on this device and to your online profile. Link an email below to use it on other devices.'
     : 'Saved on this device. To move to another phone, copy your save code and restore it there.';
@@ -3965,7 +4001,7 @@ function onClick(e){
     case 'mpinvite': share(inviteText()); break;
     case 'board': go('board'); break;
     case 'stats': go('stats'); break;
-    case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); break;
+    case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); loadFriendNames(); break;
     case 'intro': openDialog('dlg-intro'); break;
     case 'tab': App.boardTab = el.dataset.tab; render(false); break;
     case 'rmfriend': S.friends = S.friends.filter(c => c !== el.dataset.code); save(); render(false); break;
@@ -4035,8 +4071,20 @@ async function onSubmit(e){
     const c = $('#fcode').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (!/^[A-Z0-9]{6}$/.test(c)) return toast('Friend codes are 6 letters or numbers.');
     if (Backend.profile && c === Backend.profile.code) return toast('That’s your own code!');
-    if (!S.friends.includes(c)) S.friends.push(c);
-    save(); toast('Friend added.'); render(false); return;
+    if (S.friends.includes(c)) return toast(`${App.friendNames[c] || c} is already in your friends.`);
+    if (S.friends.length >= 100) return toast('You can have up to 100 friends.');
+    let name = '';
+    if (Backend.on && !DEV.on) {
+      try {
+        if (!Backend.profile) await Backend.sync();
+        if (Backend.profile && c === Backend.profile.code) return toast('That’s your own code!');
+        const r = await Backend.rpc('friend_names', { p_codes: [c] }); name = (r && r[0] && r[0].display_name) || '';
+      } catch(err) { return toast('Couldn’t check that code: ' + err.message); }
+      if (!name) return toast('No player has that code. Check it and try again.');
+      App.friendNames[c] = name;
+    }
+    S.friends.push(c);
+    save(); toast(name ? `${name} added as a friend.` : 'Friend added.'); render(false); return;
   }
   if (f.id === 'emailform') {
     const email = $('#email').value.trim(), mode = e.submitter && e.submitter.dataset.mode;
