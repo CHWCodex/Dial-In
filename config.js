@@ -5,8 +5,8 @@ window.DIAL_IN_CONFIG = {
   // Supabase project URL and anon (public) key: Supabase dashboard → Project Settings → API.
   // With these set you get global leaderboards, daily rankings ("you beat 96 players"),
   // Battles between phones, cloud saves and friend codes.
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://jfutntnbxwhstqgrwskj.supabase.co/',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdXRudG5ieHdoc3RxZ3J3c2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMjY5MzMsImV4cCI6MjEwODcwMjkzM30.jgaGf4LBwS7WR60kf3xdJSsuZhmpmlA8gWH3cdsTxts',
 
   // Optional. A Stripe Payment Link for the Unlimited unlock, e.g. 'https://buy.stripe.com/abc123'.
   // Leave '' and Unlimited is free for everyone.
