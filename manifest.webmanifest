@@ -1,0 +1,19 @@
+{
+  "name": "DIAL IN · The Daily Numbers Game",
+  "short_name": "DIAL IN",
+  "description": "Seven questions a day. Every answer is a number. Spin the dial and see how close you get.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#150b33",
+  "theme_color": "#150b33",
+  "categories": ["games", "entertainment", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
