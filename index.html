@@ -2112,16 +2112,29 @@ const Backend = {
     }
     this.keep(await this.rest('POST', '/auth/v1/signup', { data:{} }, {}, false));   // anonymous sign-in
   },
-  // Magic-link redirect: #access_token=...&refresh_token=...
+  // Email-link redirect: #access_token=...&refresh_token=... on sign-in, #message=... or #error_description=... otherwise.
+  // Returns a line to show the player, or ''.
   takeHash(){
-    if (!/access_token=/.test(location.hash)) return;
+    if (!/(access_token|error_description|message)=/.test(location.hash)) return '';
     const h = new URLSearchParams(location.hash.slice(1));
-    try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); } catch(e){}
+    let note = '';
+    if (h.get('access_token')) {
+      try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); note = 'You’re signed in.'; }
+      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Settings.'; }
+    } else if (h.get('error_description')) note = /expired|invalid/i.test(h.get('error_description'))
+      ? 'That email link has expired or was already used. Send a new one from Settings.' : 'Email link problem: ' + h.get('error_description');
+    else if (h.get('message')) note = /confirmation link accepted/i.test(h.get('message')) ? 'Email linked to your profile.' : h.get('message');
     try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+    return note;
   },
+  // Where links in sign-in emails should land: this exact page (GitHub Pages paths are case-sensitive)
+  get home(){ return location.origin + location.pathname.replace(/index\.html$/, ''); },
   rpc(fn, args){ return this.rest('POST', '/rest/v1/rpc/' + fn, args || {}); },
-  async linkEmail(email){ return this.rest('PUT', '/auth/v1/user', { email }); },
-  async magicLink(email){ return this.rest('POST', '/auth/v1/otp', { email, create_user:false }, {}, false); },
+  async linkEmail(email){ return this.rest('PUT', '/auth/v1/user?redirect_to=' + encodeURIComponent(this.home), { email }); },
+  async magicLink(email){
+    try { return await this.rest('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(this.home), { email, create_user:false }, {}, false); }
+    catch(e){ throw /signups not allowed/i.test(e.message) ? new Error('that email isn’t linked to a DIAL IN profile yet. On the phone you usually play on, open Settings and tap Link email first.') : e; }
+  },
   async sync(){
     if (!this.on || DEV.on) return;
     const name = displayName();
@@ -4121,7 +4134,8 @@ async function boot(){
   if (!local) local = await Store.idbGet();
   S = sanitize(local);
   App.today = DateUK.today();
-  if (Backend.on) Backend.takeHash();
+  const hashNote = Backend.on ? Backend.takeHash() : '';
+  if (hashNote) setTimeout(() => toast(hashNote, 5000), 600);
   Theme.apply();
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
