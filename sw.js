@@ -2,8 +2,9 @@
    The page itself is network-first (so players always get the latest version when online)
    with the cached copy as a fallback; icons and fonts are cache-first.
    Supabase and Stripe requests are never touched. Bump VERSION to clear old caches. */
-const VERSION = 'dialin-v5';
-const CORE = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'dialin-v6';
+const CORE = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
+  'fonts/rubik-latin.woff2', 'fonts/bungee-latin.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
