@@ -10,7 +10,8 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="DIAL IN · The Daily Numbers Game">
 <meta property="og:description" content="Seven questions a day. Every answer is a number. Can you dial it in?">
-<meta property="og:image" content="https://chwcodex.github.io/Dial-In/icons/og-image.png">
+<meta property="og:url" content="https://playdialin.com/">
+<meta property="og:image" content="https://playdialin.com/icons/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -2080,7 +2081,7 @@ function getStats(today){
    LocalNet = same-device tabs (developer testing: add ?mp=local to the URL).
    Battles talk to whichever is available through the small Net interface. */
 const Backend = {
-  sess: null, profile: null, nameSent: '',
+  sess: null, profile: null, nameSent: '', email: '',
   get on(){ return /^https:\/\//.test(CONFIG.SUPABASE_URL) && CONFIG.SUPABASE_ANON_KEY.length > 20; },
   async rest(method, path, body, extra = {}, auth = true){
     if (auth) await this.auth();
@@ -2112,16 +2113,49 @@ const Backend = {
     }
     this.keep(await this.rest('POST', '/auth/v1/signup', { data:{} }, {}, false));   // anonymous sign-in
   },
-  // Magic-link redirect: #access_token=...&refresh_token=...
+  // Email-link redirect: #access_token=...&refresh_token=... on sign-in, #message=... or #error_description=... otherwise.
+  // Returns a line to show the player, or ''.
   takeHash(){
-    if (!/access_token=/.test(location.hash)) return;
+    if (!/(access_token|error_description|message)=/.test(location.hash)) return '';
     const h = new URLSearchParams(location.hash.slice(1));
-    try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); } catch(e){}
+    let note = '';
+    if (h.get('access_token')) {
+      try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); note = 'You’re signed in.'; }
+      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Settings.'; }
+    } else if (h.get('error_description')) note = /expired|invalid/i.test(h.get('error_description'))
+      ? 'That email link has expired or was already used. Send a new one from Settings.' : 'Email link problem: ' + h.get('error_description');
+    else if (h.get('message')) note = /confirmation link accepted/i.test(h.get('message')) ? 'Email linked to your profile.' : h.get('message');
     try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+    return note;
   },
+  // Where links in sign-in emails should land: this exact page (GitHub Pages paths are case-sensitive)
+  get home(){ return location.origin + location.pathname.replace(/index\.html$/, ''); },
   rpc(fn, args){ return this.rest('POST', '/rest/v1/rpc/' + fn, args || {}); },
-  async linkEmail(email){ return this.rest('PUT', '/auth/v1/user', { email }); },
-  async magicLink(email){ return this.rest('POST', '/auth/v1/otp', { email, create_user:false }, {}, false); },
+  async linkEmail(email){ return this.rest('PUT', '/auth/v1/user?redirect_to=' + encodeURIComponent(this.home), { email }); },
+  async magicLink(email){
+    try { return await this.rest('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(this.home), { email, create_user:false }, {}, false); }
+    catch(e){ throw /signups not allowed/i.test(e.message) ? new Error('that email isn’t linked to a DIAL IN profile yet. On the phone you usually play on, open Settings and tap Link email first.') : e; }
+  },
+  // The verified email on this profile ('' while playing as a guest). Posting and seeing scores needs one.
+  async loadUser(){
+    const u = await this.rest('GET', '/auth/v1/user');
+    this.email = u && !u.is_anonymous && u.email && (u.email_confirmed_at || u.confirmed_at) ? u.email : '';
+    Store.set(CONFIG.STORAGE_KEY + ':email', this.email);
+    return this.email;
+  },
+  // One box for everyone: link the email to this guest profile, or, when that email already has a
+  // profile (made on another device), sign in to it. Returns the code type to verify with.
+  async sendCode(email){
+    try { await this.linkEmail(email); return 'email_change'; }
+    catch(e){ if (!/already (been )?registered|already exists|email_exists/i.test(e.message)) throw e; }
+    await this.magicLink(email); return 'email';
+  },
+  async verifyCode(email, type, token){
+    const d = await this.rest('POST', '/auth/v1/verify', { email, type, token }, {}, false);
+    if (d && d.access_token) this.keep(d);
+    this.profile = null; this.nameSent = '';
+    return this.loadUser();
+  },
   async sync(){
     if (!this.on || DEV.on) return;
     const name = displayName();
@@ -2132,6 +2166,7 @@ const Backend = {
       this.nameSent = name;
     }
     // today's result, plus yesterday's if it was finished just before midnight and never got posted
+    if (!this.email) return;   // guests don't post scores
     for (const d of [DateUK.add(App.today, -1), App.today]) {
       const day = S.days[d];
       if (!day || !day.done || day.synced) continue;
@@ -3144,7 +3179,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, friendNames:{}, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, friendNames:{}, acct:{ step:'email', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -3365,6 +3400,7 @@ function rankCardHTML(){
   const r = rankFor(App.today);
   if (DEV.on) return `<p class="label">Today’s ranking</p><p class="rk-sub">Rankings are off in the developer sandbox.</p>`;
   if (!Backend.on) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Global rankings appear when the game is online.</p>`;
+  if (!Backend.email) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Add your email to post your score and join the leaderboards.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">Join the leaderboards</button>`;
   if (!r) return `<p class="label">Today’s ranking</p><p class="rk-sub">${App.rankBusy ? 'Counting everyone’s scores…' : 'Couldn’t load today’s ranking.'}</p>${App.rankBusy ? '' : '<button class="link" data-act="rank">Try again</button>'}`;
   if (r.rank === null) return `<p class="label">Today’s ranking</p><p class="rk-sub">Posting your score… <button class="link" data-act="rank">Refresh</button></p>`;
   const w = rankWords(r), max = Math.max(1, ...r.buckets), mine = Math.min(14, Math.floor(r.score / 500));
@@ -3376,7 +3412,7 @@ function rankCardHTML(){
     ${dist}`;
 }
 async function loadRank(force){
-  if (!Backend.on || DEV.on || App.rankBusy) return;
+  if (!Backend.on || DEV.on || App.rankBusy || !Backend.email) return;
   const day = S.days[App.today]; if (!day || !day.done) return;
   const have = rankFor(App.today);
   if (have && !force && Date.now() - have.at < 30000) return;
@@ -3640,6 +3676,32 @@ async function loadFriendNames(){
   } catch(e){}
 }
 
+/* ---- Account: verified email ---- */
+function accountHTML(){
+  if (Backend.email) return `<p class="small">Signed in as <b>${esc(Backend.email)}</b>. Your scores and progress follow this email to any device: just enter it there too.</p>`;
+  const A = App.acct;
+  if (A.step === 'code') return `<form id="codeform" class="stack" novalidate>
+      <p class="small">We’ve emailed <b>${esc(A.email)}</b>. Type the code from the email here, or tap the link in it on this device. Check your spam folder if it isn’t there in a minute.</p>
+      <div class="formrow"><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code from the email" aria-label="Code from the email"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Verify</button></div>
+      <div class="btnrow"><button class="btn btn-ghost" type="button" data-act="acctcheck">I tapped the link</button><button class="btn btn-ghost" type="button" data-act="acctback">Use a different email</button></div>
+    </form>`;
+  return `<form id="acctform" class="stack" novalidate>
+      <label class="label" for="acctemail">Your email</label>
+      <div class="formrow"><input id="acctemail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(A.email)}"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Send code</button></div>
+      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in.</p>
+    </form>`;
+}
+// After verifying: bring in this profile's cloud save (it may have been made on another device) and post today's score
+async function finishSignIn(){
+  App.acct = { step:'email', email:'', type:'', busy:false };
+  try { const remote = await Cloud.load(); if (remote) { S = sanitize(mergeStates(S, remote)); Store.write(S); } } catch(e){}
+  save(); App.rank = null;
+  try { await Backend.sync(); } catch(e){}
+  toast(`You’re in as ${Backend.email}.`, 3500);
+  render(false);
+  if (App.view === 'settings') loadFriendNames();
+}
+
 /* ---- Leaderboards ----
    Four boards: everyone or just you and your friends, for today's puzzle or added up over every day played. */
 const BOARD_LIMIT = 50;
@@ -3651,6 +3713,14 @@ const BOARDS = {
 };
 const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
 function viewBoard(){
+  if (Backend.on && !DEV.on && !Backend.email) return `<section class="stack">
+    <h1 class="label" tabindex="-1">Leaderboards</h1>
+    <div class="px card stack">
+      <p class="label">Join the leaderboards</p>
+      <p class="small">Add your email to post your daily scores and see the Daily, All-time and Friends boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
+      ${accountHTML()}
+    </div>
+  </section>`;
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today];
   const tabs = Object.keys(BOARDS).map(k =>
     `<button class="tab" role="tab" aria-selected="${kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('');
@@ -3689,7 +3759,7 @@ function demoBoard(){
   return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
 async function loadBoard(){
-  if (!Backend.on || DEV.on || App.view !== 'board') return;
+  if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.email) return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
   try {
@@ -3774,9 +3844,11 @@ function viewSettings(){
         <form id="friendform" novalidate><label class="label" for="fcode">Add a friend's code</label>
           <div class="formrow" style="margin-top:8px"><input id="fcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters"><button class="btn btn-sky" type="submit">Add</button></div></form>
         ${friends ? `<ul class="friends">${friends}</ul>` : '<p class="small muted">No friends added yet.</p>'}
-        <form id="emailform" novalidate><label class="label" for="email">Keep your profile and purchases across devices</label>
-          <div class="formrow" style="margin-top:8px"><input id="email" type="email" placeholder="you@example.com" autocomplete="email"></div>
-          <div class="btnrow" style="margin-top:8px"><button class="btn btn-ghost" type="submit" data-mode="link">Link email</button><button class="btn btn-ghost" type="submit" data-mode="signin">Sign in by email</button></div></form>
+      </div>
+      <div class="px card stack">
+        <p class="label">Your email</p>
+        ${Backend.email ? '' : '<p class="small">Needed for the leaderboards. One profile per email, and your progress follows you to any device.</p>'}
+        ${accountHTML()}
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
@@ -3988,6 +4060,8 @@ function onClick(e){
     case 'skip': Meter.skip(); break;
     case 'share': share(shareDailyText()); break;
     case 'rank': loadRank(true); break;
+    case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
+    case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
     case 'endless': App.endFresh = false; if (S.run && S.run.over) S.run = null; go('endless'); break;
     case 'startrun': if (!isPremium() && !freeRunLeft()) { openPay(); break; } S.run = S.run && !S.run.over ? S.run : null; startRun(); break;
@@ -4086,11 +4160,25 @@ async function onSubmit(e){
     S.friends.push(c);
     save(); toast(name ? `${name} added as a friend.` : 'Friend added.'); render(false); return;
   }
-  if (f.id === 'emailform') {
-    const email = $('#email').value.trim(), mode = e.submitter && e.submitter.dataset.mode;
+  if (f.id === 'acctform') {
+    const email = $('#acctemail').value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast('Enter a valid email address.');
-    try { if (mode === 'signin') await Backend.magicLink(email); else await Backend.linkEmail(email); toast('Check your inbox for a link.', 4000); }
-    catch(err) { toast('Couldn’t do that: ' + err.message, 4000); }
+    App.acct = { step:'email', email, type:'', busy:true }; render(false);
+    try { const type = await Backend.sendCode(email); App.acct = { step:'code', email, type, busy:false }; }
+    catch(err) { App.acct.busy = false; toast(/rate limit|security purposes|seconds/i.test(err.message) ? 'Too many emails just now. Wait a minute, then try again.' : /is invalid/i.test(err.message) ? 'That email address doesn’t look right. Check it and try again.' : 'Couldn’t send the email: ' + err.message, 4500); }
+    render(false); if ($('#otp')) $('#otp').focus();
+    return;
+  }
+  if (f.id === 'codeform') {
+    const code = $('#otp').value.replace(/\D/g, '');
+    if (code.length < 6) return toast('Type the code from the email (just the numbers).');
+    App.acct.busy = true; render(false);
+    try {
+      if (await Backend.verifyCode(App.acct.email, App.acct.type, code)) return finishSignIn();
+      toast('That didn’t verify. Ask for a new code and try again.', 4000);
+    } catch(err) { toast(/expired|invalid/i.test(err.message) ? 'That code is wrong or has expired. Check it, or ask for a new one.' : 'Couldn’t verify: ' + err.message, 4500); }
+    App.acct.busy = false; render(false);
+    return;
   }
 }
 function tick(){
@@ -4121,7 +4209,9 @@ async function boot(){
   if (!local) local = await Store.idbGet();
   S = sanitize(local);
   App.today = DateUK.today();
-  if (Backend.on) Backend.takeHash();
+  const hashNote = Backend.on ? Backend.takeHash() : '';
+  if (Backend.on) Backend.email = Store.get(CONFIG.STORAGE_KEY + ':email') || '';
+  if (hashNote) setTimeout(() => toast(hashNote, 5000), 600);
   Theme.apply();
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
@@ -4138,6 +4228,7 @@ async function boot(){
   });
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if ($('#meter') && !Meter.running && Meter.st) { const s = Meter.st; Meter.start($('#meter'), App.view === 'endless' ? S.run.q : BY_ID.get(S.days[App.today].ids[App.cur]), s.a, false); } }, 150); });
   window.addEventListener('storage', e => { if (e.key === CONFIG.STORAGE_KEY) { S = sanitize(Store.read()); render(false); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Backend.on && !Backend.email && App.acct.step === 'code') Backend.loadUser().then(e => e && finishSignIn()).catch(() => {}); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (App.view === 'play' || App.view === 'endless') render(false); } });
   save();
   render(false);
@@ -4145,6 +4236,7 @@ async function boot(){
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
+  if (Backend.on) { const had = Backend.email; await Backend.loadUser().catch(() => {}); if (had !== Backend.email) render(false); }
   if (Cloud.kind) {
     const remote = await Cloud.load();
     if (remote) { const before = JSON.stringify(S); S = sanitize(mergeStates(S, remote)); if (JSON.stringify(S) !== before) { Store.write(S); if (!['play','endless'].includes(App.view) || !keyTarget()) render(false); } }
