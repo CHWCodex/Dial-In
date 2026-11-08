@@ -23,6 +23,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DIAL IN">
 <link rel="canonical" href="https://playdialin.com/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"DIAL IN","alternateName":"DIAL IN: The Daily Numbers Game","url":"https://playdialin.com/","description":"Seven questions a day. Every answer is a number. Spin the dial and see how close you get.","image":"https://playdialin.com/icons/og-image.png","genre":["Trivia","Puzzle","Quiz"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en-GB","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}</script>
 <link rel="preconnect" href="https://jfutntnbxwhstqgrwskj.supabase.co" crossorigin>
 <link rel="preload" href="fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/bungee-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -285,6 +286,24 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 /* ---------- 10. Results, stats, boards ---------- */
 .bigscore{font:var(--fw-d) var(--fs-big)/1 var(--font-num);text-align:center;margin:10px 0 4px;text-shadow:var(--big-ts);font-variant-numeric:tabular-nums}
 .bigscore small{font-size:.4em;color:var(--text-2);text-shadow:none}
+/* Dial Ball bonus round */
+.pin-earn{list-style:none;margin:12px 0 8px;padding:0;display:grid;gap:4px;text-align:left}
+.pin-earn li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:8px;padding:6px 10px;background:var(--inset);border-radius:var(--r-sm);border-left:5px solid var(--tc);animation:var(--k-tile) .36s var(--e-pop) both;animation-delay:calc(var(--i) * 110ms + 150ms)}
+.pin-earn .n{color:var(--text-2);font:var(--fw-d) 13px var(--font-num)}
+.pin-earn .v{font-weight:800;font-size:14px}
+.pin-earn .b{color:var(--tc);letter-spacing:2px;font-size:15px}
+.pin-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pin-legend span{padding:6px 10px;border-radius:var(--r-sm);background:var(--inset);border:2px solid var(--tc);font-size:13px}
+.pin-legend b{color:var(--tc);font:var(--fw-d) 16px var(--font-num);margin-right:4px}
+.pin-hud{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;font-weight:700}
+.pin-hud b{font:var(--fw-d) 20px var(--font-num);color:var(--gold)}
+.pin-hud small{color:var(--text-2)}
+.pin-left{color:var(--gold);letter-spacing:1px;font-size:12px;text-align:center;flex:1;overflow:hidden;white-space:nowrap}
+canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620));aspect-ratio:400/620;margin:0 auto;border-radius:22px;background:#0a0520;touch-action:none;cursor:pointer;box-shadow:0 0 0 3px #0a0520,0 0 24px rgba(255,61,127,.25)}
+.pinwrap{gap:10px}
+.pin-sum{margin:2px 0 4px;color:var(--text-2);font-weight:700}
+.pin-sum b{color:var(--gold);font:var(--fw-d) 1.25em var(--font-num)}
+.pin-sum.pop{animation:var(--k-tile) .5s var(--e-pop) both .3s}
 .pb{display:block;text-align:center;margin-top:10px;font:var(--fw-d) var(--fs-label) var(--font-display);color:var(--special);animation:blink 1s steps(2) 4;text-transform:var(--tt)}
 .rows{list-style:none;margin:0;padding:0}
 .rows li+li{margin-top:6px}
@@ -1714,7 +1733,171 @@ const RAW_QUESTIONS = [
   ["x422","Records",3,"Roughly what top speed did Usain Bolt reach in his 100 m world record, in km/h?",44.7,"km/h","About 44.7 km/h. 44 to 45 counts as exact.","World Athletics biomechanics report","Global",null,[44,45]],
   ["x423","Records",3,"The coldest temperature ever recorded on Earth was how many degrees below 0 °C?",89.2,"°C below zero","−89.2 °C at Vostok Station, Antarctica, in 1983.","World Meteorological Organization","Antarctica",null,[89,89.2]],
   ["x424","Records",3,"The UK’s coldest recorded temperature was how many degrees below 0 °C?",27.2,"°C below zero","−27.2 °C, recorded three times in the Scottish Highlands.","Met Office","UK"],
-  ["x425","Records",3,"What is the land speed record set by Thrust SSC in 1997, in mph?",763,"mph","763 mph, the first car to break the sound barrier.","FIA","USA"]
+  ["x425","Records",3,"What is the land speed record set by Thrust SSC in 1997, in mph?",763,"mph","763 mph, the first car to break the sound barrier.","FIA","USA"],
+  // ==== Pack Y (y001–y141): added November 2026, in the daily puzzle from 23 March 2027 ====
+  // ---- Money ----
+  ["y001","Money",1,"Before 1971, how many shillings made a pound?",20,"shillings","20 shillings, each worth 12 old pence.","Royal Mint","UK"],
+  ["y002","Money",2,"In what year was the round £1 coin introduced?",1983,"year","April 1983, replacing the £1 note in England and Wales.","Royal Mint","UK"],
+  ["y003","Money",2,"In what year did the 12-sided £1 coin enter circulation?",2017,"year","28 March 2017.","Royal Mint","UK"],
+  ["y004","Money",3,"In what year was VAT introduced in the UK?",1973,"year","1 April 1973, when the UK joined the EEC.","HMRC","UK"],
+  ["y005","Money",1,"What has the standard rate of UK VAT been since 2011, in percent?",20,"%","20% since 4 January 2011.","HMRC","UK"],
+  ["y006","Money",2,"In what year was the first polymer £5 note, featuring Winston Churchill, issued?",2016,"year","13 September 2016.","Bank of England","UK"],
+  ["y007","Money",3,"In what year did the London Stock Exchange’s ‘Big Bang’ deregulation happen?",1986,"year","27 October 1986.","London Stock Exchange","UK"],
+  ["y008","Money",2,"In British slang, how many pounds is ‘a monkey’?",500,"pounds","A monkey is £500.","Oxford English Dictionary","UK"],
+  ["y009","Money",3,"In what year did Apple become the first US company valued at $1 trillion?",2018,"year","2 August 2018.","Apple / Nasdaq","USA"],
+  // ---- Politics ----
+  ["y010","Politics",1,"In what year was the UK’s referendum on leaving the EU?",2016,"year","23 June 2016.","Electoral Commission","UK"],
+  ["y011","Politics",3,"What percentage voted Leave in the 2016 EU referendum?",51.9,"%","51.89% Leave to 48.11% Remain. 51.5 to 52 counts as exact.","Electoral Commission","UK",null,[51.5,52]],
+  ["y012","Politics",1,"In what year was the United Nations founded?",1945,"year","24 October 1945.","United Nations","Global"],
+  ["y013","Politics",3,"In what year was the Treaty of Rome, creating the EEC, signed?",1957,"year","25 March 1957.","European Union","Europe"],
+  ["y014","Politics",2,"In what year did the UK join the EEC?",1973,"year","1 January 1973.","UK Parliament","UK"],
+  ["y015","Politics",2,"What is the minimum age to become President of the United States?",35,"years old","Set by Article II of the US Constitution.","US Constitution","USA"],
+  ["y016","Politics",2,"What is the longest a UK Parliament can last before an election, in years?",5,"years","Five years from its first meeting.","UK Parliament","UK"],
+  ["y017","Politics",2,"In what year did the modern Scottish Parliament first meet?",1999,"year","12 May 1999.","Scottish Parliament","UK"],
+  ["y018","Politics",2,"In what year was the Scottish independence referendum?",2014,"year","18 September 2014; 55.3% voted No.","Electoral Commission","UK"],
+  ["y019","Politics",3,"How many years did Margaret Thatcher serve as Prime Minister?",11,"years","May 1979 to November 1990.","GOV.UK","UK"],
+  // ---- Language ----
+  ["y020","Language",1,"How many syllables does a traditional haiku have?",17,"syllables","Three lines of 5, 7 and 5.","Poetry Foundation","Japan"],
+  ["y021","Language",1,"How many lines does a limerick have?",5,"lines","Rhyming AABBA.","Poetry Foundation","Global"],
+  ["y022","Language",2,"In what year was Samuel Johnson’s Dictionary of the English Language published?",1755,"year","15 April 1755.","British Library","UK"],
+  ["y023","Language",3,"In what year was the first full edition of the Oxford English Dictionary completed?",1928,"year","Begun in 1884, it took 44 years to finish.","Oxford University Press","UK"],
+  ["y024","Language",3,"How many letters are in ‘pneumonoultramicroscopicsilicovolcanoconiosis’?",45,"letters","Often called the longest word in major English dictionaries.","Oxford English Dictionary","Global"],
+  // ---- Aviation ----
+  ["y025","Aviation",3,"Roughly how many hours did Concorde take from London to New York?",3.5,"hours","Usually about three and a half hours. 3 to 3.75 counts as exact.","British Airways","UK",null,[3,3.75]],
+  ["y026","Aviation",2,"In what year did the Airbus A380 enter passenger service?",2007,"year","With Singapore Airlines in October 2007.","Airbus","Global"],
+  ["y027","Aviation",2,"In what year did Amelia Earhart fly solo across the Atlantic?",1932,"year","20 to 21 May 1932, landing in Northern Ireland.","Smithsonian","USA"],
+  ["y028","Aviation",2,"In what year did Charles Lindbergh fly solo from New York to Paris?",1927,"year","20 to 21 May 1927 in the Spirit of St. Louis.","Smithsonian","USA"],
+  ["y029","Aviation",3,"Roughly what is the wingspan of an Airbus A380, in metres?",79.8,"metres","79.75 m. 79 to 80 counts as exact.","Airbus","Global",null,[79,80]],
+  ["y030","Aviation",2,"In what year did the Red Arrows fly their first display season?",1965,"year","The RAF Aerobatic Team was formed in 1964 and first displayed in 1965.","Royal Air Force","UK"],
+  ["y031","Aviation",3,"Roughly what is the speed of sound at sea level, in mph?",767,"mph","About 767 mph at 20 °C. 760 to 770 counts as exact.","NASA","Global",null,[760,770]],
+  // ---- Records ----
+  ["y032","Records",3,"How many days did Valeri Polyakov spend on the longest single spaceflight?",437,"days","437 days on the Mir space station, 1994 to 1995.","Guinness World Records","Space"],
+  ["y033","Records",2,"How old was Jeanne Calment, the oldest verified person ever, when she died?",122,"years","122 years and 164 days, in 1997.","Guinness World Records","France"],
+  ["y034","Records",3,"How many days of play did the 1939 ‘Timeless Test’ between South Africa and England have?",10,"days","Ten days of play in Durban, and it was still drawn because England had to catch their boat home.","ESPNcricinfo","South Africa"],
+  // ---- Life ----
+  ["y035","Life",2,"How many fluid ounces are in a UK pint?",20,"fl oz","20 imperial fl oz (a US pint is 16 US fl oz).","Weights and Measures Act","UK"],
+  ["y036","Life",3,"Roughly how many grams are in an ounce?",28.35,"grams","28.35 g. 28 to 28.5 counts as exact.","NIST","Global",null,[28,28.5]],
+  ["y037","Life",2,"How many hours ahead of UK winter time (GMT) is Japan?",9,"hours","Japan is GMT+9 and doesn’t use daylight saving.","Time and Date","Japan"],
+  ["y038","Life",2,"How many time zones does the mainland USA (the lower 48) span?",4,"time zones","Eastern, Central, Mountain and Pacific.","NIST","USA"],
+  ["y039","Life",2,"In what year was the UK’s 999 emergency number introduced?",1937,"year","In London on 30 June 1937, the world’s first emergency number.","BT Archives","UK"],
+  ["y040","Life",1,"How many digits are in a UK bank sort code?",6,"digits","Written as three pairs, like 12-34-56.","Pay.UK","UK"],
+  ["y041","Life",1,"How many digits are in a UK mobile number, including the leading 0?",11,"digits","07 followed by nine more digits.","Ofcom","UK"],
+  ["y042","Life",2,"How many baby (milk) teeth does a child usually have?",20,"teeth","20 primary teeth, replaced by 32 adult teeth.","NHS","Global"],
+  ["y043","Life",1,"How many days are in a fortnight?",14,"days","Two weeks: ‘fourteen nights’.","Oxford English Dictionary","UK"],
+  ["y044","Life",3,"How much does the 12-sided £1 coin weigh, in grams?",8.75,"grams","8.75 g.","Royal Mint","UK","pct"],
+  ["y045","Life",2,"In what year was the first commercial Christmas card sent, by Henry Cole?",1843,"year","1843, designed by John Callcott Horsley.","V&A","UK"],
+  ["y046","Life",3,"In what year was the Highway Code first published?",1931,"year","April 1931, priced one penny.","Department for Transport","UK"],
+  ["y047","Life",3,"In what year were breathalysers introduced on UK roads?",1967,"year","October 1967.","Department for Transport","UK"],
+  ["y048","Life",3,"What is the drink-drive limit in England and Wales, in milligrams of alcohol per 100 ml of blood?",80,"mg","80 mg; Scotland lowered its limit to 50 mg in 2014.","GOV.UK","UK"],
+  ["y049","Life",3,"How many people sit on a criminal jury in Scotland?",15,"jurors","15 jurors.","Scottish Courts and Tribunals Service","UK"],
+  ["y050","Life",3,"In what year did British Summer Time begin?",1916,"year","21 May 1916, during the First World War.","Royal Museums Greenwich","UK"],
+  ["y051","Life",2,"How many bank holidays do England and Wales usually have a year?",8,"days","Eight in a normal year.","GOV.UK","UK"],
+  // ---- Science ----
+  ["y052","Science",3,"Water freezes at roughly how many kelvin?",273.15,"K","273.15 K. 273 to 273.15 counts as exact.","NIST","Global",null,[273,273.15]],
+  ["y053","Science",3,"In what year was the Human Genome Project declared complete?",2003,"year","April 2003, 50 years after DNA’s structure was published.","National Human Genome Research Institute","Global"],
+  ["y054","Science",3,"At roughly what temperature does iron melt, in °C?",1538,"°C","1,538 °C.","Royal Society of Chemistry","Global"],
+  ["y055","Science",3,"What is normal air pressure at sea level, in millibars?",1013,"mb","1013.25 mb. 1013 to 1013.25 counts as exact.","Met Office","Global",null,[1013,1013.25]],
+  ["y056","Science",3,"Roughly what is Earth’s axial tilt, in degrees?",23.4,"degrees","About 23.4°. 23.4 to 23.5 counts as exact.","NASA","Global",null,[23.4,23.5]],
+  ["y057","Science",3,"At roughly what temperature does ethanol boil, in °C?",78,"°C","78.4 °C. 78 to 79 counts as exact.","Royal Society of Chemistry","Global",null,[78,79]],
+  ["y058","Science",3,"Roughly how fast does sound travel through water, in metres per second?",1480,"m/s","About 1,480 m/s, over four times faster than in air. 1,450 to 1,500 counts as exact.","NOAA","Global",null,[1450,1500]],
+  ["y059","Science",2,"What is the atomic number of uranium?",92,"","Uranium, U, has 92 protons.","Royal Society of Chemistry","Global"],
+  // ---- Space ----
+  ["y060","Space",3,"Roughly how many minutes does the ISS take to orbit Earth?",92,"minutes","About 92 minutes. 90 to 93 counts as exact.","NASA","Space",null,[90,93]],
+  ["y061","Space",2,"In what year was Pluto reclassified as a dwarf planet?",2006,"year","24 August 2006, by the International Astronomical Union.","IAU","Space"],
+  ["y062","Space",3,"Roughly how many hours long is a day on Jupiter?",10,"hours","About 9 hours 56 minutes, the shortest day of any planet. 9.8 to 10 counts as exact.","NASA","Space","pct",[9.8,10]],
+  ["y063","Space",3,"How many Earth days does Venus take to spin once on its axis?",243,"days","243 days, longer than its 225-day year.","NASA","Space"],
+  ["y064","Space",3,"Roughly how many Earth years does Saturn take to orbit the Sun?",29.5,"years","About 29.5 years. 29 to 30 counts as exact.","NASA","Space",null,[29,30]],
+  ["y065","Space",3,"Roughly how many trillion kilometres are in a light year?",9.46,"trillion km","About 9.46 trillion km. 9.4 to 9.5 counts as exact.","NASA","Space","pct",[9.4,9.5]],
+  // ---- Animals ----
+  ["y066","Animals",3,"Roughly how much does an ostrich egg weigh, in kilograms?",1.4,"kg","About 1.4 kg. 1.2 to 1.6 counts as exact.","ZSL","Africa","pct",[1.2,1.6]],
+  ["y067","Animals",3,"Roughly how much does a newborn giant panda weigh, in grams?",100,"grams","About 100 g, around 1/900th of its mother. 90 to 130 counts as exact.","WWF","China",null,[90,130]],
+  ["y068","Animals",2,"How many days is a typical human pregnancy, counted from the last period?",280,"days","About 280 days, or 40 weeks.","NHS","Global"],
+  ["y069","Animals",3,"How many muscles control each of a cat’s ears?",32,"muscles","32 muscles, letting them swivel 180°.","International Cat Care","Global"],
+  ["y070","Animals",3,"How many chambers does a frog’s heart have?",3,"chambers","Two atria and one ventricle.","Natural History Museum","Global"],
+  ["y071","Animals",3,"How many days is a pig’s pregnancy?",114,"days","About 114 days: ‘three months, three weeks and three days’.","AHDB","Global",null,[112,116]],
+  ["y072","Animals",2,"How many teats does a cow have?",4,"teats","Four.","AHDB","Global"],
+  // ---- Nature ----
+  ["y073","Nature",2,"In what year did the ‘Great Storm’ hit south-east England?",1987,"year","15 to 16 October 1987; about 15 million trees were lost.","Met Office","UK"],
+  ["y074","Nature",2,"How many points do the antlers of a ‘royal’ stag have?",12,"points","Twelve points; fourteen makes an ‘imperial’.","British Deer Society","UK"],
+  // ---- Body ----
+  ["y075","Body",3,"Roughly how many litres of air can adult lungs hold in total?",6,"litres","About 6 litres. 5 to 6 counts as exact.","British Lung Foundation","Global",null,[5,6]],
+  ["y076","Body",2,"Roughly how many days does a red blood cell live?",120,"days","About 120 days.","NHS Blood and Transplant","Global"],
+  ["y077","Body",2,"How many lobes does the right human lung have?",3,"lobes","Three; the left has two, leaving room for the heart.","British Lung Foundation","Global"],
+  // ---- Food ----
+  ["y078","Food",3,"In what year did the first Greggs shop open, in Gosforth?",1951,"year","1951, in Newcastle upon Tyne.","Greggs","UK"],
+  ["y079","Food",2,"How many grams of free sugar a day does the NHS say adults should not exceed?",30,"grams","30 g, about seven sugar cubes.","NHS","UK"],
+  ["y080","Food",2,"How many standard bottles of wine does a magnum hold?",2,"bottles","1.5 litres, two 75 cl bottles.","Wine & Spirit Trade Association","Global"],
+  ["y081","Food",3,"In what year was Marmite first made?",1902,"year","1902 in Burton upon Trent.","Unilever","UK"],
+  ["y082","Food",3,"In what year were Jaffa Cakes launched?",1927,"year","1927, by McVitie and Price.","McVitie’s","UK"],
+  // ---- Tech ----
+  ["y083","Tech",2,"In what year did Amazon start selling books online?",1995,"year","July 1995.","Amazon","USA"],
+  ["y084","Tech",2,"How many characters could a single original SMS hold?",160,"characters","160 seven-bit characters.","GSM standard","Global"],
+  ["y085","Tech",2,"In what year was the first Raspberry Pi released?",2012,"year","February 2012, from the Cambridge-based Raspberry Pi Foundation.","Raspberry Pi Foundation","UK"],
+  ["y086","Tech",2,"In what year was the Nokia 3310 released?",2000,"year","September 2000.","Nokia","Finland"],
+  ["y087","Tech",3,"In what year was the first .com domain registered?",1985,"year","symbolics.com, 15 March 1985.","Verisign","USA"],
+  ["y088","Tech",2,"In what year did the ZX Spectrum launch?",1982,"year","April 1982.","Centre for Computing History","UK"],
+  ["y089","Tech",3,"How many kilobytes of RAM did the cheapest original ZX Spectrum have?",16,"KB","16 KB; the 48 KB model cost more.","Centre for Computing History","UK"],
+  ["y090","Tech",3,"In what year did Netflix launch in the UK?",2012,"year","January 2012.","Netflix","UK"],
+  ["y091","Tech",2,"How many pixels wide is a 4K UHD TV picture?",3840,"pixels","3,840 × 2,160.","ITU","Global"],
+  ["y092","Tech",2,"How many bits long is an IPv4 address?",32,"bits","32 bits, about 4.3 billion addresses.","IETF","Global"],
+  ["y093","Tech",3,"In what year did IBM’s Deep Blue beat Garry Kasparov at chess?",1997,"year","May 1997, in a six-game rematch.","IBM","USA"],
+  ["y094","Tech",3,"In what year did AlphaGo beat Lee Sedol at Go?",2016,"year","March 2016, 4 games to 1.","Google DeepMind","South Korea"],
+  ["y095","Tech",3,"How many characters did the original ASCII code define?",128,"characters","128, using seven bits.","ANSI","Global"],
+  ["y096","Tech",2,"In what year did the BBC Micro launch?",1981,"year","December 1981.","Centre for Computing History","UK"],
+  ["y097","Tech",2,"In what year did BBC iPlayer launch?",2007,"year","December 2007.","BBC","UK"],
+  ["y098","Tech",3,"How many bits long is an IPv6 address?",128,"bits","128 bits.","IETF","Global"],
+  // ---- History ----
+  ["y099","History",3,"In what year did building start on Hadrian’s Wall?",122,"year","Around AD 122.","English Heritage","UK"],
+  ["y100","History",2,"In what year did the Suez Crisis happen?",1956,"year","October to November 1956.","National Archives","Egypt"],
+  ["y101","History",3,"In what year did the Wars of the Roses begin?",1455,"year","First Battle of St Albans, 1455.","English Heritage","UK"],
+  ["y102","History",3,"In what year was the Peasants’ Revolt?",1381,"year","June 1381.","National Archives","UK"],
+  // ---- Geography ----
+  ["y103","Geography",2,"How many states does Australia have?",6,"states","Six states plus mainland territories.","Australian Government","Australia"],
+  ["y104","Geography",2,"How many National Parks does England have?",10,"parks","From the Peak District (1951) to the South Downs (2010).","National Parks UK","UK"],
+  ["y105","Geography",3,"Roughly how long is the Suez Canal, in kilometres?",193,"km","About 193 km. 190 to 195 counts as exact.","Suez Canal Authority","Egypt",null,[190,195]],
+  ["y106","Geography",3,"Roughly how big is Wales, in square kilometres?",20779,"km²","About 20,779 km², the unit behind ‘an area the size of Wales’.","Ordnance Survey","UK",null,[20700,20800]],
+  ["y107","Geography",2,"How many US state names begin with ‘New’?",4,"states","New Hampshire, New Jersey, New Mexico and New York.","US Census Bureau","USA"],
+  ["y108","Geography",3,"Roughly how wide is the Strait of Dover at its narrowest, in kilometres?",33,"km","About 33 km. 32 to 34 counts as exact.","Port of Dover","UK",null,[32,34]],
+  ["y109","Geography",3,"How many cantons does Switzerland have?",26,"cantons","26 cantons.","Swiss Federal Administration","Switzerland"],
+  // ---- Landmarks ----
+  ["y110","Landmarks",1,"In what year did the London Eye open to the public?",2000,"year","March 2000.","London Eye","UK"],
+  ["y111","Landmarks",2,"In what year did the new Wembley Stadium open?",2007,"year","March 2007.","Wembley Stadium","UK"],
+  ["y112","Landmarks",3,"In what year did the Forth Bridge open?",1890,"year","4 March 1890.","Network Rail","UK"],
+  ["y113","Landmarks",2,"In what year was the Empire State Building completed?",1931,"year","Opened 1 May 1931, after just over a year of building.","Empire State Building","USA"],
+  ["y114","Landmarks",3,"In what year did building start on the Leaning Tower of Pisa?",1173,"year","August 1173; it began to lean during construction.","Opera della Primaziale Pisana","Italy"],
+  // ---- Sport ----
+  ["y115","Sport",2,"How many events make up a heptathlon?",7,"events","Seven events over two days.","World Athletics","Global"],
+  ["y116","Sport",1,"How many darts does a player throw in one turn?",3,"darts","Three darts per visit.","PDC","Global"],
+  ["y117","Sport",3,"How heavy is a men’s shot put, in kilograms?",7.26,"kg","7.26 kg (16 lb).","World Athletics","Global","pct"],
+  ["y118","Sport",2,"In what year did England win the men’s Rugby World Cup?",2003,"year","22 November 2003, Jonny Wilkinson’s drop goal in Sydney.","World Rugby","Australia"],
+  ["y119","Sport",3,"How many minutes of regulation play are there in an NBA game?",48,"minutes","Four 12-minute quarters.","NBA","USA"],
+  ["y120","Sport",2,"In what year did London first host the Olympic Games?",1908,"year","The 1908 Summer Olympics.","International Olympic Committee","UK"],
+  ["y121","Sport",2,"In what year did Andy Murray first win Wimbledon?",2013,"year","7 July 2013, the first British men’s champion since 1936.","AELTC","UK"],
+  ["y122","Sport",2,"How many players does a Gaelic football team field?",15,"players","15 a side.","GAA","Ireland"],
+  ["y123","Sport",2,"How long is an Olympic rowing course, in metres?",2000,"metres","2,000 m.","World Rowing","Global"],
+  ["y124","Sport",2,"In what year was the first Tour de France?",1903,"year","July 1903.","Tour de France","France"],
+  // ---- Film ----
+  ["y125","Film",3,"In what year was Casablanca released?",1942,"year","November 1942.","Warner Bros.","USA"],
+  ["y126","Film",3,"In what year was Hitchcock’s Psycho released?",1960,"year","June 1960.","BFI","USA"],
+  ["y127","Film",2,"How many actors have played James Bond in the official Eon films?",6,"actors","Connery, Lazenby, Moore, Dalton, Brosnan and Craig.","Eon Productions","UK"],
+  ["y128","Film",2,"In what year was the film The Wizard of Oz released?",1939,"year","August 1939.","MGM","USA"],
+  ["y129","Film",2,"In what year did Disney’s Snow White and the Seven Dwarfs premiere?",1937,"year","21 December 1937.","Disney","USA"],
+  // ---- TV ----
+  ["y130","TV",2,"In what year did Channel 4 launch?",1982,"year","2 November 1982.","Channel 4","UK"],
+  ["y131","TV",2,"How many questions did you need to answer to win the top prize on the original UK Who Wants to Be a Millionaire?",15,"questions","15 questions to £1 million.","ITV","UK"],
+  // ---- Music ----
+  ["y132","Music",2,"In what year did BBC Radio 1 launch?",1967,"year","30 September 1967.","BBC","UK"],
+  ["y133","Music",2,"In what year did Oasis release (What’s the Story) Morning Glory?",1995,"year","2 October 1995.","Official Charts Company","UK"],
+  ["y134","Music",3,"In what year was the first UK Singles Chart published?",1952,"year","14 November 1952, in the NME.","Official Charts Company","UK"],
+  ["y135","Music",2,"In what year did the UK last win Eurovision?",1997,"year","Katrina and the Waves, ‘Love Shine a Light’.","EBU","UK"],
+  ["y136","Music",2,"How many times has the UK won Eurovision?",5,"wins","1967, 1969 (shared), 1976, 1981 and 1997.","EBU","UK"],
+  // ---- Games ----
+  ["y137","Games",2,"How many properties can you buy on a classic Monopoly board?",28,"properties","22 streets, 4 stations and 2 utilities.","Hasbro","Global"],
+  ["y138","Games",2,"In what year did the Game Boy launch in Japan?",1989,"year","21 April 1989.","Nintendo","Japan"],
+  ["y139","Games",3,"How many cards are in a classic Uno deck?",108,"cards","108 cards.","Mattel","Global"],
+  // ---- Books ----
+  ["y140","Books",2,"In what year was The Hobbit published?",1937,"year","21 September 1937.","Tolkien Estate","UK"],
+  ["y141","Books",2,"In what year was Bram Stoker’s Dracula published?",1897,"year","26 May 1897.","British Library","UK"]
 ];
 const finishQ = q => Object.freeze(Object.assign(q, {
   scoring: q.scoring || (q.unit === 'year' ? 'year' : (Math.abs(q.answer) <= 12 ? 'abs' : 'pct')),
@@ -1737,7 +1920,8 @@ const fmtAns = (q, n) => isYearQ(q) && typeof n === 'number' && isFinite(n) ? St
    FUTURE start date and the new total, e.g. { from:'2027-01-01', size:700 }. */
 const SCHEDULE = [
   { from: '2026-10-26', size: 591 },
-  { from: '2026-10-29', size: 1016 }   // launch expansion pack (x001–x425)
+  { from: '2026-10-29', size: 1016 },  // launch expansion pack (x001–x425)
+  { from: '2027-03-23', size: 1157 }   // pack Y (y001–y141), starting the day after the launch cycle's last puzzle
 ];
 
 /* ----------------------------- DATES -------------------------------- */
@@ -1981,6 +2165,10 @@ function sanitize(raw){
       });
       const st = v.ids.map((_, i) => { const x = Array.isArray(v.st) ? Number(v.st[i]) : 0; return x > 0 ? x : null; });
       out.days[d] = { ids:v.ids.slice(), answers, st, done:answers.every(Boolean), synced:v.synced === true, doneAt:Number(v.doneAt) || 0 };
+      if (out.days[d].done && v.pin && typeof v.pin === 'object') {
+        const balls = ballsFor(out.days[d]), hits = (Array.isArray(v.pin.hits) ? v.pin.hits : []).slice(0, balls).map(h => Math.max(0, Math.min(PIN_MAX_PER_BALL, Math.round(Number(h) || 0))));
+        out.days[d].pin = { balls, used:Math.max(hits.length, Math.min(balls, Math.round(Number(v.pin.used) || 0))), hits, bonus:hits.reduce((a, b) => a + b, 0), done:v.pin.done === true || balls === 0 };
+      }
     }
   }
   const e = raw.endless || {};
@@ -2062,7 +2250,9 @@ function getDay(iso, create){
   if (!S.days[iso] && create) S.days[iso] = { ids: dailyIds(iso), answers: Array(7).fill(null), st: Array(7).fill(null), done:false, synced:false, doneAt:0 };
   return S.days[iso] || null;
 }
-const dayTotal = d => d.answers.reduce((t, a) => t + (a ? a.s : 0), 0);
+const dayBase = d => d.answers.reduce((t, a) => t + (a ? a.s : 0), 0);
+const dayBonus = d => d.pin ? d.pin.bonus : 0;
+const dayTotal = d => dayBase(d) + dayBonus(d);
 const displayName = () => S.player.name || ('Player-' + S.player.id.replace(/-/g,'').slice(0,4).toUpperCase());
 
 /* ----------------------------- STATS -------------------------------- */
@@ -2177,8 +2367,8 @@ const Backend = {
     if (!this.email) return;   // guests don't post scores
     for (const d of [DateUK.add(App.today, -1), App.today]) {
       const day = S.days[d];
-      if (!day || !day.done || day.synced) continue;
-      try { await this.rpc('submit_result', { p_date: d, p_question_ids: day.ids, p_guesses: day.answers.map(a => a.g) }); day.synced = true; save(); }
+      if (!day || !day.done || day.synced || !pinDone(day)) continue;
+      try { await this.rpc('submit_result', { p_date: d, p_question_ids: day.ids, p_guesses: day.answers.map(a => a.g), p_bonus: dayBonus(day) }); day.synced = true; save(); }
       catch(e) { if (/already submitted/i.test(e.message)) { day.synced = true; save(); } else if (d === App.today) throw e; }
     }
   },
@@ -3284,7 +3474,7 @@ function viewHome(){
   const day = S.days[App.today], st = getStats(App.today);
   const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
   const rs = done && S.rankSeen && S.rankSeen.d === App.today && S.rankSeen.players > 1 ? S.rankSeen : null;
-  const dStatus = done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
+  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
   const run = S.run && !S.run.over ? S.run : null;
   const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>${paywallOn() ? ' · unlocked' : ''}` : freeRunLeft() ? 'Free run available today' : `Unlock for ${CONFIG.PRICE_LABEL}`;
   const bStatus = MP.code ? `In room <b>${MP.code}</b>` : 'Up to 4 friends · room codes';
@@ -3295,7 +3485,7 @@ function viewHome(){
       <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p></div>
     <div class="modes">
       <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
-        <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
+        <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
       <button class="px mode m-unl" data-act="endless"><span class="mi">${icon('inf', 30)}</span>
         <span class="mt"><b>Unlimited</b><span>${eStatus}</span></span><span class="go">${!isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play'}</span></button>
       <button class="px mode m-battle" data-act="battle"><span class="mi">${icon('swords', 30)}</span>
@@ -3322,7 +3512,7 @@ function expireDaily(){
       day.answers[i] = { g:null, s:0, t:Date.now(), to:true }; changed = true;
     }
   });
-  if (changed) { if (day.answers.every(Boolean)) { day.done = true; day.doneAt = Date.now(); } save(); }
+  if (changed) { if (day.answers.every(Boolean)) finishDay(day); save(); }
   return changed;
 }
 function viewPlay(){
@@ -3335,7 +3525,7 @@ function viewPlay(){
   const fresh = App.fresh === i;
   const total = dayTotal(day), shown = fresh && a ? total - a.s : total;
   const body = !a ? entryHTML(q)
-    : `${revealHTML(q, a, fresh)}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? 'See my results' : 'Next question →'}</button>`;
+    : `${revealHTML(q, a, fresh)}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
   return `<section class="play">
     <ol class="pips" aria-label="Progress">${pips}</ol>
     ${qcardHTML(q, `Q<b>${i+1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
@@ -3352,19 +3542,374 @@ function submitDaily(timedOut){
   $('#toast').classList.remove('on');
   const q = BY_ID.get(day.ids[i]);
   day.answers[i] = v === null ? { g:null, s:0, t:Date.now(), to:true } : { g:v, s:Scoring.points(q, v), t:Date.now() };
-  if (day.answers.every(Boolean)) { day.done = true; day.doneAt = Date.now(); }
+  if (day.answers.every(Boolean)) finishDay(day);
   save(); App.entry = ''; App.fresh = i; render(); App.busy = false;
-  if (day.done && Backend.on) Backend.sync().catch(() => toast('Score saved here. Will retry posting it to the leaderboard.'));
+  if (day.done && pinDone(day) && Backend.on) Backend.sync().catch(() => toast('Score saved here. Will retry posting it to the leaderboard.'));
 }
 function nextDaily(){
   const day = getDay(App.today, true);
-  if (day.done) { go('results'); return; }
+  if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; }
   App.cur = firstOpen(day); App.entry = ''; go('play');
+}
+
+/* ---------------------------- BONUS ROUND ----------------------------
+   After question 7 the day ends with a pinball machine whose sinkholes are
+   little dials. Balls come from the answers (BALLS_FOR). The player only
+   picks when to launch each ball while the aim sweeps left and right;
+   flippers and bumpers run themselves. Points from every ball add to the
+   day's score (the server caps the bonus at PIN_MAX_PER_BALL per ball). */
+const BALLS_FOR = { 1000:3, 900:2, 750:2, 600:1, 400:1, 200:1, 0:0 };
+const PIN_MAX_PER_BALL = 400;
+const ballsFor = day => day.answers.reduce((t, a) => t + (a ? BALLS_FOR[a.s] || 0 : 0), 0);
+const pinDone = day => !day.pin || day.pin.done;
+function finishDay(day){
+  day.done = true; day.doneAt = Date.now();
+  const n = ballsFor(day);
+  day.pin = { balls:n, used:0, bonus:0, hits:[], done:n === 0 };
+}
+
+const Pinball = {
+  W:400, H:620, BR:9, G:900, T_MAX:16, BUMP:5, BUMP_CAP:30,
+  holes:[
+    { x:200, y:92,  r:19, v:250, t:1000 },
+    { x:104, y:196, r:21, v:100, t:750 }, { x:296, y:196, r:21, v:100, t:750 },
+    { x:200, y:318, r:23, v:50,  t:400 },
+    { x:70,  y:410, r:23, v:25,  t:200 }, { x:330, y:410, r:23, v:25,  t:200 }
+  ],
+  bumpers:[ { x:145, y:132, r:17 }, { x:255, y:132, r:17 }, { x:200, y:205, r:17 }, { x:118, y:300, r:15 }, { x:282, y:300, r:15 } ],
+  pegs:[ [160, 392], [240, 392], [120, 470], [200, 456], [280, 470] ],
+  walls:null,
+  flippers:null,
+  st:null, raf:0,
+
+  build(){
+    if (this.walls) return;
+    const w = [];
+    // top arch, then the side walls and the slanted guides down to the flippers
+    const N = 18; let px = 12, py = 200;
+    for (let i = 1; i <= N; i++) { const a = Math.PI + Math.PI * i / N, x = 200 + 188 * Math.cos(a), y = 200 + 188 * Math.sin(a); w.push([px, py, x, y]); px = x; py = y; }
+    w.push([12, 200, 12, 505], [388, 200, 388, 505], [12, 505, 128, 568], [388, 505, 272, 568]);
+    this.walls = w;
+  },
+  newFlippers(){
+    return [
+      { px:128, py:568, len:60, rest:.6, up:-.45, dir:1, a:.6, w:0, hold:0, cool:0 },
+      { px:272, py:568, len:60, rest:Math.PI - .6, up:Math.PI + .45, dir:-1, a:Math.PI - .6, w:0, hold:0, cool:0 }
+    ];
+  },
+  tip(f){ return [f.px + Math.cos(f.a) * f.len, f.py + Math.sin(f.a) * f.len]; },
+
+  // canvas: the <canvas>; hooks: { onPoints(total), onBallEnd(points), onAllDone() }
+  start(canvas, hooks){
+    this.stop(); this.build();
+    const { ctx, W } = Dial.setup(canvas);
+    const P = Dial.pal();
+    this.st = { canvas, ctx, P, s:W / this.W, hooks, ball:null, t:0, last:performance.now(), aimT:0, fx:[], floats:[], sunk:null, flash:{}, over:false };
+    this.flippers = this.newFlippers();
+    this.ready();
+    const loop = now => { this.raf = requestAnimationFrame(loop); this.frame(now); };
+    this.raf = requestAnimationFrame(loop);
+  },
+  stop(){
+    cancelAnimationFrame(this.raf); this.raf = 0;
+    // leaving mid-flight keeps the bumper points already scored on that ball
+    const st = this.st; this.st = null;
+    if (st && st.ball && !st.ball.done) st.hooks.onBallEnd(st.ball.pts);
+  },
+  get flying(){ return !!(this.st && this.st.ball && !this.st.ball.done); },
+  ready(){ const st = this.st; if (st) { st.ball = null; st.aimT = 0; } },
+  aimAngle(){ return .49 * Math.sin(this.st.aimT * Math.PI * 2 / 2.4); },   // about ±28° from straight up
+
+  launch(){
+    const st = this.st; if (!st || st.ball || st.over) return false;
+    const a = this.aimAngle(), sp = 1050;
+    st.ball = { x:200, y:616, vx:Math.sin(a) * sp, vy:-Math.cos(a) * sp, armed:false, t:0, slow:0, pts:0, hits:0, done:false, trail:[] };
+    Sfx.rev();
+    return true;
+  },
+
+  frame(now){
+    const st = this.st; if (!st) return;
+    let dt = Math.min(.05, (now - st.last) / 1000); st.last = now;
+    if (!st.ball) st.aimT += dt;
+    const STEP = 1 / 240;
+    while (dt > 1e-6) { const h = Math.min(STEP, dt); this.step(h); dt -= h; if (!this.st) return; }
+    this.draw();
+  },
+
+  step(dt){
+    const st = this.st, b = st.ball;
+    st.t += dt;
+    // flippers: swing up fast, hold briefly, fall back
+    for (const f of this.flippers) {
+      const target = f.hold > 0 ? f.up : f.rest, speed = f.hold > 0 ? 16 : 8;
+      const prev = f.a, d = target - f.a, stepA = Math.sign(d) * Math.min(Math.abs(d), speed * dt);
+      f.a += stepA; f.w = stepA / dt;
+      if (f.hold > 0) f.hold -= dt; if (f.cool > 0) f.cool -= dt;
+      if (Math.abs(f.a - prev) < 1e-9) f.w = 0;
+    }
+    if (!b || b.done) { this.sinkStep(dt); return; }
+    b.t += dt;
+    if (!b.armed && b.y < 540) b.armed = true;
+    // auto flippers: kick when the ball drops towards one (until the ball's time is up)
+    if (b.armed && b.t < this.T_MAX && b.vy > -60 && b.y > 515 && b.y < 606) {
+      const f = b.x < 200 ? this.flippers[0] : this.flippers[1];
+      if (f.cool <= 0 && f.hold <= 0 && this.segDist(b.x, b.y, f) < 34) { f.hold = .16; f.cool = .42; Sfx.tick(); }
+    }
+    b.vy += this.G * dt;
+    // dial sinkholes pull the ball in like a funnel; slow enough near the middle and it drops
+    for (const h of this.holes) {
+      const dx = h.x - b.x, dy = h.y - b.y, d = Math.hypot(dx, dy);
+      if (d < h.r && d > .01) {
+        const pull = 2400 * (1 - d / h.r);
+        b.vx += dx / d * pull * dt; b.vy += dy / d * pull * dt;
+        b.vx *= 1 - 1.8 * dt; b.vy *= 1 - 1.8 * dt;
+        if (b.armed && d < h.r * .45 && Math.hypot(b.vx, b.vy) < 430) { this.sink(h); return; }
+      }
+    }
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    const sp = Math.hypot(b.vx, b.vy); if (sp > 1400) { b.vx *= 1400 / sp; b.vy *= 1400 / sp; }
+    for (const w of this.walls) if (this.seg(b, w[0], w[1], w[2], w[3], 3, .55)) this.thud(b);
+    for (const [x, y] of this.pegs) if (this.circ(b, x, y, 6, .6, 0)) this.thud(b);
+    this.bumpers.forEach((u, i) => { if (this.circ(b, u.x, u.y, u.r, .9, 560)) this.bump(b, u, i); });
+    if (b.armed && b.t < this.T_MAX + 4) for (const f of this.flippers) {
+      const [tx, ty] = this.tip(f);
+      this.seg(b, f.px, f.py, tx, ty, 6, .35, (x, y) => [-f.w * (y - f.py), f.w * (x - f.px)]);
+    }
+    b.trail.push(b.x, b.y); if (b.trail.length > 16) b.trail.splice(0, 2);
+    // a ball that sits still too long gets a nudge; one that runs far too long ends
+    if (sp < 25) { b.slow += dt; if (b.slow > 1.2) { b.vx = (Math.random() - .5) * 300; b.vy = -380; b.slow = 0; } } else b.slow = 0;
+    if (b.y > this.H + 14 || b.t > this.T_MAX + 10) this.drain();
+  },
+  segDist(x, y, f){ const [tx, ty] = this.tip(f), ex = tx - f.px, ey = ty - f.py; let t = ((x - f.px) * ex + (y - f.py) * ey) / (ex * ex + ey * ey); t = Math.max(0, Math.min(1, t)); return Math.hypot(x - f.px - ex * t, y - f.py - ey * t); },
+  circ(b, cx, cy, cr, e, kick){
+    const dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy), m = cr + this.BR;
+    if (d >= m || d === 0) return false;
+    const nx = dx / d, ny = dy / d; b.x = cx + nx * m; b.y = cy + ny * m;
+    const vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; }
+    if (kick) { const out = b.vx * nx + b.vy * ny; if (out < kick) { b.vx += (kick - out) * nx; b.vy += (kick - out) * ny; } }
+    return vn < -40;
+  },
+  seg(b, x1, y1, x2, y2, rad, e, surf){
+    const ex = x2 - x1, ey = y2 - y1; let t = ((b.x - x1) * ex + (b.y - y1) * ey) / (ex * ex + ey * ey); t = Math.max(0, Math.min(1, t));
+    const px = x1 + ex * t, py = y1 + ey * t, dx = b.x - px, dy = b.y - py, d = Math.hypot(dx, dy), m = rad + this.BR;
+    if (d >= m || d === 0) return false;
+    const nx = dx / d, ny = dy / d; b.x = px + nx * m; b.y = py + ny * m;
+    const [sx, sy] = surf ? surf(px, py) : [0, 0];
+    const vn = (b.vx - sx) * nx + (b.vy - sy) * ny;
+    if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; }
+    return vn < -160;
+  },
+  thud(b){ if (Math.hypot(b.vx, b.vy) > 250) Sfx.tone(140 + Math.random() * 40, .03, 'triangle', .03); },
+  bump(b, u, i){
+    const st = this.st; st.flash['b' + i] = st.t;
+    if (b.hits < this.BUMP_CAP) { b.hits++; this.add(this.BUMP, u.x, u.y - u.r - 6, st.P.pink, false); }
+    Sfx.tone(880 + i * 90, .05, 'square', .03); Sfx.tone(1320 + i * 90, .04, 'square', .02, .03);
+  },
+  add(pts, x, y, col, big){
+    const st = this.st; st.ball.pts += pts;
+    st.floats.push({ x, y, txt:'+' + pts, col, t0:st.t, big });
+    st.hooks.onPoints(pts);
+  },
+  sink(h){
+    const st = this.st, b = st.ball;
+    b.done = true; b.vx = b.vy = 0;
+    st.sunk = { h, t0:st.t, bx:b.x, by:b.y };
+    st.flash['h' + this.holes.indexOf(h)] = st.t;
+    this.add(h.v, h.x, h.y - h.r - 12, st.P.tier[h.t], true);
+    for (let i = 0; i < (h.v >= 250 ? 46 : h.v >= 100 ? 28 : 16); i++) {
+      const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * (h.v >= 250 ? 260 : 170);
+      st.fx.push({ x:h.x, y:h.y, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 80, c:[st.P.tier[h.t], st.P.gold, st.P.pink][i % 3], t0:st.t });
+    }
+    Sfx.land(h.t);
+    if (h.v >= 250 && !reducedMotion()) Hype.party(false);
+  },
+  sinkStep(){
+    const st = this.st, sk = st.sunk;
+    if (sk && st.t - sk.t0 > .9) { st.sunk = null; this.endBall(); }
+  },
+  drain(){
+    const st = this.st, b = st.ball; b.done = true;
+    Sfx.lose();
+    st.floats.push({ x:200, y:560, txt:b.pts ? 'Drained · +' + b.pts : 'Drained', col:st.P.text, t0:st.t, big:false });
+    setTimeout(() => { if (this.st === st) this.endBall(); }, 650);
+  },
+  endBall(){
+    const st = this.st; if (!st || !st.ball) return;
+    const pts = st.ball.pts; st.ball = null; this.flippers = this.newFlippers();
+    st.hooks.onBallEnd(pts);
+  },
+
+  draw(){
+    const st = this.st, { ctx, P, s } = st, W = this.W, H = this.H;
+    ctx.save(); ctx.scale(s, s);
+    ctx.clearRect(0, 0, W, H);
+    // playfield
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b5e'); g.addColorStop(1, '#0f0828');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(12, 505); ctx.lineTo(12, 200); ctx.arc(200, 200, 188, Math.PI, 0); ctx.lineTo(388, 505); ctx.lineTo(272, 568); ctx.lineTo(272, H); ctx.lineTo(128, H); ctx.lineTo(128, 568); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,246,229,.05)';
+    for (let y = 40; y < H; y += 22) for (let x = 24 + (y / 22 % 2) * 11; x < 380; x += 22) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill(); }
+    // walls
+    ctx.lineCap = 'round'; ctx.strokeStyle = P.pink; ctx.lineWidth = 6; ctx.shadowColor = P.pink; ctx.shadowBlur = 10;
+    ctx.beginPath(); for (const w of this.walls) { ctx.moveTo(w[0], w[1]); ctx.lineTo(w[2], w[3]); } ctx.stroke(); ctx.shadowBlur = 0;
+    // dial sinkholes
+    this.holes.forEach((h, i) => this.drawHole(ctx, h, P, st.t - (st.flash['h' + i] ?? -9)));
+    // bumpers: dial knobs
+    this.bumpers.forEach((u, i) => {
+      const k = Math.max(0, 1 - (st.t - (st.flash['b' + i] ?? -9)) / .18);
+      ctx.fillStyle = k ? P.gold : '#32226e'; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 2 * k, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = k ? '#fff6e5' : P.pink; ctx.stroke();
+      ctx.strokeStyle = k ? '#150b33' : 'rgba(255,246,229,.6)'; ctx.lineWidth = 2;
+      for (let j = 0; j < 8; j++) { const a = j * Math.PI / 4 + st.t * .6; ctx.beginPath(); ctx.moveTo(u.x + Math.cos(a) * (u.r - 7), u.y + Math.sin(a) * (u.r - 7)); ctx.lineTo(u.x + Math.cos(a) * (u.r - 3), u.y + Math.sin(a) * (u.r - 3)); ctx.stroke(); }
+      ctx.fillStyle = k ? '#150b33' : P.pink; ctx.beginPath(); ctx.arc(u.x, u.y, 4, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = 'rgba(255,246,229,.75)';
+    for (const [x, y] of this.pegs) { ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill(); }
+    // flippers
+    for (const f of this.flippers) {
+      const [tx, ty] = this.tip(f);
+      ctx.strokeStyle = '#ff8fb3'; ctx.lineWidth = 13; ctx.beginPath(); ctx.moveTo(f.px, f.py); ctx.lineTo(tx, ty); ctx.stroke();
+      ctx.strokeStyle = P.pink; ctx.lineWidth = 8; ctx.stroke();
+      ctx.fillStyle = '#fff6e5'; ctx.beginPath(); ctx.arc(f.px, f.py, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    // aim arrow while waiting to launch
+    if (!st.ball && !st.over) {
+      const a = this.aimAngle(), ex = 200 + Math.sin(a) * 92, ey = 616 - Math.cos(a) * 92;
+      ctx.strokeStyle = 'rgba(255,210,63,.25)'; ctx.lineWidth = 2; ctx.setLineDash([3, 6]);
+      ctx.beginPath(); ctx.arc(200, 616, 92, -Math.PI / 2 - .49, -Math.PI / 2 + .49); ctx.stroke();
+      ctx.setLineDash([6, 7]); ctx.lineDashOffset = -st.t * 40; ctx.strokeStyle = P.gold; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(200, 616); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = P.gold; ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(-8, 3); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); ctx.restore();
+      this.drawBall(ctx, 200, 616, 1, []);
+    }
+    // ball
+    const b = st.ball;
+    if (b && !b.done) this.drawBall(ctx, b.x, b.y, 1, b.trail);
+    if (st.sunk) { const k = Math.min(1, (st.t - st.sunk.t0) / .35); this.drawBall(ctx, st.sunk.bx + (st.sunk.h.x - st.sunk.bx) * k, st.sunk.by + (st.sunk.h.y - st.sunk.by) * k, 1 - k * .8, []); }
+    // sparks and floating points
+    st.fx = st.fx.filter(p => st.t - p.t0 < .9);
+    for (const p of st.fx) { const dt = st.t - p.t0; ctx.globalAlpha = 1 - dt / .9; ctx.fillStyle = p.c; ctx.fillRect(p.x + p.vx * dt - 2, p.y + p.vy * dt + 300 * dt * dt - 2, 4, 4); }
+    ctx.globalAlpha = 1;
+    st.floats = st.floats.filter(f => st.t - f.t0 < 1.1);
+    ctx.textAlign = 'center';
+    for (const f of st.floats) {
+      const dt = st.t - f.t0; ctx.globalAlpha = Math.min(1, (1.1 - dt) / .4);
+      ctx.font = `${f.big ? 26 : 15}px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = f.col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4;
+      ctx.strokeText(f.txt, f.x, f.y - dt * 34); ctx.fillText(f.txt, f.x, f.y - dt * 34);
+    }
+    ctx.globalAlpha = 1;
+    if (b && b.t > this.T_MAX && !b.done) { ctx.font = `18px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = P.danger || '#ff5a5a'; ctx.fillText('FLIPPERS OFF', 200, 640 - 36); }
+    ctx.restore();
+  },
+  drawBall(ctx, x, y, k, trail){
+    for (let i = 0; i < trail.length; i += 2) { ctx.globalAlpha = (i / trail.length) * .35; ctx.fillStyle = '#c6bbec'; ctx.beginPath(); ctx.arc(trail[i], trail[i + 1], this.BR * .8, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    const r = this.BR * k, g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#d8d2f0'); g.addColorStop(1, '#7a6fae');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  },
+  // a sinkhole drawn as a mini gauge: coloured arc in its tier colour, a needle, and its value
+  drawHole(ctx, h, P, since){
+    const col = P.tier[h.t], lit = since < 1.2 ? 1 - since / 1.2 : 0;
+    ctx.fillStyle = '#07031a'; ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,246,229,.15)'; ctx.stroke();
+    ctx.lineWidth = 6; ctx.strokeStyle = col; ctx.globalAlpha = .85 + .15 * lit;
+    ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 6, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+    ctx.globalAlpha = 1;
+    for (let j = 0; j <= 6; j++) { const a = Math.PI * (1.08 + .84 * j / 6); ctx.strokeStyle = '#150b33'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(h.x + Math.cos(a) * (h.r + 3), h.y + Math.sin(a) * (h.r + 3)); ctx.lineTo(h.x + Math.cos(a) * (h.r + 9), h.y + Math.sin(a) * (h.r + 9)); ctx.stroke(); }
+    // needle idles with a gentle wobble; after a hit it sweeps across and settles
+    const wob = Math.sin(performance.now() / 700 + h.x) * .12;
+    const ang = -Math.PI / 2 + (lit ? Math.sin(lit * Math.PI * 3) * .9 * lit : wob);
+    ctx.strokeStyle = lit ? P.gold : '#fff6e5'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(h.x + Math.cos(ang) * (h.r + 4), h.y + Math.sin(ang) * (h.r + 4)); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, 3.5, 0, Math.PI * 2); ctx.fill();
+    if (lit) { ctx.globalAlpha = lit; ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 10 + (1 - lit) * 26, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
+    ctx.font = `${h.v >= 250 ? 20 : 17}px Bungee, "Arial Black", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4;
+    ctx.strokeText(h.v, h.x, h.y + h.r + 16); ctx.fillText(h.v, h.x, h.y + h.r + 16);
+    ctx.textBaseline = 'alphabetic';
+  }
+};
+
+function viewPinball(){
+  const day = S.days[App.today];
+  if (!day || !day.done) { App.view = 'home'; return viewHome(); }
+  if (pinDone(day)) { App.view = 'results'; return viewResults(); }
+  const pin = day.pin;
+  if (!pin.used && !App.pinGo) {
+    const rows = day.answers.map((a, k) => { const n = BALLS_FOR[a.s] || 0;
+      return `<li class="t${a.s}" style="--i:${k}"><span class="n">Q${k + 1}</span><span class="v">${a.to ? 'Time ran out' : Scoring.verdict(a.s).replace(/!$/, '')}</span><span class="b">${n ? '●'.repeat(n) : '—'}</span></li>`; }).join('');
+    return `<section class="stack">
+      <div class="px card center">
+        <p class="label" tabindex="-1">Bonus round</p>
+        <h1 class="logo" style="font-size:26px;margin:6px 0 2px">DIAL BALL</h1>
+        <p class="tagline">Your answers earned you</p>
+        <div class="bigscore">${pin.balls}<small> ${pin.balls === 1 ? 'ball' : 'balls'}</small></div>
+        <ol class="pin-earn">${rows}</ol>
+        <p class="small muted">Spot on = 3 balls · Crystal or Loud &amp; clear = 2 · Good, Fuzzy or Static = 1 · No signal = 0</p>
+      </div>
+      <div class="px card">
+        <p class="label">How it works</p>
+        <p class="small">The arrow at the bottom sweeps left and right. Tap <b>Launch</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. Bumpers add +5 a hit. Every point goes on top of today’s score.</p>
+        <div class="pin-legend">${[[250, 1000, 'Jackpot'], [100, 750, ''], [50, 400, ''], [25, 200, '']].map(([v, t, l]) => `<span class="t${t}"><b>${v}</b>${l}</span>`).join('')}</div>
+      </div>
+      <button class="btn btn-mint btn-block btn-xl" data-act="pinstart" id="nextbtn">Play the bonus round</button>
+    </section>`;
+  }
+  const left = pin.balls - pin.used;
+  return `<section class="stack pinwrap">
+    <div class="pin-hud px">
+      <span>Ball <b id="pin-ball">${Math.min(pin.used + 1, pin.balls)}</b><small>/${pin.balls}</small></span>
+      <span class="pin-left" id="pin-left" aria-label="${left} balls left">${'●'.repeat(Math.min(left, 21))}</span>
+      <span>Bonus <b id="pin-bonus">+${fmtNum(pin.bonus)}</b></span>
+    </div>
+    <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
+    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Launch ball</button>
+  </section>`;
+}
+function startPinball(){
+  const day = S.days[App.today], cv = $('#pinball'); if (!cv || !day || !day.pin) return;
+  const pin = day.pin;
+  const paint = () => {
+    const left = pin.balls - pin.used;
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+    set('#pin-bonus', '+' + fmtNum(pin.bonus + (Pinball.st && Pinball.st.ball ? Pinball.st.ball.pts : 0)));
+    set('#pin-ball', Math.min(pin.used + (Pinball.flying ? 0 : 1), pin.balls));
+    set('#pin-left', '●'.repeat(Math.min(left, 21)));
+    const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : 'Launch ball'; }
+  };
+  Pinball.start(cv, {
+    onPoints: paint,
+    onBallEnd(pts){
+      pin.hits.push(Math.min(PIN_MAX_PER_BALL, pts)); pin.bonus = pin.hits.reduce((a, b) => a + b, 0); save(); paint();
+      if (pin.used >= pin.balls) finishPinball();
+    }
+  });
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); launchPin(); });
+  paint();
+}
+function launchPin(){
+  const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
+  const pin = day.pin; if (pin.used >= pin.balls) return;
+  if (!Pinball.launch()) return;
+  pin.used++; save();   // the ball counts as soon as it's launched, so a refresh can't re-roll it
+  const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = 'Ball in play…'; }
+  const el = $('#pin-left'); if (el) el.textContent = '●'.repeat(Math.min(pin.balls - pin.used, 21));
+}
+function finishPinball(){
+  const day = S.days[App.today], pin = day.pin;
+  pin.done = true; save();
+  if (Pinball.st) Pinball.st.over = true;
+  toast(`Bonus round: +${fmtNum(pin.bonus)}`, 2600, true);
+  if (pin.bonus > 0 && !reducedMotion()) Hype.party(pin.bonus >= 500);
+  if (Backend.on) Backend.sync().catch(() => toast('Score saved here. Will retry posting it to the leaderboard.'));
+  setTimeout(() => { if (App.view === 'pinball') { Pinball.stop(); App.bonusFresh = true; go('results'); } }, 1800);
 }
 
 function viewResults(){
   const day = S.days[App.today];
   if (!day || !day.done) { App.view = 'home'; return viewHome(); }
+  if (!pinDone(day)) { App.view = 'pinball'; return viewPinball(); }
   const total = dayTotal(day), st = getStats(App.today);
   const prev = st.dates.filter(d => d < App.today).map(d => dayTotal(S.days[d]));
   const prevAvg = prev.length ? Math.round(prev.reduce((a,b)=>a+b,0) / prev.length) : null;
@@ -3378,9 +3923,10 @@ function viewResults(){
     <div class="px card center">
       ${mascot(moodFor(total), 64, 'bob')}
       <h1 class="label" tabindex="-1" style="margin-top:12px">Daily #${DateUK.puzzleNo(App.today)} · ${esc(DateUK.pretty(App.today))}</h1>
-      <div class="bigscore"><span id="countup">${fmtNum(total)}</span><small> / 7,000</small></div>
+      <div class="bigscore"><span id="countup">${fmtNum(total)}</span>${day.pin ? '' : '<small> / 7,000</small>'}</div>
+      ${day.pin ? (day.pin.balls ? `<p class="pin-sum ${App.bonusFresh ? 'pop' : ''}">${fmtNum(dayBase(day))} <small>/ 7,000</small> + <b>${fmtNum(day.pin.bonus)}</b> Dial Ball bonus</p>` : '<p class="pin-sum"><small>/ 7,000 · No bonus balls today: any answer that isn’t grey earns at least one.</small></p>') : ''}
       ${tilesHTML(day.answers.map(a => a.s), first)}
-      <p class="rank-title ${first ? 'slam' : ''}">${rankTitle(total)}</p>
+      <p class="rank-title ${first ? 'slam' : ''}">${rankTitle(dayBase(day))}</p>
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
     </div>
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
@@ -3794,7 +4340,7 @@ async function loadBoard(){
 /* ---- Stats ---- */
 function viewStats(){
   const st = getStats(App.today), recent = st.dates.slice(-14);
-  const bars = recent.map(d => { const s = dayTotal(S.days[d]); return `<div class="bar ${s===st.best?'best':''}" style="height:${Math.max(3, s/7000*100)}%" title="${esc(DateUK.pretty(d))}: ${fmtNum(s)}"></div>`; }).join('');
+  const bars = recent.map(d => { const s = dayTotal(S.days[d]); return `<div class="bar ${s===st.best?'best':''}" style="height:${Math.max(3, Math.min(100, s/7000*100))}%" title="${esc(DateUK.pretty(d))}: ${fmtNum(s)}"></div>`; }).join('');
   const hist = st.dates.slice().reverse().map(d => `<li><span>#${DateUK.puzzleNo(d)} · ${esc(DateUK.pretty(d))}</span><span>${S.days[d].answers.map(a=>Scoring.emoji(a.s)).join('')} <b>${fmtNum(dayTotal(S.days[d]))}</b></span></li>`).join('');
   return `<section class="stack">
     <h1 class="label" tabindex="-1">${esc(displayName())}’s statistics</h1>
@@ -3860,7 +4406,7 @@ function viewSettings(){
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
-      <p class="small">Nothing personal is collected. Shared results contain only your score pattern, never your name.</p>
+      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email.</p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
     </div>
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
@@ -3905,17 +4451,17 @@ async function confirmPurchase(manual){
 
 /* ---- Render ---- */
 function render(focus = true){
-  Meter.stop(); MultiMeter.stop(); Timer.stop(); Hype.clear();
+  Meter.stop(); MultiMeter.stop(); Timer.stop(); Hype.clear(); Pinball.stop();
   if (App.view === 'play') expireDaily();
   if (App.view === 'endless') expireRun();
-  const views = { dev:viewDev, home:viewHome, play:viewPlay, results:viewResults, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
+  const views = { dev:viewDev, home:viewHome, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
   main.classList.toggle('playing', !!main.querySelector('.play'));
   document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
   const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
   if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN' }[App.view] || 'DIAL IN · The Daily Numbers Game';
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN' }[App.view] || 'DIAL IN · The Daily Numbers Game';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
@@ -3923,6 +4469,8 @@ function render(focus = true){
 }
 function postRender(){
   const T = qSeconds() * 1000;
+  if (App.view === 'pinball') startPinball();
+  if (App.view === 'results') App.bonusFresh = false;
   if (App.view === 'play') {
     const day = S.days[App.today], i = App.cur, a = day.answers[i];
     if (!a) { if (T) Timer.start(day.st[i] + T, T, () => submitDaily(true)); }
@@ -4029,7 +4577,7 @@ function flashKey(k){ const b = document.querySelector(`.key[data-k="${k}"]`); i
 const siteLink = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|\[::1\])/.test(location.hostname) && window.top === window) ? location.origin + location.pathname : '';
 function shareDailyText(){
   const day = S.days[App.today], st = getStats(App.today);
-  const lines = [`${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayTotal(day))} / 7,000`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
+  const lines = [`${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayBase(day))} / 7,000${dayBonus(day) ? ` + ${fmtNum(dayBonus(day))} bonus` : ''}`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
   const r = rankFor(App.today);
   if (r && r.rank !== null && r.players > 1) { const w = rankWords(r); lines.push(`🏆 ${r.rank === 1 ? '#1 today' : w.top <= 50 ? 'Top ' + w.top + '%' : '#' + r.rank + ' of ' + r.players} · beat ${fmtNum(r.beaten)} ${r.beaten === 1 ? 'player' : 'players'}`); }
   if (st.current > 1) lines.push(`🔥 ${st.current}-day streak`);
@@ -4057,7 +4605,7 @@ function onClick(e){
   if (act.startsWith('dev')) { devAction(act, el); return; }
   switch (act) {
     case 'home': go('home'); break;
-    case 'play': requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go('results'); return; } App.cur = firstOpen(day); App.entry = ''; save(); go('play'); }); break;
+    case 'play': requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); go('play'); }); break;
     case 'key': pressKey(el.dataset.k); break;
     case 'goq': {
       const i = Math.max(0, Math.min(6, +el.dataset.i || 0)), day = getDay(App.today, true);
@@ -4068,6 +4616,8 @@ function onClick(e){
     case 'skip': Meter.skip(); break;
     case 'share': share(shareDailyText()); break;
     case 'rank': loadRank(true); break;
+    case 'pinstart': App.pinGo = true; render(); break;
+    case 'pinlaunch': launchPin(); break;
     case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
     case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
@@ -4102,6 +4652,7 @@ function onKeyDown(e){
   if (anyDialogOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
   if (e.key === 'Enter' || e.key === ' ') {
+    if (App.view === 'pinball' && $('#pinball')) { e.preventDefault(); launchPin(); return; }
     if (Meter.running) { e.preventDefault(); Meter.skip(); return; }
     const nb = $('#nextbtn');
     if (e.key === 'Enter' && nb && document.activeElement !== nb && !keyTarget()) { e.preventDefault(); nb.click(); return; }
