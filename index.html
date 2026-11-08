@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#150b33">
 <meta name="color-scheme" content="dark">
-<title>DIAL IN · The Daily Numbers Game</title>
-<meta name="description" content="DIAL IN: seven questions a day, every answer is a number. Spin the dial and see how close you get.">
+<title>DIAL IN – Daily Number Trivia Game | Guess the Number</title>
+<meta name="description" content="Free daily number trivia game. Seven questions a day, every answer is a number: guess, spin the dial, play the Dial Ball bonus round and battle friends.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="DIAL IN · The Daily Numbers Game">
+<meta property="og:title" content="DIAL IN – Daily Number Trivia Game">
 <meta property="og:description" content="Seven questions a day. Every answer is a number. Can you dial it in?">
 <meta property="og:url" content="https://playdialin.com/">
 <meta property="og:image" content="https://playdialin.com/icons/og-image.png">
@@ -142,6 +142,10 @@ main{text-shadow:var(--page-ts)}
 /* ---------- 5. Layout + primitives ---------- */
 main{max-width:560px;margin:0 auto;padding-block:16px calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:clip}
 main:focus{outline:none}
+.about{max-width:560px;margin:0 auto;padding-block:0 calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.about p{font-size:var(--fs-small);line-height:1.6;margin:10px 0 0}
+.about h2{margin:0}
+.about a{color:var(--link, #4de1ff);font-weight:700}
 h1,h2,h3{margin:0;font-weight:normal}
 .px{background:var(--surface);margin:var(--px);border-radius:var(--r);box-shadow:var(--sh-card)}
 .card{padding:16px}
@@ -574,6 +578,16 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 <main id="app" tabindex="-1">
   <noscript><div class="noscript">DIAL IN needs JavaScript switched on to play.</div></noscript>
 </main>
+
+<section class="about" id="about" aria-labelledby="about-h" hidden>
+  <div class="px card">
+    <h2 id="about-h" class="label">About DIAL IN</h2>
+    <p>DIAL IN is a free daily number trivia game. Every day there are seven new questions, and every answer is a number: a year, a distance, a height, a record. Type your guess, watch the dial swing, and see how close you got. Spot on scores 1,000 points; the further away you are, the fewer you get.</p>
+    <p>Finish the daily puzzle to unlock <b>Dial Ball</b>, a pinball bonus round where your best answers earn extra balls. Then keep going in <b>Unlimited</b>, battle up to three friends with a room code, or climb the daily and all-time leaderboards.</p>
+    <p>A new puzzle starts every day at midnight UK time, drawn from over 1,150 hand-checked questions on history, science, sport, geography, film, music, food and more. It works on any phone or computer, with no app to download.</p>
+    <p><a href="how-to-play.html">How to play DIAL IN: rules, scoring and tips</a></p>
+  </div>
+</section>
 
 <dialog id="dlg-intro" aria-labelledby="intro-h">
   <div class="px dlg">
@@ -4457,11 +4471,12 @@ function render(focus = true){
   const views = { dev:viewDev, home:viewHome, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
+  const about = $('#about'); if (about) about.hidden = App.view !== 'home';
   main.classList.toggle('playing', !!main.querySelector('.play'));
   document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
   const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
   if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN' }[App.view] || 'DIAL IN · The Daily Numbers Game';
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN' }[App.view] || 'DIAL IN – Daily Number Trivia Game | Guess the Number';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
