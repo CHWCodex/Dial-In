@@ -4242,7 +4242,7 @@ function accountHTML(){
   return `<form id="acctform" class="stack" novalidate>
       <label class="label" for="acctemail">Your email</label>
       <div class="formrow"><input id="acctemail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(A.email)}"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Send code</button></div>
-      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in (<a href="privacy.html">privacy notice</a>).</p>
+      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in.</p>
     </form>`;
 }
 // After verifying: bring in this profile's cloud save (it may have been made on another device) and post today's score
@@ -4406,7 +4406,7 @@ function viewSettings(){
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
-      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email. <a href="privacy.html">Privacy notice</a></p>
+      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email.</p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
     </div>
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
