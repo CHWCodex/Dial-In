@@ -23,6 +23,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DIAL IN">
 <link rel="canonical" href="https://playdialin.com/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"DIAL IN","alternateName":"DIAL IN: The Daily Numbers Game","url":"https://playdialin.com/","description":"Seven questions a day. Every answer is a number. Spin the dial and see how close you get.","image":"https://playdialin.com/icons/og-image.png","genre":["Trivia","Puzzle","Quiz"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en-GB","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}</script>
 <link rel="preconnect" href="https://jfutntnbxwhstqgrwskj.supabase.co" crossorigin>
 <link rel="preload" href="fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/bungee-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -3696,7 +3697,7 @@ function accountHTML(){
   return `<form id="acctform" class="stack" novalidate>
       <label class="label" for="acctemail">Your email</label>
       <div class="formrow"><input id="acctemail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(A.email)}"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Send code</button></div>
-      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in.</p>
+      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in (<a href="privacy.html">privacy notice</a>).</p>
     </form>`;
 }
 // After verifying: bring in this profile's cloud save (it may have been made on another device) and post today's score
@@ -3860,7 +3861,7 @@ function viewSettings(){
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
-      <p class="small">Nothing personal is collected. Shared results contain only your score pattern, never your name.</p>
+      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email. <a href="privacy.html">Privacy notice</a></p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
     </div>
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
