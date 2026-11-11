@@ -275,6 +275,7 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .ballbank .bb-dots i{font-style:normal;letter-spacing:0;color:var(--text-3, var(--text-2));font-size:12px;font-weight:500}
 .ballbank b{font:var(--fw-d) 18px var(--font-num);color:var(--gold);display:inline-block}
 .ballbank b.pop{animation:pinPop .3s var(--e-pop)}
+.card.nudge{outline:3px solid var(--gold);outline-offset:2px}
 .anim.stamped .verdict{visibility:visible;animation:var(--k-stamp) .42s var(--e-pop)}
 .anim.stamped .pts{visibility:visible;animation:var(--k-pop) .35s var(--e-pop)}
 .anim .trio,.anim .why,.anim .src{opacity:0;transform:translateY(8px)}
@@ -3698,7 +3699,7 @@ const Pinball = {
 
   frame(now){
     const st = this.st; if (!st) return;
-    let dt = Math.min(.05, (now - st.last) / 1000); st.last = now;
+    let dt = Math.min(.05, (now - st.last) / 1000) * (st.speed || 1); st.last = now;   // auto-fire plays at double speed
     if (!st.ball) st.aimT += dt;
     const STEP = 1 / 240;
     while (dt > 1e-6) { const h = Math.min(STEP, dt); this.step(h); dt -= h; if (!this.st) return; }
@@ -4039,6 +4040,7 @@ function viewPinball(){
     </div>
     <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
     <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Fire!</button>
+    ${pin.balls > 1 ? `<button class="btn btn-ghost btn-block" data-act="pinauto" id="pinauto">Fire all</button>` : ''}
   </section>`;
 }
 function startPinball(){
@@ -4052,13 +4054,16 @@ function startPinball(){
     set('#pin-ball', Math.min(pin.used + (Pinball.flying ? 0 : 1), pin.balls));
     set('#pin-left', '●'.repeat(Math.min(left, 21)));
     const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : left === 1 && pin.balls > 1 ? 'Fire the golden ball!' : 'Fire!'; }
-    if (Pinball.st) Pinball.st.nextGold = left === 1 && pin.balls > 1;
+    if (Pinball.st) { Pinball.st.nextGold = left === 1 && pin.balls > 1; Pinball.st.speed = App.pinAuto ? 2 : 1; }
+    const ab = $('#pinauto'); if (ab) { ab.hidden = left <= 0; ab.textContent = App.pinAuto ? 'Stop auto-fire' : `Fire all ${left} ${left === 1 ? 'ball' : 'balls'} (fast)`; ab.setAttribute('aria-pressed', App.pinAuto ? 'true' : 'false'); }
+    if (App.pinAuto && lb && !Pinball.flying && left > 0) lb.textContent = 'Auto-firing…';
   };
   Pinball.start(cv, {
     onPoints: paint,
     onBallEnd(pts){
       pin.hits.push(Math.min(PIN_MAX_PER_BALL, pts)); pin.bonus = pin.hits.reduce((a, b) => a + b, 0); save(); paint();
       if (pin.used >= pin.balls) finishPinball();
+      else if (App.pinAuto) setTimeout(() => { if (App.view === 'pinball' && App.pinAuto) launchPin(); }, 300);
     }
   });
   cv.addEventListener('pointerdown', e => { e.preventDefault(); launchPin(); });
@@ -4074,7 +4079,9 @@ function launchPin(){
 }
 function finishPinball(){
   const day = S.days[App.today], pin = day.pin;
-  pin.done = true; save();
+  pin.done = true; save(); App.pinAuto = false;
+  if (Pinball.st) Pinball.st.speed = 1;
+  { const ab = $('#pinauto'); if (ab) ab.hidden = true; }
   Pinball.finale(pin.bonus);
   const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = pin.bonus > 0 ? 'Bonus banked!' : 'Round over'; }
   if (pin.bonus > 0 && !reducedMotion()) setTimeout(() => { if (App.view === 'pinball') Hype.party(pin.bonus >= 500); }, 1300);
@@ -4130,7 +4137,12 @@ function rankCardHTML(){
   const r = rankFor(App.today);
   if (DEV.on) return `<p class="label">Today’s ranking</p><p class="rk-sub">Rankings are off in the developer sandbox.</p>`;
   if (!Backend.on) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Global rankings appear when the game is online.</p>`;
-  if (!Backend.email) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Add your email to post your score and join the leaderboards.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">Join the leaderboards</button>`;
+  if (!Backend.email) {
+    const k = peekFor(App.today);
+    return `<p class="label">Today’s ranking</p>
+      ${k ? `<p class="rk-big">${k.players ? `You’d be #${fmtNum(k.rank)} today` : 'You’d be first today!'}</p><p class="rk-line">${k.players ? `out of ${fmtNum(k.players + 1)} players, with ${fmtNum(k.score)} points` : 'Nobody has posted a score yet'}</p>` : `<p class="rk-line">See how many players you beat</p>`}
+      <p class="rk-sub">Add your email to ${k ? 'claim your spot on' : 'post your score and join'} the leaderboards.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">${k ? 'Claim my spot' : 'Join the leaderboards'}</button>`;
+  }
   if (!r) return `<p class="label">Today’s ranking</p><p class="rk-sub">${App.rankBusy ? 'Counting everyone’s scores…' : 'Couldn’t load today’s ranking.'}</p>${App.rankBusy ? '' : '<button class="link" data-act="rank">Try again</button>'}`;
   if (r.rank === null) return `<p class="label">Today’s ranking</p><p class="rk-sub">Posting your score… <button class="link" data-act="rank">Refresh</button></p>`;
   const w = rankWords(r), max = Math.max(1, ...r.buckets), mine = Math.min(14, Math.floor(r.score / 500));
@@ -4141,7 +4153,21 @@ function rankCardHTML(){
       : `<p class="rk-big">First in!</p><p class="rk-line">You’re the first to finish today</p><p class="rk-sub">Check back later to see how many people you beat.</p>`}
     ${dist}`;
 }
+// Where today's score would sit, for a player who hasn't joined the leaderboards yet
+const peekFor = date => App.peek && App.peek.date === date ? App.peek : null;
+async function loadPeek(){
+  if (!Backend.on || DEV.on || Backend.email) return;
+  const day = S.days[App.today]; if (!day || !day.done || !pinDone(day)) return;
+  const score = dayTotal(day), have = peekFor(App.today);
+  if (have && have.score === score && Date.now() - have.at < 60000) return;
+  try {
+    const r = await Backend.rpc('peek_daily_rank', { p_date: App.today, p_score: score }), row = Array.isArray(r) ? r[0] : r;
+    if (row) { App.peek = { date:App.today, score, players:Number(row.players) || 0, rank:Number(row.would_rank) || 1, at:Date.now() }; paintRank(); const pl = $('#peekline'); if (pl) pl.innerHTML = peekLineHTML(); }
+  } catch(e){}
+}
+const peekLineHTML = () => { const k = peekFor(App.today); return k ? `<b>${k.players ? `You’d be #${fmtNum(k.rank)} of ${fmtNum(k.players + 1)} today` : 'You’d be first on today’s board'}</b> with ${fmtNum(k.score)} points. Add your email to claim your spot.` : ''; };
 async function loadRank(force){
+  if (Backend.on && !DEV.on && !Backend.email) return loadPeek();
   if (!Backend.on || DEV.on || App.rankBusy || !Backend.email) return;
   const day = S.days[App.today]; if (!day || !day.done) return;
   const have = rankFor(App.today);
@@ -4430,7 +4456,14 @@ async function finishSignIn(){
   toast(`You’re in as ${Backend.email}.`, 3500);
   render(false);
   if (App.view === 'settings') loadFriendNames();
-  confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
+  await confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
+  if (App.afterEmail === 'pay') { App.afterEmail = null; if (paywallOn() && !isPremium()) openPay(); }   // carry on with the purchase they started
+}
+// Bring the email box into view and put the cursor in it
+function focusEmailBox(){
+  setTimeout(() => { const el = $('#acctemail') || $('#otp'); if (!el) return;
+    el.scrollIntoView({ block:'center', behavior:reducedMotion() ? 'auto' : 'smooth' }); el.focus({ preventScroll:true });
+    const card = el.closest('.card'); if (card) card.classList.add('nudge'); }, 60);
 }
 
 /* ---- Leaderboards ----
@@ -4448,6 +4481,7 @@ function viewBoard(){
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="px card stack">
       <p class="label">Join the leaderboards</p>
+      <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
       <p class="small">Add your email to post your daily scores and see the Daily, All-time and Friends boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
       ${accountHTML()}
     </div>
@@ -4490,6 +4524,7 @@ function demoBoard(){
   return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
 async function loadBoard(){
+  if (Backend.on && !DEV.on && App.view === 'board' && !Backend.email) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
   if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.email) return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
@@ -4653,6 +4688,8 @@ function render(focus = true){
 }
 function postRender(){
   const T = qSeconds() * 1000;
+  if (App.view === 'settings' && App.afterEmail && !Backend.email) focusEmailBox();
+  if (App.view !== 'settings') App.afterEmail = null;
   if (App.view === 'pinball') startPinball();
   if (App.view === 'results') App.bonusFresh = false;
   if (App.view === 'play') {
@@ -4800,8 +4837,9 @@ function onClick(e){
     case 'skip': Meter.skip(); break;
     case 'share': share(shareDailyText()); break;
     case 'rank': loadRank(true); break;
-    case 'pinstart': App.pinGo = true; render(); break;
+    case 'pinstart': App.pinGo = true; App.pinAuto = false; render(); break;
     case 'pinlaunch': launchPin(); break;
+    case 'pinauto': App.pinAuto = !App.pinAuto; if (App.pinAuto) launchPin(); if (Pinball.st) Pinball.st.speed = App.pinAuto ? 2 : 1; { const ab = $('#pinauto'); if (ab) ab.textContent = App.pinAuto ? 'Stop auto-fire' : 'Fire all (fast)'; } break;
     case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
     case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
@@ -4827,7 +4865,7 @@ function onClick(e){
     case 'sound': S.sound = S.sound === false; save(); if (S.sound) { Sfx.init(); Sfx.land(750); } render(false); break;
     case 'pay': openPay(); break;
     case 'buy': buy(); break;
-    case 'payemail': closeDialog('dlg-pay'); go('settings'); loadFriendNames(); break;
+    case 'payemail': closeDialog('dlg-pay'); App.afterEmail = 'pay'; go('settings'); loadFriendNames(); break;
     case 'restorebuy': confirmPurchase(true); break;
     case 'demounlock': S.premium = { active:true, source:'demo', at:Date.now() }; save(); closeDialog('dlg-pay'); Sfx.init(); Sfx.land(1000); toast('Unlimited preview unlocked.'); render(false); break;
     case 'dice': $('#pname').value = randomName(); break;
