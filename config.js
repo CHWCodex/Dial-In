@@ -10,7 +10,7 @@ window.DIAL_IN_CONFIG = {
 
   // Optional. A Stripe Payment Link for the Unlimited unlock, e.g. 'https://buy.stripe.com/abc123'.
   // Leave '' and Unlimited is free for everyone.
-  STRIPE_PAYMENT_LINK: '',
+  STRIPE_PAYMENT_LINK: 'https://buy.stripe.com/8x27sL3CB4PT3W6g6H8Zq00',
   PRICE_LABEL: '£2.99',
 
   // Optional. SHA-256 hash of a passcode that opens the developer sandbox on the live site.
