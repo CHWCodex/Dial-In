@@ -49,12 +49,15 @@ Deno.serve(async (req: Request) => {
     const o = event.data?.object ?? {};
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const user = o.client_reference_id;
-      if (o.payment_status === "paid" && typeof user === "string" && UUID.test(user)) {
+      // "unpaid" means a delayed payment method is still pending: async_payment_succeeded follows if it clears
+      if (o.payment_status !== "unpaid" && typeof user === "string" && UUID.test(user)) {
         await rpc("grant_premium", {
           p_user: user, p_session: o.id, p_amount: o.amount_total ?? null, p_currency: o.currency ?? null,
           p_intent: typeof o.payment_intent === "string" ? o.payment_intent : null,
         });
       } else console.warn("checkout ignored", o.id, o.payment_status, user);
+    } else if (event.type === "checkout.session.async_payment_failed") {
+      console.warn("delayed payment failed, nothing unlocked", o.id);
     } else if (event.type === "charge.refunded") {
       if (o.refunded === true && typeof o.payment_intent === "string") await rpc("revoke_premium", { p_intent: o.payment_intent });
     }
