@@ -585,7 +585,8 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <p>DIAL IN is a free daily number trivia game. Every day there are seven new questions, and every answer is a number: a year, a distance, a height, a record. Type your guess, watch the dial swing, and see how close you got. Spot on scores 1,000 points; the further away you are, the fewer you get.</p>
     <p>Finish the daily puzzle to unlock <b>Dial Ball</b>, a pinball bonus round where your best answers earn extra balls. Then keep going in <b>Unlimited</b>, battle up to three friends with a room code, or climb the daily and all-time leaderboards.</p>
     <p>A new puzzle starts every day at midnight UK time, drawn from over 1,150 hand-checked questions on history, science, sport, geography, film, music, food and more. It works on any phone or computer, with no app to download.</p>
-    <p><a href="how-to-play.html">How to play DIAL IN: rules, scoring and tips</a></p>
+    <p><a href="how-to-play">How to play DIAL IN: rules, scoring and tips</a></p>
+    <p class="muted"><a href="terms">Terms</a> · <a href="privacy">Privacy</a></p>
   </div>
 </section>
 
@@ -4268,6 +4269,7 @@ async function finishSignIn(){
   toast(`You’re in as ${Backend.email}.`, 3500);
   render(false);
   if (App.view === 'settings') loadFriendNames();
+  confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
 }
 
 /* ---- Leaderboards ----
@@ -4420,7 +4422,7 @@ function viewSettings(){
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
-      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email.</p>
+      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email. <a href="privacy">Privacy notice</a> · <a href="terms">Terms</a></p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
     </div>
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
@@ -4434,7 +4436,11 @@ function openPay(){
   const live = CONFIG.STRIPE_PAYMENT_LINK && Backend.on;
   $('#pay-body').innerHTML = `
     <ul class="perks"><li>Every question in the game (${BANK.length} hand-checked and growing), shuffled just for you</li><li>Play as many runs as you like, every day</li><li>Chase your best score and longest run</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
-    ${live ? `<button class="btn btn-mint btn-block btn-xl" data-act="buy">Pay ${CONFIG.PRICE_LABEL} securely</button><p class="small muted center">Payment is handled by Stripe. You’ll come straight back here afterwards.</p>`
+    ${live && !Backend.email ? `<p class="banner">Add your email first, so your purchase is linked to you and works on every device.</p>
+        <button class="btn btn-mint btn-block btn-xl" data-act="payemail">Add my email</button>`
+      : live ? `<button class="btn btn-mint btn-block btn-xl" data-act="buy">Pay ${CONFIG.PRICE_LABEL} securely</button>
+        <p class="small muted center">Payment is handled by Stripe. You’ll come straight back here afterwards.</p>
+        <p class="small muted center">By paying you agree to the <a href="terms">terms</a>. Unlimited unlocks straight away, so the 14-day right to cancel ends once it’s unlocked. Bought by mistake? Email us within 14 days for a refund.</p>`
       : `<p class="banner">Payments switch on once the game is hosted with Stripe connected (see the README). No money can be taken here.</p>
          <button class="btn btn-block" data-act="demounlock">Preview Unlimited (free demo)</button>`}`;
   openDialog('dlg-pay');
@@ -4442,8 +4448,10 @@ function openPay(){
 async function buy(){
   try {
     await Backend.auth();
+    if (!Backend.email) { openPay(); return; }   // purchases belong to an email-linked profile
     const u = new URL(CONFIG.STRIPE_PAYMENT_LINK);
     u.searchParams.set('client_reference_id', Backend.sess.user_id);
+    u.searchParams.set('prefilled_email', Backend.email);
     S.premium.pendingAt = Date.now(); save();
     location.href = u.toString();
   } catch(e){ toast('Couldn’t start the payment: ' + e.message, 4000); }
@@ -4658,6 +4666,7 @@ function onClick(e){
     case 'sound': S.sound = S.sound === false; save(); if (S.sound) { Sfx.init(); Sfx.land(750); } render(false); break;
     case 'pay': openPay(); break;
     case 'buy': buy(); break;
+    case 'payemail': closeDialog('dlg-pay'); go('settings'); loadFriendNames(); break;
     case 'restorebuy': confirmPurchase(true); break;
     case 'demounlock': S.premium = { active:true, source:'demo', at:Date.now() }; save(); closeDialog('dlg-pay'); Sfx.init(); Sfx.land(1000); toast('Unlimited preview unlocked.'); render(false); break;
     case 'dice': $('#pname').value = randomName(); break;

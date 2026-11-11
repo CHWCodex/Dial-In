@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://playdialin.com/</loc><changefreq>daily</changefreq></url>
-  <url><loc>https://playdialin.com/how-to-play.html</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://playdialin.com/how-to-play</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://playdialin.com/terms</loc><changefreq>yearly</changefreq></url>
+  <url><loc>https://playdialin.com/privacy</loc><changefreq>yearly</changefreq></url>
 </urlset>

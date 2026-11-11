@@ -1,0 +1,5 @@
+# Cloudflare Pages redirects: common mistyped or old addresses go to the game.
+/Dial-In/*  /  301
+/dial-in/*  /  301
+/play       /  302
+/supabase/* /  302
