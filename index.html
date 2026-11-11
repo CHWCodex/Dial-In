@@ -265,7 +265,16 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .trio b{display:block;font:var(--fw-d) var(--fs-trio)/1.35 var(--font-num);margin-top:4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .verdict{transform-origin:15% 50%;font:var(--fw-d) var(--fs-verdict)/1.3 var(--font-display);color:var(--tct);text-transform:var(--tt)}
 .pts{font:var(--fw-d) var(--fs-pts) var(--font-num);color:var(--tct);font-variant-numeric:tabular-nums}
-.anim .verdict,.anim .pts{visibility:hidden}
+.anim .verdict,.anim .pts,.anim .ballline{visibility:hidden}
+.anim.stamped .ballline{visibility:visible;animation:var(--k-pop) .35s var(--e-pop) .15s both}
+.ballline{margin:10px 0 0;text-align:center;font-weight:800;font-size:15px;color:var(--tct, var(--gold))}
+.ballline.none{font-weight:600;font-size:13px;color:var(--text-2)}
+.bl-dots{letter-spacing:3px;margin-right:4px}
+.ballbank{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--inset);border-radius:var(--r-sm);font-size:13px;font-weight:700;color:var(--text-2)}
+.ballbank .bb-dots{flex:1;color:var(--gold);letter-spacing:2px;font-size:11px;overflow:hidden;white-space:nowrap}
+.ballbank .bb-dots i{font-style:normal;letter-spacing:0;color:var(--text-3, var(--text-2));font-size:12px;font-weight:500}
+.ballbank b{font:var(--fw-d) 18px var(--font-num);color:var(--gold);display:inline-block}
+.ballbank b.pop{animation:pinPop .3s var(--e-pop)}
 .anim.stamped .verdict{visibility:visible;animation:var(--k-stamp) .42s var(--e-pop)}
 .anim.stamped .pts{visibility:visible;animation:var(--k-pop) .35s var(--e-pop)}
 .anim .trio,.anim .why,.anim .src{opacity:0;transform:translateY(8px)}
@@ -300,7 +309,11 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .pin-legend span{padding:6px 10px;border-radius:var(--r-sm);background:var(--inset);border:2px solid var(--tc);font-size:13px}
 .pin-legend b{color:var(--tc);font:var(--fw-d) 16px var(--font-num);margin-right:4px}
 .pin-hud{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;font-weight:700}
-.pin-hud b{font:var(--fw-d) 20px var(--font-num);color:var(--gold)}
+.pin-hud b{font:var(--fw-d) 20px var(--font-num);color:var(--gold);display:inline-block}
+.pin-hud b.pop{animation:pinPop .28s var(--e-pop)}
+@keyframes pinPop{0%{transform:scale(1.5);color:#fff}100%{transform:scale(1)}}
+@keyframes pinNeon{0%,100%{box-shadow:0 0 0 3px #0a0520,0 0 26px rgba(255,61,127,.45)}33%{box-shadow:0 0 0 3px #0a0520,0 0 30px rgba(255,210,63,.5)}66%{box-shadow:0 0 0 3px #0a0520,0 0 30px rgba(77,225,255,.45)}}
+canvas.pinball{animation:pinNeon 4.5s linear infinite}
 .pin-hud small{color:var(--text-2)}
 .pin-left{color:var(--gold);letter-spacing:1px;font-size:12px;text-align:center;flex:1;overflow:hidden;white-space:nowrap}
 canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620));aspect-ratio:400/620;margin:0 auto;border-radius:22px;background:#0a0520;touch-action:none;cursor:pointer;box-shadow:0 0 0 3px #0a0520,0 0 24px rgba(255,61,127,.25)}
@@ -3469,6 +3482,17 @@ function revealHTML(q, a, fresh, extra){
       <p class="why">${esc(q.explanation)}</p><p class="src">Source: ${esc(q.source)}</p></div>
       <p class="sr-only" role="status">${verdictText(a.s, a.to)} ${a.s} points. The answer is ${fmtAns(q, q.answer)} ${esc(q.unit === 'year' ? '' : q.unit)}.</p>`;
 }
+// "+2 balls" under a daily answer, and the running count at the top of the screen
+function ballLineHTML(a){
+  const n = BALLS_FOR[a.s] || 0;
+  return `<p class="ballline ${n ? '' : 'none'}">${n ? `<span class="bl-dots">${'●'.repeat(n)}</span> +${n} ${n === 1 ? 'ball' : 'balls'} for Dial Ball` : 'No ball this time. Land in a coloured zone to earn one.'}</p>`;
+}
+function bankBalls(day, a){
+  const n = BALLS_FOR[a.s] || 0, total = ballsFor(day), c = $('#ballcount'), d = $('#bb-dots'); if (!c || !d) return;
+  c.textContent = total; d.textContent = '●'.repeat(total); if (!total) d.innerHTML = '<i>none yet</i>';
+  if (c.nextElementSibling) c.nextElementSibling.textContent = total === 1 ? 'ball' : 'balls';
+  if (n) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); Sfx.tone(1175, .06, 'square', .025, .12); if (n > 1) Sfx.tone(1568, .06, 'square', .025, .2); if (n > 2) Sfx.tone(2093, .08, 'square', .025, .28); }
+}
 function startReveal(q, a, animate, totals, onLand, combo){
   const cv = $('#meter'), rv = $('#reveal'); if (!cv || !rv) return;
   if (!animate) { rv.classList.add('stamped','settled'); Meter.start(cv, q, a, false); return; }
@@ -3539,10 +3563,13 @@ function viewPlay(){
     return `<li><button class="pip ${x ? 'done t'+x.s : ''}" data-act="goq" data-i="${k}" ${k===i?'aria-current="step"':''} ${can ? '' : 'disabled'} aria-label="Question ${k+1}${x ? ', '+x.s+' points' : ', unanswered'}">${x ? (x.to ? '⏱' : x.s===1000 ? '★' : k+1) : '?'}</button></li>`; }).join('');
   const fresh = App.fresh === i;
   const total = dayTotal(day), shown = fresh && a ? total - a.s : total;
+  // balls banked for the bonus round; a fresh answer's balls drop in once the dial lands
+  const bank = ballsFor(day) - (fresh && a && !reducedMotion() ? BALLS_FOR[a.s] || 0 : 0);
   const body = !a ? entryHTML(q)
-    : `${revealHTML(q, a, fresh)}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
+    : `${revealHTML(q, a, fresh, ballLineHTML(a))}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
   return `<section class="play">
     <ol class="pips" aria-label="Progress">${pips}</ol>
+    <div class="ballbank" aria-label="Bonus round balls earned so far: ${bank}"><span>Dial Ball bonus</span><span class="bb-dots" id="bb-dots">${'●'.repeat(bank)}${bank ? '' : '<i>none yet</i>'}</span><b id="ballcount">${bank}</b><span>${bank === 1 ? 'ball' : 'balls'}</span></div>
     ${qcardHTML(q, `Q<b>${i+1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
     ${body}
   </section>`;
@@ -3585,6 +3612,9 @@ function finishDay(day){
 
 const Pinball = {
   W:400, H:620, BR:9, G:900, T_MAX:16, BUMP:5, BUMP_CAP:30,
+  LIT:{ 25:50, 50:100, 100:200, 250:350 }, LIT_SECS:3.5,   // one dial at a time is lit and pays its LIT value
+  bulbs:null,
+  CX:200, CY:600, CK:1.3, SHOUTS:['BOOM!', 'FIRE!', 'KA-POW!', 'BLAST OFF!', 'WHOOSH!'],
   holes:[
     { x:200, y:92,  r:19, v:250, t:1000 },
     { x:104, y:196, r:21, v:100, t:750 }, { x:296, y:196, r:21, v:100, t:750 },
@@ -3605,7 +3635,21 @@ const Pinball = {
     for (let i = 1; i <= N; i++) { const a = Math.PI + Math.PI * i / N, x = 200 + 188 * Math.cos(a), y = 200 + 188 * Math.sin(a); w.push([px, py, x, y]); px = x; py = y; }
     w.push([12, 200, 12, 505], [388, 200, 388, 505], [12, 505, 128, 568], [388, 505, 272, 568]);
     this.walls = w;
+    // marquee bulbs, evenly spaced along the walls from the left flipper round to the right one
+    const path = [[128, 568], [12, 505], [12, 200]];
+    for (let i = 1; i <= N; i++) { const a = Math.PI + Math.PI * i / N; path.push([200 + 188 * Math.cos(a), 200 + 188 * Math.sin(a)]); }
+    path.push([388, 505], [272, 568]);
+    const bulbs = []; let need = 0;
+    for (let i = 1; i < path.length; i++) {
+      const [x1, y1] = path[i - 1], [x2, y2] = path[i], len = Math.hypot(x2 - x1, y2 - y1);
+      let d = need; for (; d <= len; d += 23) bulbs.push([x1 + (x2 - x1) * d / len, y1 + (y2 - y1) * d / len]);
+      need = d - len;
+    }
+    this.bulbs = bulbs;
   },
+  field(ctx){ ctx.beginPath(); ctx.moveTo(12, 505); ctx.lineTo(12, 200); ctx.arc(200, 200, 188, Math.PI, 0); ctx.lineTo(388, 505); ctx.lineTo(272, 568); ctx.lineTo(272, this.H); ctx.lineTo(128, this.H); ctx.lineTo(128, 568); ctx.closePath(); },
+  buzz(pattern){ try { if (navigator.vibrate && S.sound !== false) navigator.vibrate(pattern); } catch(e){} },
+  jingle(notes, gap = .07, vol = .035){ notes.forEach((f, i) => Sfx.tone(f, .11, 'square', vol, i * gap)); },
   newFlippers(){
     return [
       { px:128, py:568, len:60, rest:.6, up:-.45, dir:1, a:.6, w:0, hold:0, cool:0 },
@@ -3619,7 +3663,8 @@ const Pinball = {
     this.stop(); this.build();
     const { ctx, W } = Dial.setup(canvas);
     const P = Dial.pal();
-    this.st = { canvas, ctx, P, s:W / this.W, hooks, ball:null, t:0, last:performance.now(), aimT:0, fx:[], floats:[], sunk:null, flash:{}, over:false };
+    this.st = { canvas, ctx, P, s:W / this.W, hooks, ball:null, t:0, last:performance.now(), aimT:0, fx:[], floats:[], sunk:null, flash:{}, over:false,
+      lit:Math.floor(Math.random() * 6), litAt:0, combo:0, comboAt:-9, shake:-9, glow:null, streak:0, final:null };
     this.flippers = this.newFlippers();
     this.ready();
     const loop = now => { this.raf = requestAnimationFrame(loop); this.frame(now); };
@@ -3635,11 +3680,19 @@ const Pinball = {
   ready(){ const st = this.st; if (st) { st.ball = null; st.aimT = 0; } },
   aimAngle(){ return .49 * Math.sin(this.st.aimT * Math.PI * 2 / 2.4); },   // about ±28° from straight up
 
-  launch(){
+  // gold: the last ball of the round is golden and scores double
+  launch(gold){
     const st = this.st; if (!st || st.ball || st.over) return false;
-    const a = this.aimAngle(), sp = 1050;
-    st.ball = { x:200, y:616, vx:Math.sin(a) * sp, vy:-Math.cos(a) * sp, armed:false, t:0, slow:0, pts:0, hits:0, done:false, trail:[] };
-    Sfx.rev();
+    const a = this.aimAngle(), sp = 1050, mx = this.CX + Math.sin(a) * 72, my = this.CY - Math.cos(a) * 72;   // the cannon's muzzle
+    st.ball = { x:mx, y:my, vx:Math.sin(a) * sp, vy:-Math.cos(a) * sp, armed:false, t:0, slow:0, pts:0, hits:0, done:false, trail:[], gold:!!gold };
+    st.fire = { t0:st.t, a };
+    // boom: a low thump, a crack of noise and a rising whistle as the ball flies
+    Sfx.tone(170, .28, 'triangle', .12, 0, -120); Sfx.noise(.2, .1, 0, 420); Sfx.tone(520, .32, 'sine', .022, .04, 900);
+    if (gold) this.jingle([1047, 1319, 1568, 2093], .06, .03);
+    for (let i = 0; i < 9; i++) { const sa = a + (Math.random() - .5) * 1.5, sv = 30 + Math.random() * 70; st.fx.push({ x:mx, y:my, vx:Math.sin(sa) * sv, vy:-Math.cos(sa) * sv, t0:st.t, smoke:true, r:5 + Math.random() * 6 }); }
+    for (let i = 0; i < 14; i++) { const sa = a + (Math.random() - .5) * .9, sv = 160 + Math.random() * 260; st.fx.push({ x:mx, y:my, vx:Math.sin(sa) * sv, vy:-Math.cos(sa) * sv, c:i % 2 ? '#ffd23f' : '#ff9a3d', t0:st.t }); }
+    if (st.floats) st.floats.push({ x:200, y:470, txt:gold ? 'GOLDEN BALL ×2!' : this.SHOUTS[Math.floor(Math.random() * this.SHOUTS.length)], col:gold ? '#ffd23f' : '#fff6e5', t0:st.t, big:true, size:gold ? 22 : 24, life:.8 });
+    this.buzz(gold ? [30, 20, 60] : 28);
     return true;
   },
 
@@ -3655,6 +3708,8 @@ const Pinball = {
   step(dt){
     const st = this.st, b = st.ball;
     st.t += dt;
+    // the lit dial moves on every few seconds (never mid-celebration)
+    if (st.lit !== undefined && !st.sunk && st.t - st.litAt > this.LIT_SECS) { st.lit = (st.lit + 1 + Math.floor(Math.random() * 5)) % 6; st.litAt = st.t; }
     // flippers: swing up fast, hold briefly, fall back
     for (const f of this.flippers) {
       const target = f.hold > 0 ? f.up : f.rest, speed = f.hold > 0 ? 16 : 8;
@@ -3719,33 +3774,53 @@ const Pinball = {
   thud(b){ if (Math.hypot(b.vx, b.vy) > 250) Sfx.tone(140 + Math.random() * 40, .03, 'triangle', .03); },
   bump(b, u, i){
     const st = this.st; st.flash['b' + i] = st.t;
+    // quick hits in a row build a combo: the pitch climbs and the count shows
+    st.combo = st.t - (st.comboAt ?? -9) < 1.3 ? (st.combo || 0) + 1 : 1; st.comboAt = st.t;
     if (b.hits < this.BUMP_CAP) { b.hits++; this.add(this.BUMP, u.x, u.y - u.r - 6, st.P.pink, false); }
-    Sfx.tone(880 + i * 90, .05, 'square', .03); Sfx.tone(1320 + i * 90, .04, 'square', .02, .03);
+    const up = Math.pow(1.09, Math.min(st.combo - 1, 10));
+    Sfx.tone((880 + i * 40) * up, .05, 'square', .03); Sfx.tone((1320 + i * 40) * up, .04, 'square', .02, .03);
+    for (let k = 0; k < 7; k++) { const a = Math.random() * Math.PI * 2, sp = 70 + Math.random() * 120; st.fx.push({ x:u.x, y:u.y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 40, c:k % 2 ? st.P.gold : st.P.pink, t0:st.t }); }
+    if (st.combo >= 3) { st.floats = st.floats.filter(f => !f.combo); st.floats.push({ x:200, y:262, txt:'COMBO ×' + st.combo, col:st.P.gold, t0:st.t, big:true, combo:true }); }
+    this.buzz(8);
   },
   add(pts, x, y, col, big){
-    const st = this.st; st.ball.pts += pts;
-    st.floats.push({ x, y, txt:'+' + pts, col, t0:st.t, big });
+    const st = this.st; if (st.ball.gold) pts *= 2;
+    st.ball.pts += pts;
+    st.floats.push({ x, y, txt:'+' + pts, col:st.ball.gold ? '#ffd23f' : col, t0:st.t, big });
     st.hooks.onPoints(pts);
   },
   sink(h){
     const st = this.st, b = st.ball;
     b.done = true; b.vx = b.vy = 0;
-    st.sunk = { h, t0:st.t, bx:b.x, by:b.y };
-    st.flash['h' + this.holes.indexOf(h)] = st.t;
-    this.add(h.v, h.x, h.y - h.r - 12, st.P.tier[h.t], true);
-    for (let i = 0; i < (h.v >= 250 ? 46 : h.v >= 100 ? 28 : 16); i++) {
-      const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * (h.v >= 250 ? 260 : 170);
-      st.fx.push({ x:h.x, y:h.y, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 80, c:[st.P.tier[h.t], st.P.gold, st.P.pink][i % 3], t0:st.t });
+    const idx = this.holes.indexOf(h), lit = idx === st.lit, v = lit ? this.LIT[h.v] : h.v, jack = h.v >= 250, col = st.P.tier[h.t];
+    st.sunk = { h, t0:st.t, bx:b.x, by:b.y, lit, jack };
+    st.flash['h' + idx] = st.t;
+    st.streak = (st.streak || 0) + 1;
+    st.glow = { t0:st.t, col:lit ? st.P.gold : col, big:jack || lit };
+    if (jack) st.shake = st.t;
+    this.add(v, h.x, h.y - h.r - 12, lit ? st.P.gold : col, true);
+    const shout = jack ? (lit ? 'SUPER JACKPOT!' : 'JACKPOT!') : lit ? 'LIT DIAL · DOUBLE!' : '';
+    if (shout) st.floats.push({ x:200, y:jack ? 150 : Math.max(70, h.y - h.r - 44), txt:shout, col:'#fff6e5', t0:st.t, big:true, size:jack ? 30 : 20, life:1.5 });
+    if (st.streak >= 2) st.floats.push({ x:200, y:372, txt:'HOT STREAK ×' + st.streak, col:st.P.pink, t0:st.t, big:true, size:18, life:1.4 });
+    for (let i = 0, n = jack ? 90 : lit ? 54 : v >= 100 ? 32 : 18; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * (jack ? 320 : lit ? 240 : 170);
+      st.fx.push({ x:h.x, y:h.y, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 90, c:[col, st.P.gold, st.P.pink, '#4de1ff'][i % 4], t0:st.t, coin:(jack || lit) && i % 3 === 0 });
     }
     Sfx.land(h.t);
-    if (h.v >= 250 && !reducedMotion()) Hype.party(false);
+    if (jack) this.jingle([523, 659, 784, 1047, 1319, 1568, 2093], .075, .04);
+    else if (lit) this.jingle([784, 988, 1175, 1568], .07);
+    else if (st.streak >= 2) this.jingle([988, 1319], .08, .025);
+    if ((jack || lit) && !reducedMotion()) Hype.party(jack);
+    this.buzz(jack ? [40, 40, 40, 40, 140] : lit ? [30, 30, 70] : 18);
   },
+  // end of the round: the machine totals up before the results screen
+  finale(total){ const st = this.st; if (!st) return; st.over = true; st.final = { t0:st.t, total, shown:-1 }; if (total > 0) this.jingle([659, 784, 1047, 1319], .09); },
   sinkStep(){
     const st = this.st, sk = st.sunk;
-    if (sk && st.t - sk.t0 > .9) { st.sunk = null; this.endBall(); }
+    if (sk && st.t - sk.t0 > (sk.jack ? 1.7 : sk.lit ? 1.2 : .9)) { st.sunk = null; this.endBall(); }
   },
   drain(){
-    const st = this.st, b = st.ball; b.done = true;
+    const st = this.st, b = st.ball; b.done = true; st.streak = 0;
     Sfx.lose();
     st.floats.push({ x:200, y:560, txt:b.pts ? 'Drained · +' + b.pts : 'Drained', col:st.P.text, t0:st.t, big:false });
     setTimeout(() => { if (this.st === st) this.endBall(); }, 650);
@@ -3758,18 +3833,33 @@ const Pinball = {
 
   draw(){
     const st = this.st, { ctx, P, s } = st, W = this.W, H = this.H;
+    const calm = reducedMotion();
     ctx.save(); ctx.scale(s, s);
     ctx.clearRect(0, 0, W, H);
+    const sh = st.t - (st.shake ?? -9);
+    const kick = st.fire ? st.t - st.fire.t0 : 9;
+    if (kick < .14 && !calm) ctx.translate(0, 4 * (1 - kick / .14));
+    if (sh < .5 && !calm) ctx.translate(Math.sin(sh * 70) * 5 * (1 - sh / .5), Math.cos(sh * 55) * 3 * (1 - sh / .5));
     // playfield
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b5e'); g.addColorStop(1, '#0f0828');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(12, 505); ctx.lineTo(12, 200); ctx.arc(200, 200, 188, Math.PI, 0); ctx.lineTo(388, 505); ctx.lineTo(272, 568); ctx.lineTo(272, H); ctx.lineTo(128, H); ctx.lineTo(128, 568); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = g; this.field(ctx); ctx.fill();
+    // a soft wash of colour when a ball lands (one smooth fade, never a strobe)
+    if (st.glow) { const k = 1 - (st.t - st.glow.t0) / (st.glow.big ? 1.1 : .5); if (k > 0) { ctx.globalAlpha = (st.glow.big ? .38 : .22) * k * k; ctx.fillStyle = st.glow.col; this.field(ctx); ctx.fill(); ctx.globalAlpha = 1; } }
     ctx.fillStyle = 'rgba(255,246,229,.05)';
     for (let y = 40; y < H; y += 22) for (let x = 24 + (y / 22 % 2) * 11; x < 380; x += 22) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill(); }
     // walls
     ctx.lineCap = 'round'; ctx.strokeStyle = P.pink; ctx.lineWidth = 6; ctx.shadowColor = P.pink; ctx.shadowBlur = 10;
     ctx.beginPath(); for (const w of this.walls) { ctx.moveTo(w[0], w[1]); ctx.lineTo(w[2], w[3]); } ctx.stroke(); ctx.shadowBlur = 0;
+    // marquee bulbs: a slow chase normally, alternating while a landing is celebrated
+    const party = st.sunk || st.final, BC = [P.gold, '#ff8fb3', '#4de1ff'], beat = Math.floor(st.t * (party ? 5 : 7));
+    this.bulbs.forEach(([x, y], i) => {
+      const on = calm ? i % 2 === 0 : party ? (beat + i) % 2 === 0 : (i + beat) % 4 === 0, c = BC[i % 3];
+      if (on) { ctx.globalAlpha = .28; ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+      ctx.fillStyle = on ? c : '#4a3890'; ctx.beginPath(); ctx.arc(x, y, on ? 3.6 : 3, 0, Math.PI * 2); ctx.fill();
+      if (on) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - 1, y - 1, 1.1, 0, Math.PI * 2); ctx.fill(); }
+    });
     // dial sinkholes
-    this.holes.forEach((h, i) => this.drawHole(ctx, h, P, st.t - (st.flash['h' + i] ?? -9)));
+    this.holes.forEach((h, i) => this.drawHole(ctx, h, P, st.t - (st.flash['h' + i] ?? -9), i === st.lit && !st.final, st.t));
     // bumpers: dial knobs
     this.bumpers.forEach((u, i) => {
       const k = Math.max(0, 1 - (st.t - (st.flash['b' + i] ?? -9)) / .18);
@@ -3788,45 +3878,112 @@ const Pinball = {
       ctx.strokeStyle = P.pink; ctx.lineWidth = 8; ctx.stroke();
       ctx.fillStyle = '#fff6e5'; ctx.beginPath(); ctx.arc(f.px, f.py, 3, 0, Math.PI * 2); ctx.fill();
     }
-    // aim arrow while waiting to launch
-    if (!st.ball && !st.over) {
-      const a = this.aimAngle(), ex = 200 + Math.sin(a) * 92, ey = 616 - Math.cos(a) * 92;
+    // the cannon: sweeps while loaded, then holds the angle it fired at
+    const loaded = !st.ball && !st.over, ca = loaded ? this.aimAngle() : st.fire ? st.fire.a : 0;
+    if (loaded) {
+      const mx = this.CX + Math.sin(ca) * 86, my = this.CY - Math.cos(ca) * 86, ex = this.CX + Math.sin(ca) * 150, ey = this.CY - Math.cos(ca) * 150;
       ctx.strokeStyle = 'rgba(255,210,63,.25)'; ctx.lineWidth = 2; ctx.setLineDash([3, 6]);
-      ctx.beginPath(); ctx.arc(200, 616, 92, -Math.PI / 2 - .49, -Math.PI / 2 + .49); ctx.stroke();
-      ctx.setLineDash([6, 7]); ctx.lineDashOffset = -st.t * 40; ctx.strokeStyle = P.gold; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(200, 616); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = P.gold; ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(-8, 3); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); ctx.restore();
-      this.drawBall(ctx, 200, 616, 1, []);
+      ctx.beginPath(); ctx.arc(this.CX, this.CY, 150, -Math.PI / 2 - .49, -Math.PI / 2 + .49); ctx.stroke();
+      ctx.setLineDash([6, 7]); ctx.lineDashOffset = -st.t * 60; ctx.strokeStyle = P.gold; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = P.gold; ctx.save(); ctx.translate(ex, ey); ctx.rotate(ca); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(-8, 3); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); ctx.restore();
+      if (calm || Math.floor(st.t * 2.4) % 2 === 0) { ctx.font = '15px Bungee, "Arial Black", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = P.gold; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4; ctx.strokeText('TAP TO FIRE', 200, 432); ctx.fillText('TAP TO FIRE', 200, 432); }
     }
+    this.drawCannon(ctx, st, P, ca, loaded, calm);
     // ball
     const b = st.ball;
-    if (b && !b.done) this.drawBall(ctx, b.x, b.y, 1, b.trail);
-    if (st.sunk) { const k = Math.min(1, (st.t - st.sunk.t0) / .35); this.drawBall(ctx, st.sunk.bx + (st.sunk.h.x - st.sunk.bx) * k, st.sunk.by + (st.sunk.h.y - st.sunk.by) * k, 1 - k * .8, []); }
+    if (b && !b.done) {
+      // a fresh shot burns: sparks stream off the ball for its first moments
+      if (b.t < .7 && !calm) for (let k = 0; k < 2; k++) st.fx.push({ x:b.x, y:b.y, vx:(Math.random() - .5) * 90, vy:(Math.random() - .5) * 90 + 40, c:k ? '#ff9a3d' : '#ffd23f', t0:st.t });
+      this.drawBall(ctx, b.x, b.y, 1, b.trail, b.gold);
+    }
+    if (st.sunk) { const k = Math.min(1, (st.t - st.sunk.t0) / .35); this.drawBall(ctx, st.sunk.bx + (st.sunk.h.x - st.sunk.bx) * k, st.sunk.by + (st.sunk.h.y - st.sunk.by) * k, 1 - k * .8, [], st.ball && st.ball.gold); }
     // sparks and floating points
     st.fx = st.fx.filter(p => st.t - p.t0 < .9);
-    for (const p of st.fx) { const dt = st.t - p.t0; ctx.globalAlpha = 1 - dt / .9; ctx.fillStyle = p.c; ctx.fillRect(p.x + p.vx * dt - 2, p.y + p.vy * dt + 300 * dt * dt - 2, 4, 4); }
-    ctx.globalAlpha = 1;
-    st.floats = st.floats.filter(f => st.t - f.t0 < 1.1);
-    ctx.textAlign = 'center';
-    for (const f of st.floats) {
-      const dt = st.t - f.t0; ctx.globalAlpha = Math.min(1, (1.1 - dt) / .4);
-      ctx.font = `${f.big ? 26 : 15}px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = f.col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4;
-      ctx.strokeText(f.txt, f.x, f.y - dt * 34); ctx.fillText(f.txt, f.x, f.y - dt * 34);
+    for (const p of st.fx) {
+      const dt = st.t - p.t0, x = p.x + p.vx * dt, y = p.y + p.vy * dt + 300 * dt * dt; ctx.globalAlpha = 1 - dt / .9; ctx.fillStyle = p.c;
+      if (p.smoke) { ctx.globalAlpha = .34 * (1 - dt / .9); ctx.fillStyle = '#c6bbec'; ctx.beginPath(); ctx.arc(x, p.y + p.vy * dt - 20 * dt, p.r * (1 + dt * 2.2), 0, Math.PI * 2); ctx.fill(); }
+      else if (p.coin) { ctx.fillStyle = P.gold; ctx.beginPath(); ctx.ellipse(x, y, 5, 5 * Math.abs(Math.cos(dt * 14 + p.vx)) + .8, 0, 0, Math.PI * 2); ctx.fill(); }
+      else ctx.fillRect(x - 2, y - 2, 4, 4);
     }
     ctx.globalAlpha = 1;
+    st.floats = st.floats.filter(f => st.t - f.t0 < (f.life || 1.1));
+    ctx.textAlign = 'center';
+    for (const f of st.floats) {
+      const dt = st.t - f.t0, life = f.life || 1.1, pop = f.big && !calm ? 1 + .35 * Math.max(0, 1 - dt / .18) : 1;
+      ctx.globalAlpha = Math.min(1, (life - dt) / .4);
+      ctx.font = `${Math.round((f.size || (f.big ? 26 : 15)) * pop)}px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = f.col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 5;
+      ctx.strokeText(f.txt, f.x, f.y - dt * 30); ctx.fillText(f.txt, f.x, f.y - dt * 30);
+    }
+    ctx.globalAlpha = 1;
+    // end-of-round total: the bonus counts up over the dimmed machine
+    if (st.final) {
+      const F = st.final, dt = st.t - F.t0, k = Math.min(1, dt / 1.3), val = Math.round(F.total * (1 - Math.pow(1 - k, 3)));
+      if (val !== F.shown) { if (F.total > 0 && val - F.shown >= Math.max(1, F.total / 40)) { Sfx.count(); F.shown = val; } if (k >= 1 && F.shown !== F.total) { F.shown = F.total; if (F.total > 0) { Sfx.land(1000); this.buzz([30, 30, 90]); } } }
+      ctx.globalAlpha = Math.min(.72, dt * 3); ctx.fillStyle = '#0a0520'; this.field(ctx); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.textAlign = 'center'; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 6;
+      ctx.font = '20px Bungee, "Arial Black", sans-serif'; ctx.fillStyle = '#fff6e5'; ctx.strokeText('BONUS ROUND', 200, 250); ctx.fillText('BONUS ROUND', 200, 250);
+      const big = Math.round(58 * (k >= 1 && !calm ? 1 + .12 * Math.max(0, 1 - (dt - 1.3) / .25) : 1));
+      ctx.font = `${big}px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = P.gold; ctx.shadowColor = P.gold; ctx.shadowBlur = 18;
+      ctx.strokeText('+' + fmtNum(val), 200, 320); ctx.fillText('+' + fmtNum(val), 200, 320); ctx.shadowBlur = 0;
+      ctx.font = '14px Bungee, "Arial Black", sans-serif'; ctx.fillStyle = '#c6bbec';
+      const line = F.total >= 600 ? 'HIGH ROLLER!' : F.total >= 300 ? 'ON FIRE!' : F.total > 0 ? 'ADDED TO TODAY’S SCORE' : 'NO LUCK THIS TIME';
+      if (k >= 1) { ctx.strokeText(line, 200, 356); ctx.fillText(line, 200, 356); }
+    }
     if (b && b.t > this.T_MAX && !b.done) { ctx.font = `18px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = P.danger || '#ff5a5a'; ctx.fillText('FLIPPERS OFF', 200, 640 - 36); }
     ctx.restore();
   },
-  drawBall(ctx, x, y, k, trail){
-    for (let i = 0; i < trail.length; i += 2) { ctx.globalAlpha = (i / trail.length) * .35; ctx.fillStyle = '#c6bbec'; ctx.beginPath(); ctx.arc(trail[i], trail[i + 1], this.BR * .8, 0, Math.PI * 2); ctx.fill(); }
+  drawCannon(ctx, st, P, a, loaded, calm){
+    const since = st.fire ? st.t - st.fire.t0 : 9, rec = since < .3 ? 1 - since / .3 : 0, off = rec * 12;   // recoil
+    const lastGold = loaded && st.nextGold;
+    ctx.save(); ctx.translate(this.CX, this.CY); ctx.scale(this.CK, this.CK); ctx.translate(-this.CX, -this.CY);   // drawn 30% larger about its pivot
+    ctx.save(); ctx.translate(this.CX, this.CY); ctx.rotate(a);
+    // barrel
+    const g = ctx.createLinearGradient(-13, 0, 13, 0); g.addColorStop(0, '#1a0f40'); g.addColorStop(.45, '#6a52c8'); g.addColorStop(1, '#1a0f40');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-13, 8 + off); ctx.lineTo(-10, -50 + off); ctx.lineTo(10, -50 + off); ctx.lineTo(13, 8 + off); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#0a0520'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = P.pink; ctx.fillRect(-12, -18 + off, 24, 5);
+    ctx.fillStyle = P.gold; ctx.fillRect(-12.5, -56 + off, 25, 8); ctx.strokeRect(-12.5, -56 + off, 25, 8);
+    // the loaded ball sits in the muzzle, glowing as the cannon charges
+    if (loaded) {
+      const pulse = calm ? .6 : .5 + .5 * Math.sin(st.t * 9);
+      ctx.globalAlpha = .25 + .3 * pulse; ctx.fillStyle = lastGold ? P.gold : '#fff6e5'; ctx.beginPath(); ctx.arc(0, -56, 13 + 3 * pulse, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.restore(); ctx.save(); ctx.translate(this.CX, this.CY); ctx.rotate(a); ctx.translate(0, -56); this.drawBall(ctx, 0, 0, .85, [], lastGold); 
+    }
+    // muzzle flash
+    if (since < .16) {
+      const k = 1 - since / .16; ctx.translate(0, loaded ? 0 : -62); ctx.globalAlpha = k;
+      for (const [r, c] of [[34, '#ff9a3d'], [24, '#ffd23f'], [13, '#ffffff']]) { ctx.fillStyle = c; ctx.beginPath(); for (let i = 0; i < 16; i++) { const an = i * Math.PI / 8, rr = (i % 2 ? r * .45 : r) * (.6 + .4 * k); ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr - r * .3); } ctx.closePath(); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    // carriage: a studded wheel the barrel pivots on
+    ctx.fillStyle = '#32226e'; ctx.beginPath(); ctx.arc(this.CX, this.CY + 2, 19, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = P.pink; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = P.gold; for (let i = 0; i < 6; i++) { const an = i * Math.PI / 3 + a; ctx.beginPath(); ctx.arc(this.CX + Math.cos(an) * 12, this.CY + 2 + Math.sin(an) * 12, 2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(this.CX, this.CY + 2, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  },
+  drawBall(ctx, x, y, k, trail, gold){
+    for (let i = 0; i < trail.length; i += 2) { ctx.globalAlpha = (i / trail.length) * .45; ctx.fillStyle = i > trail.length / 2 ? '#ffd23f' : '#ff3d7f'; ctx.beginPath(); ctx.arc(trail[i], trail[i + 1], this.BR * (.35 + .5 * i / trail.length), 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = .22; ctx.fillStyle = '#fff6e5'; ctx.beginPath(); ctx.arc(x, y, this.BR * k * 1.9, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
     const r = this.BR * k, g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
-    g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#d8d2f0'); g.addColorStop(1, '#7a6fae');
+    g.addColorStop(0, '#ffffff'); g.addColorStop(.5, gold ? '#ffd23f' : '#d8d2f0'); g.addColorStop(1, gold ? '#c9820a' : '#7a6fae');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   },
   // a sinkhole drawn as a mini gauge: coloured arc in its tier colour, a needle, and its value
-  drawHole(ctx, h, P, since){
-    const col = P.tier[h.t], lit = since < 1.2 ? 1 - since / 1.2 : 0;
+  drawHole(ctx, h, P, since, hot, t){
+    const col = P.tier[h.t], lit = since < 1.2 ? 1 - since / 1.2 : 0, calm = reducedMotion();
+    if (hot) {   // the lit dial: a breathing gold halo with slow turning rays
+      const pulse = calm ? .7 : .55 + .45 * Math.sin(t * 5);
+      ctx.globalAlpha = .22 * pulse; ctx.fillStyle = P.gold; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 20, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .5 + .4 * pulse; ctx.strokeStyle = P.gold; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      for (let j = 0; j < 10; j++) { const a = j * Math.PI / 5 + (calm ? 0 : t * .9); ctx.beginPath(); ctx.moveTo(h.x + Math.cos(a) * (h.r + 13), h.y + Math.sin(a) * (h.r + 13)); ctx.lineTo(h.x + Math.cos(a) * (h.r + 19), h.y + Math.sin(a) * (h.r + 19)); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+    } else if (h.v >= 250) {   // the jackpot dial always shimmers
+      ctx.globalAlpha = .8; ctx.strokeStyle = calm ? P.gold : `hsl(${Math.round(t * 90) % 360},100%,65%)`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 12, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+    }
     ctx.fillStyle = '#07031a'; ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,246,229,.15)'; ctx.stroke();
     ctx.lineWidth = 6; ctx.strokeStyle = col; ctx.globalAlpha = .85 + .15 * lit;
@@ -3840,8 +3997,10 @@ const Pinball = {
     ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, 3.5, 0, Math.PI * 2); ctx.fill();
     if (lit) { ctx.globalAlpha = lit; ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 10 + (1 - lit) * 26, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
     ctx.font = `${h.v >= 250 ? 20 : 17}px Bungee, "Arial Black", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4;
-    ctx.strokeText(h.v, h.x, h.y + h.r + 16); ctx.fillText(h.v, h.x, h.y + h.r + 16);
+    const label = hot ? this.LIT[h.v] : h.v;
+    ctx.fillStyle = hot ? P.gold : col; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4;
+    if (hot) ctx.font = `${h.v >= 250 ? 23 : 20}px Bungee, "Arial Black", sans-serif`;
+    ctx.strokeText(label, h.x, h.y + h.r + 16); ctx.fillText(label, h.x, h.y + h.r + 16);
     ctx.textBaseline = 'alphabetic';
   }
 };
@@ -3865,7 +4024,7 @@ function viewPinball(){
       </div>
       <div class="px card">
         <p class="label">How it works</p>
-        <p class="small">The arrow at the bottom sweeps left and right. Tap <b>Launch</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. Bumpers add +5 a hit. Every point goes on top of today’s score.</p>
+        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving, so time your shot. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. Every point goes on top of today’s score.</p>
         <div class="pin-legend">${[[250, 1000, 'Jackpot'], [100, 750, ''], [50, 400, ''], [25, 200, '']].map(([v, t, l]) => `<span class="t${t}"><b>${v}</b>${l}</span>`).join('')}</div>
       </div>
       <button class="btn btn-mint btn-block btn-xl" data-act="pinstart" id="nextbtn">Play the bonus round</button>
@@ -3879,7 +4038,7 @@ function viewPinball(){
       <span>Bonus <b id="pin-bonus">+${fmtNum(pin.bonus)}</b></span>
     </div>
     <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
-    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Launch ball</button>
+    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Fire!</button>
   </section>`;
 }
 function startPinball(){
@@ -3888,10 +4047,12 @@ function startPinball(){
   const paint = () => {
     const left = pin.balls - pin.used;
     const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
-    set('#pin-bonus', '+' + fmtNum(pin.bonus + (Pinball.st && Pinball.st.ball ? Pinball.st.ball.pts : 0)));
+    const bonusEl = $('#pin-bonus'), bonusTxt = '+' + fmtNum(pin.bonus + (Pinball.st && Pinball.st.ball ? Math.min(PIN_MAX_PER_BALL, Pinball.st.ball.pts) : 0));
+    if (bonusEl && bonusEl.textContent !== bonusTxt) { bonusEl.textContent = bonusTxt; bonusEl.classList.remove('pop'); void bonusEl.offsetWidth; bonusEl.classList.add('pop'); }
     set('#pin-ball', Math.min(pin.used + (Pinball.flying ? 0 : 1), pin.balls));
     set('#pin-left', '●'.repeat(Math.min(left, 21)));
-    const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : 'Launch ball'; }
+    const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : left === 1 && pin.balls > 1 ? 'Fire the golden ball!' : 'Fire!'; }
+    if (Pinball.st) Pinball.st.nextGold = left === 1 && pin.balls > 1;
   };
   Pinball.start(cv, {
     onPoints: paint,
@@ -3906,7 +4067,7 @@ function startPinball(){
 function launchPin(){
   const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
   const pin = day.pin; if (pin.used >= pin.balls) return;
-  if (!Pinball.launch()) return;
+  if (!Pinball.launch(pin.balls > 1 && pin.used === pin.balls - 1)) return;
   pin.used++; save();   // the ball counts as soon as it's launched, so a refresh can't re-roll it
   const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = 'Ball in play…'; }
   const el = $('#pin-left'); if (el) el.textContent = '●'.repeat(Math.min(pin.balls - pin.used, 21));
@@ -3914,11 +4075,11 @@ function launchPin(){
 function finishPinball(){
   const day = S.days[App.today], pin = day.pin;
   pin.done = true; save();
-  if (Pinball.st) Pinball.st.over = true;
-  toast(`Bonus round: +${fmtNum(pin.bonus)}`, 2600, true);
-  if (pin.bonus > 0 && !reducedMotion()) Hype.party(pin.bonus >= 500);
+  Pinball.finale(pin.bonus);
+  const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = pin.bonus > 0 ? 'Bonus banked!' : 'Round over'; }
+  if (pin.bonus > 0 && !reducedMotion()) setTimeout(() => { if (App.view === 'pinball') Hype.party(pin.bonus >= 500); }, 1300);
   if (Backend.on) Backend.sync().catch(() => toast('Score saved here. Will retry posting it to the leaderboard.'));
-  setTimeout(() => { if (App.view === 'pinball') { Pinball.stop(); App.bonusFresh = true; go('results'); } }, 1800);
+  setTimeout(() => { if (App.view === 'pinball') { Pinball.stop(); App.bonusFresh = true; go('results'); } }, 3200);
 }
 
 function viewResults(){
@@ -4497,7 +4658,7 @@ function postRender(){
   if (App.view === 'play') {
     const day = S.days[App.today], i = App.cur, a = day.answers[i];
     if (!a) { if (T) Timer.start(day.st[i] + T, T, () => submitDaily(true)); }
-    else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
+    else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); bankBalls(day, a); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
   }
   if (App.view === 'endless' && S.run && !S.run.over) {
     const r = S.run;
