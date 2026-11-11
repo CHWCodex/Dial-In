@@ -265,7 +265,16 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .trio b{display:block;font:var(--fw-d) var(--fs-trio)/1.35 var(--font-num);margin-top:4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .verdict{transform-origin:15% 50%;font:var(--fw-d) var(--fs-verdict)/1.3 var(--font-display);color:var(--tct);text-transform:var(--tt)}
 .pts{font:var(--fw-d) var(--fs-pts) var(--font-num);color:var(--tct);font-variant-numeric:tabular-nums}
-.anim .verdict,.anim .pts{visibility:hidden}
+.anim .verdict,.anim .pts,.anim .ballline{visibility:hidden}
+.anim.stamped .ballline{visibility:visible;animation:var(--k-pop) .35s var(--e-pop) .15s both}
+.ballline{margin:10px 0 0;text-align:center;font-weight:800;font-size:15px;color:var(--tct, var(--gold))}
+.ballline.none{font-weight:600;font-size:13px;color:var(--text-2)}
+.bl-dots{letter-spacing:3px;margin-right:4px}
+.ballbank{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--inset);border-radius:var(--r-sm);font-size:13px;font-weight:700;color:var(--text-2)}
+.ballbank .bb-dots{flex:1;color:var(--gold);letter-spacing:2px;font-size:11px;overflow:hidden;white-space:nowrap}
+.ballbank .bb-dots i{font-style:normal;letter-spacing:0;color:var(--text-3, var(--text-2));font-size:12px;font-weight:500}
+.ballbank b{font:var(--fw-d) 18px var(--font-num);color:var(--gold);display:inline-block}
+.ballbank b.pop{animation:pinPop .3s var(--e-pop)}
 .anim.stamped .verdict{visibility:visible;animation:var(--k-stamp) .42s var(--e-pop)}
 .anim.stamped .pts{visibility:visible;animation:var(--k-pop) .35s var(--e-pop)}
 .anim .trio,.anim .why,.anim .src{opacity:0;transform:translateY(8px)}
@@ -3473,6 +3482,17 @@ function revealHTML(q, a, fresh, extra){
       <p class="why">${esc(q.explanation)}</p><p class="src">Source: ${esc(q.source)}</p></div>
       <p class="sr-only" role="status">${verdictText(a.s, a.to)} ${a.s} points. The answer is ${fmtAns(q, q.answer)} ${esc(q.unit === 'year' ? '' : q.unit)}.</p>`;
 }
+// "+2 balls" under a daily answer, and the running count at the top of the screen
+function ballLineHTML(a){
+  const n = BALLS_FOR[a.s] || 0;
+  return `<p class="ballline ${n ? '' : 'none'}">${n ? `<span class="bl-dots">${'●'.repeat(n)}</span> +${n} ${n === 1 ? 'ball' : 'balls'} for Dial Ball` : 'No ball this time. Land in a coloured zone to earn one.'}</p>`;
+}
+function bankBalls(day, a){
+  const n = BALLS_FOR[a.s] || 0, total = ballsFor(day), c = $('#ballcount'), d = $('#bb-dots'); if (!c || !d) return;
+  c.textContent = total; d.textContent = '●'.repeat(total); if (!total) d.innerHTML = '<i>none yet</i>';
+  if (c.nextElementSibling) c.nextElementSibling.textContent = total === 1 ? 'ball' : 'balls';
+  if (n) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); Sfx.tone(1175, .06, 'square', .025, .12); if (n > 1) Sfx.tone(1568, .06, 'square', .025, .2); if (n > 2) Sfx.tone(2093, .08, 'square', .025, .28); }
+}
 function startReveal(q, a, animate, totals, onLand, combo){
   const cv = $('#meter'), rv = $('#reveal'); if (!cv || !rv) return;
   if (!animate) { rv.classList.add('stamped','settled'); Meter.start(cv, q, a, false); return; }
@@ -3543,10 +3563,13 @@ function viewPlay(){
     return `<li><button class="pip ${x ? 'done t'+x.s : ''}" data-act="goq" data-i="${k}" ${k===i?'aria-current="step"':''} ${can ? '' : 'disabled'} aria-label="Question ${k+1}${x ? ', '+x.s+' points' : ', unanswered'}">${x ? (x.to ? '⏱' : x.s===1000 ? '★' : k+1) : '?'}</button></li>`; }).join('');
   const fresh = App.fresh === i;
   const total = dayTotal(day), shown = fresh && a ? total - a.s : total;
+  // balls banked for the bonus round; a fresh answer's balls drop in once the dial lands
+  const bank = ballsFor(day) - (fresh && a && !reducedMotion() ? BALLS_FOR[a.s] || 0 : 0);
   const body = !a ? entryHTML(q)
-    : `${revealHTML(q, a, fresh)}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
+    : `${revealHTML(q, a, fresh, ballLineHTML(a))}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
   return `<section class="play">
     <ol class="pips" aria-label="Progress">${pips}</ol>
+    <div class="ballbank" aria-label="Bonus round balls earned so far: ${bank}"><span>Dial Ball bonus</span><span class="bb-dots" id="bb-dots">${'●'.repeat(bank)}${bank ? '' : '<i>none yet</i>'}</span><b id="ballcount">${bank}</b><span>${bank === 1 ? 'ball' : 'balls'}</span></div>
     ${qcardHTML(q, `Q<b>${i+1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
     ${body}
   </section>`;
@@ -4635,7 +4658,7 @@ function postRender(){
   if (App.view === 'play') {
     const day = S.days[App.today], i = App.cur, a = day.answers[i];
     if (!a) { if (T) Timer.start(day.st[i] + T, T, () => submitDaily(true)); }
-    else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
+    else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); bankBalls(day, a); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
   }
   if (App.view === 'endless' && S.run && !S.run.over) {
     const r = S.run;
