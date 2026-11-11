@@ -3591,6 +3591,7 @@ const Pinball = {
   W:400, H:620, BR:9, G:900, T_MAX:16, BUMP:5, BUMP_CAP:30,
   LIT:{ 25:50, 50:100, 100:200, 250:350 }, LIT_SECS:3.5,   // one dial at a time is lit and pays its LIT value
   bulbs:null,
+  CX:200, CY:600, CK:1.3, SHOUTS:['BOOM!', 'FIRE!', 'KA-POW!', 'BLAST OFF!', 'WHOOSH!'],
   holes:[
     { x:200, y:92,  r:19, v:250, t:1000 },
     { x:104, y:196, r:21, v:100, t:750 }, { x:296, y:196, r:21, v:100, t:750 },
@@ -3656,11 +3657,19 @@ const Pinball = {
   ready(){ const st = this.st; if (st) { st.ball = null; st.aimT = 0; } },
   aimAngle(){ return .49 * Math.sin(this.st.aimT * Math.PI * 2 / 2.4); },   // about ±28° from straight up
 
-  launch(){
+  // gold: the last ball of the round is golden and scores double
+  launch(gold){
     const st = this.st; if (!st || st.ball || st.over) return false;
-    const a = this.aimAngle(), sp = 1050;
-    st.ball = { x:200, y:616, vx:Math.sin(a) * sp, vy:-Math.cos(a) * sp, armed:false, t:0, slow:0, pts:0, hits:0, done:false, trail:[] };
-    Sfx.rev();
+    const a = this.aimAngle(), sp = 1050, mx = this.CX + Math.sin(a) * 72, my = this.CY - Math.cos(a) * 72;   // the cannon's muzzle
+    st.ball = { x:mx, y:my, vx:Math.sin(a) * sp, vy:-Math.cos(a) * sp, armed:false, t:0, slow:0, pts:0, hits:0, done:false, trail:[], gold:!!gold };
+    st.fire = { t0:st.t, a };
+    // boom: a low thump, a crack of noise and a rising whistle as the ball flies
+    Sfx.tone(170, .28, 'triangle', .12, 0, -120); Sfx.noise(.2, .1, 0, 420); Sfx.tone(520, .32, 'sine', .022, .04, 900);
+    if (gold) this.jingle([1047, 1319, 1568, 2093], .06, .03);
+    for (let i = 0; i < 9; i++) { const sa = a + (Math.random() - .5) * 1.5, sv = 30 + Math.random() * 70; st.fx.push({ x:mx, y:my, vx:Math.sin(sa) * sv, vy:-Math.cos(sa) * sv, t0:st.t, smoke:true, r:5 + Math.random() * 6 }); }
+    for (let i = 0; i < 14; i++) { const sa = a + (Math.random() - .5) * .9, sv = 160 + Math.random() * 260; st.fx.push({ x:mx, y:my, vx:Math.sin(sa) * sv, vy:-Math.cos(sa) * sv, c:i % 2 ? '#ffd23f' : '#ff9a3d', t0:st.t }); }
+    if (st.floats) st.floats.push({ x:200, y:470, txt:gold ? 'GOLDEN BALL ×2!' : this.SHOUTS[Math.floor(Math.random() * this.SHOUTS.length)], col:gold ? '#ffd23f' : '#fff6e5', t0:st.t, big:true, size:gold ? 22 : 24, life:.8 });
+    this.buzz(gold ? [30, 20, 60] : 28);
     return true;
   },
 
@@ -3752,8 +3761,9 @@ const Pinball = {
     this.buzz(8);
   },
   add(pts, x, y, col, big){
-    const st = this.st; st.ball.pts += pts;
-    st.floats.push({ x, y, txt:'+' + pts, col, t0:st.t, big });
+    const st = this.st; if (st.ball.gold) pts *= 2;
+    st.ball.pts += pts;
+    st.floats.push({ x, y, txt:'+' + pts, col:st.ball.gold ? '#ffd23f' : col, t0:st.t, big });
     st.hooks.onPoints(pts);
   },
   sink(h){
@@ -3804,6 +3814,8 @@ const Pinball = {
     ctx.save(); ctx.scale(s, s);
     ctx.clearRect(0, 0, W, H);
     const sh = st.t - (st.shake ?? -9);
+    const kick = st.fire ? st.t - st.fire.t0 : 9;
+    if (kick < .14 && !calm) ctx.translate(0, 4 * (1 - kick / .14));
     if (sh < .5 && !calm) ctx.translate(Math.sin(sh * 70) * 5 * (1 - sh / .5), Math.cos(sh * 55) * 3 * (1 - sh / .5));
     // playfield
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b5e'); g.addColorStop(1, '#0f0828');
@@ -3843,26 +3855,32 @@ const Pinball = {
       ctx.strokeStyle = P.pink; ctx.lineWidth = 8; ctx.stroke();
       ctx.fillStyle = '#fff6e5'; ctx.beginPath(); ctx.arc(f.px, f.py, 3, 0, Math.PI * 2); ctx.fill();
     }
-    // aim arrow while waiting to launch
-    if (!st.ball && !st.over) {
-      const a = this.aimAngle(), ex = 200 + Math.sin(a) * 92, ey = 616 - Math.cos(a) * 92;
+    // the cannon: sweeps while loaded, then holds the angle it fired at
+    const loaded = !st.ball && !st.over, ca = loaded ? this.aimAngle() : st.fire ? st.fire.a : 0;
+    if (loaded) {
+      const mx = this.CX + Math.sin(ca) * 86, my = this.CY - Math.cos(ca) * 86, ex = this.CX + Math.sin(ca) * 150, ey = this.CY - Math.cos(ca) * 150;
       ctx.strokeStyle = 'rgba(255,210,63,.25)'; ctx.lineWidth = 2; ctx.setLineDash([3, 6]);
-      ctx.beginPath(); ctx.arc(200, 616, 92, -Math.PI / 2 - .49, -Math.PI / 2 + .49); ctx.stroke();
-      ctx.setLineDash([6, 7]); ctx.lineDashOffset = -st.t * 40; ctx.strokeStyle = P.gold; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(200, 616); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = P.gold; ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(-8, 3); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); ctx.restore();
-      this.drawBall(ctx, 200, 616, 1, []);
-      if (calm || Math.floor(st.t * 2.4) % 2 === 0) { ctx.font = '15px Bungee, "Arial Black", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = P.gold; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4; ctx.strokeText('TAP TO LAUNCH', 200, 508); ctx.fillText('TAP TO LAUNCH', 200, 508); }
+      ctx.beginPath(); ctx.arc(this.CX, this.CY, 150, -Math.PI / 2 - .49, -Math.PI / 2 + .49); ctx.stroke();
+      ctx.setLineDash([6, 7]); ctx.lineDashOffset = -st.t * 60; ctx.strokeStyle = P.gold; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = P.gold; ctx.save(); ctx.translate(ex, ey); ctx.rotate(ca); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(-8, 3); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); ctx.restore();
+      if (calm || Math.floor(st.t * 2.4) % 2 === 0) { ctx.font = '15px Bungee, "Arial Black", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = P.gold; ctx.strokeStyle = '#150b33'; ctx.lineWidth = 4; ctx.strokeText('TAP TO FIRE', 200, 432); ctx.fillText('TAP TO FIRE', 200, 432); }
     }
+    this.drawCannon(ctx, st, P, ca, loaded, calm);
     // ball
     const b = st.ball;
-    if (b && !b.done) this.drawBall(ctx, b.x, b.y, 1, b.trail);
-    if (st.sunk) { const k = Math.min(1, (st.t - st.sunk.t0) / .35); this.drawBall(ctx, st.sunk.bx + (st.sunk.h.x - st.sunk.bx) * k, st.sunk.by + (st.sunk.h.y - st.sunk.by) * k, 1 - k * .8, []); }
+    if (b && !b.done) {
+      // a fresh shot burns: sparks stream off the ball for its first moments
+      if (b.t < .7 && !calm) for (let k = 0; k < 2; k++) st.fx.push({ x:b.x, y:b.y, vx:(Math.random() - .5) * 90, vy:(Math.random() - .5) * 90 + 40, c:k ? '#ff9a3d' : '#ffd23f', t0:st.t });
+      this.drawBall(ctx, b.x, b.y, 1, b.trail, b.gold);
+    }
+    if (st.sunk) { const k = Math.min(1, (st.t - st.sunk.t0) / .35); this.drawBall(ctx, st.sunk.bx + (st.sunk.h.x - st.sunk.bx) * k, st.sunk.by + (st.sunk.h.y - st.sunk.by) * k, 1 - k * .8, [], st.ball && st.ball.gold); }
     // sparks and floating points
     st.fx = st.fx.filter(p => st.t - p.t0 < .9);
     for (const p of st.fx) {
       const dt = st.t - p.t0, x = p.x + p.vx * dt, y = p.y + p.vy * dt + 300 * dt * dt; ctx.globalAlpha = 1 - dt / .9; ctx.fillStyle = p.c;
-      if (p.coin) { ctx.fillStyle = P.gold; ctx.beginPath(); ctx.ellipse(x, y, 5, 5 * Math.abs(Math.cos(dt * 14 + p.vx)) + .8, 0, 0, Math.PI * 2); ctx.fill(); }
+      if (p.smoke) { ctx.globalAlpha = .34 * (1 - dt / .9); ctx.fillStyle = '#c6bbec'; ctx.beginPath(); ctx.arc(x, p.y + p.vy * dt - 20 * dt, p.r * (1 + dt * 2.2), 0, Math.PI * 2); ctx.fill(); }
+      else if (p.coin) { ctx.fillStyle = P.gold; ctx.beginPath(); ctx.ellipse(x, y, 5, 5 * Math.abs(Math.cos(dt * 14 + p.vx)) + .8, 0, 0, Math.PI * 2); ctx.fill(); }
       else ctx.fillRect(x - 2, y - 2, 4, 4);
     }
     ctx.globalAlpha = 1;
@@ -3892,12 +3910,43 @@ const Pinball = {
     if (b && b.t > this.T_MAX && !b.done) { ctx.font = `18px Bungee, "Arial Black", sans-serif`; ctx.fillStyle = P.danger || '#ff5a5a'; ctx.fillText('FLIPPERS OFF', 200, 640 - 36); }
     ctx.restore();
   },
-  drawBall(ctx, x, y, k, trail){
+  drawCannon(ctx, st, P, a, loaded, calm){
+    const since = st.fire ? st.t - st.fire.t0 : 9, rec = since < .3 ? 1 - since / .3 : 0, off = rec * 12;   // recoil
+    const lastGold = loaded && st.nextGold;
+    ctx.save(); ctx.translate(this.CX, this.CY); ctx.scale(this.CK, this.CK); ctx.translate(-this.CX, -this.CY);   // drawn 30% larger about its pivot
+    ctx.save(); ctx.translate(this.CX, this.CY); ctx.rotate(a);
+    // barrel
+    const g = ctx.createLinearGradient(-13, 0, 13, 0); g.addColorStop(0, '#1a0f40'); g.addColorStop(.45, '#6a52c8'); g.addColorStop(1, '#1a0f40');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-13, 8 + off); ctx.lineTo(-10, -50 + off); ctx.lineTo(10, -50 + off); ctx.lineTo(13, 8 + off); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#0a0520'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = P.pink; ctx.fillRect(-12, -18 + off, 24, 5);
+    ctx.fillStyle = P.gold; ctx.fillRect(-12.5, -56 + off, 25, 8); ctx.strokeRect(-12.5, -56 + off, 25, 8);
+    // the loaded ball sits in the muzzle, glowing as the cannon charges
+    if (loaded) {
+      const pulse = calm ? .6 : .5 + .5 * Math.sin(st.t * 9);
+      ctx.globalAlpha = .25 + .3 * pulse; ctx.fillStyle = lastGold ? P.gold : '#fff6e5'; ctx.beginPath(); ctx.arc(0, -56, 13 + 3 * pulse, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.restore(); ctx.save(); ctx.translate(this.CX, this.CY); ctx.rotate(a); ctx.translate(0, -56); this.drawBall(ctx, 0, 0, .85, [], lastGold); 
+    }
+    // muzzle flash
+    if (since < .16) {
+      const k = 1 - since / .16; ctx.translate(0, loaded ? 0 : -62); ctx.globalAlpha = k;
+      for (const [r, c] of [[34, '#ff9a3d'], [24, '#ffd23f'], [13, '#ffffff']]) { ctx.fillStyle = c; ctx.beginPath(); for (let i = 0; i < 16; i++) { const an = i * Math.PI / 8, rr = (i % 2 ? r * .45 : r) * (.6 + .4 * k); ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr - r * .3); } ctx.closePath(); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    // carriage: a studded wheel the barrel pivots on
+    ctx.fillStyle = '#32226e'; ctx.beginPath(); ctx.arc(this.CX, this.CY + 2, 19, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = P.pink; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = P.gold; for (let i = 0; i < 6; i++) { const an = i * Math.PI / 3 + a; ctx.beginPath(); ctx.arc(this.CX + Math.cos(an) * 12, this.CY + 2 + Math.sin(an) * 12, 2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(this.CX, this.CY + 2, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  },
+  drawBall(ctx, x, y, k, trail, gold){
     for (let i = 0; i < trail.length; i += 2) { ctx.globalAlpha = (i / trail.length) * .45; ctx.fillStyle = i > trail.length / 2 ? '#ffd23f' : '#ff3d7f'; ctx.beginPath(); ctx.arc(trail[i], trail[i + 1], this.BR * (.35 + .5 * i / trail.length), 0, Math.PI * 2); ctx.fill(); }
     ctx.globalAlpha = .22; ctx.fillStyle = '#fff6e5'; ctx.beginPath(); ctx.arc(x, y, this.BR * k * 1.9, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
     const r = this.BR * k, g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
-    g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#d8d2f0'); g.addColorStop(1, '#7a6fae');
+    g.addColorStop(0, '#ffffff'); g.addColorStop(.5, gold ? '#ffd23f' : '#d8d2f0'); g.addColorStop(1, gold ? '#c9820a' : '#7a6fae');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   },
   // a sinkhole drawn as a mini gauge: coloured arc in its tier colour, a needle, and its value
@@ -3952,7 +4001,7 @@ function viewPinball(){
       </div>
       <div class="px card">
         <p class="label">How it works</p>
-        <p class="small">The arrow at the bottom sweeps left and right. Tap <b>Launch</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving, so time your shot. Bumpers add +5 a hit. Every point goes on top of today’s score.</p>
+        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving, so time your shot. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. Every point goes on top of today’s score.</p>
         <div class="pin-legend">${[[250, 1000, 'Jackpot'], [100, 750, ''], [50, 400, ''], [25, 200, '']].map(([v, t, l]) => `<span class="t${t}"><b>${v}</b>${l}</span>`).join('')}</div>
       </div>
       <button class="btn btn-mint btn-block btn-xl" data-act="pinstart" id="nextbtn">Play the bonus round</button>
@@ -3966,7 +4015,7 @@ function viewPinball(){
       <span>Bonus <b id="pin-bonus">+${fmtNum(pin.bonus)}</b></span>
     </div>
     <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
-    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Launch ball</button>
+    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Fire!</button>
   </section>`;
 }
 function startPinball(){
@@ -3979,7 +4028,8 @@ function startPinball(){
     if (bonusEl && bonusEl.textContent !== bonusTxt) { bonusEl.textContent = bonusTxt; bonusEl.classList.remove('pop'); void bonusEl.offsetWidth; bonusEl.classList.add('pop'); }
     set('#pin-ball', Math.min(pin.used + (Pinball.flying ? 0 : 1), pin.balls));
     set('#pin-left', '●'.repeat(Math.min(left, 21)));
-    const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : 'Launch ball'; }
+    const lb = $('#pinlaunch'); if (lb) { lb.disabled = Pinball.flying || left <= 0; lb.textContent = left <= 0 ? 'Last ball…' : Pinball.flying ? 'Ball in play…' : left === 1 && pin.balls > 1 ? 'Fire the golden ball!' : 'Fire!'; }
+    if (Pinball.st) Pinball.st.nextGold = left === 1 && pin.balls > 1;
   };
   Pinball.start(cv, {
     onPoints: paint,
@@ -3994,7 +4044,7 @@ function startPinball(){
 function launchPin(){
   const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
   const pin = day.pin; if (pin.used >= pin.balls) return;
-  if (!Pinball.launch()) return;
+  if (!Pinball.launch(pin.balls > 1 && pin.used === pin.balls - 1)) return;
   pin.used++; save();   // the ball counts as soon as it's launched, so a refresh can't re-roll it
   const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = 'Ball in play…'; }
   const el = $('#pin-left'); if (el) el.textContent = '●'.repeat(Math.min(pin.balls - pin.used, 21));
