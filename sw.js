@@ -2,7 +2,7 @@
    The page itself is network-first (so players always get the latest version when online)
    with the cached copy as a fallback; icons and fonts are cache-first.
    Supabase and Stripe requests are never touched. Bump VERSION to clear old caches. */
-const VERSION = 'dialin-v13';
+const VERSION = 'dialin-v14';
 const CORE = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
   'fonts/rubik-latin.woff2', 'fonts/bungee-latin.woff2'];
 

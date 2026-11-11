@@ -3514,7 +3514,7 @@ function viewHome(){
   const day = S.days[App.today], st = getStats(App.today);
   const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
   const rs = done && S.rankSeen && S.rankSeen.d === App.today && S.rankSeen.players > 1 ? S.rankSeen : null;
-  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
+  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : dayBonus(day) ? ` · incl. +${fmtNum(dayBonus(day))} bonus` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
   const run = S.run && !S.run.over ? S.run : null;
   const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>${paywallOn() ? ' · unlocked' : ''}` : freeRunLeft() ? 'Free run available today' : `Unlock for ${CONFIG.PRICE_LABEL}`;
   const bStatus = MP.code ? `In room <b>${MP.code}</b>` : 'Up to 4 friends · room codes';
