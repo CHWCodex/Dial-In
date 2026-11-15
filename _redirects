@@ -3,3 +3,4 @@
 /dial-in/*  /  301
 /play       /  302
 /supabase/* /  302
+/scripts/*  /  302
