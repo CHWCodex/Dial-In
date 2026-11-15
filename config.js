@@ -13,6 +13,11 @@ window.DIAL_IN_CONFIG = {
   STRIPE_PAYMENT_LINK: 'https://buy.stripe.com/8x27sL3CB4PT3W6g6H8Zq00',
   PRICE_LABEL: '£2.99',
 
+  // Optional tip jar. A second Stripe Payment Link for a small fixed tip, e.g. £1. Leave '' to hide it.
+  // Tips never unlock anything (the webhook only unlocks Unlimited for a £2.99+ checkout).
+  TIP_LINK: 'https://buy.stripe.com/7sYfZh5KJaad50a4nZ8Zq01',
+  TIP_LABEL: '£1',
+
   // Optional. SHA-256 hash of a passcode that opens the developer sandbox on the live site.
   // Make one in the browser console with: await DialIn.devHash('your passcode')
   DEV_PASS_HASH: ''

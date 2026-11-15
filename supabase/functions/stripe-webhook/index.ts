@@ -26,6 +26,17 @@ async function validSignature(body: string, header: string | null, secret: strin
   });
 }
 
+// Only a checkout at the Unlimited price unlocks it, so a tip (or a tampered tip link) never can.
+// Uses the pre-discount subtotal in the link's own currency (GBP), even when Stripe shows the buyer a local currency.
+// Optional secret UNLIMITED_MIN_PENCE overrides the 299 default if the price changes.
+function isUnlimitedPrice(o: Record<string, any>): boolean {
+  const cc = o.currency_conversion;
+  const currency = String((cc?.source_currency ?? o.currency) || "").toLowerCase();
+  const subtotal = Number(cc?.amount_subtotal ?? o.amount_subtotal ?? o.amount_total);
+  const min = Number(Deno.env.get("UNLIMITED_MIN_PENCE") || 299);
+  return currency === "gbp" && Number.isFinite(subtotal) && subtotal >= min;
+}
+
 async function rpc(fn: string, args: Record<string, unknown>): Promise<void> {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/${fn}`, {
@@ -50,12 +61,12 @@ Deno.serve(async (req: Request) => {
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const user = o.client_reference_id;
       // "unpaid" means a delayed payment method is still pending: async_payment_succeeded follows if it clears
-      if (o.payment_status !== "unpaid" && typeof user === "string" && UUID.test(user)) {
+      if (o.payment_status !== "unpaid" && typeof user === "string" && UUID.test(user) && isUnlimitedPrice(o)) {
         await rpc("grant_premium", {
           p_user: user, p_session: o.id, p_amount: o.amount_total ?? null, p_currency: o.currency ?? null,
           p_intent: typeof o.payment_intent === "string" ? o.payment_intent : null,
         });
-      } else console.warn("checkout ignored", o.id, o.payment_status, user);
+      } else console.warn("checkout ignored (unpaid, tip or no player)", o.id, o.payment_status, o.amount_subtotal, o.currency);
     } else if (event.type === "checkout.session.async_payment_failed") {
       console.warn("delayed payment failed, nothing unlocked", o.id);
     } else if (event.type === "charge.refunded") {

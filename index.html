@@ -346,6 +346,12 @@ canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620
 .lb .sc{font:var(--fw-d) var(--fs-row) var(--font-num)}
 .lb li.me{background:var(--me-bg);outline:2px solid var(--gold)}
 .lb li.me .r{color:var(--gold)}
+.lb .sup{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:var(--r-pill);background:var(--gold);color:#1a0833;font:900 10px/1.2 var(--font-ui);letter-spacing:.06em;vertical-align:2px}
+.upsell{text-align:center;border:2px solid var(--gold);background:linear-gradient(180deg,rgba(255,210,63,.14),rgba(255,210,63,0) 70%),var(--surface)}
+.upsell .up-big{font:400 clamp(22px,7vw,30px)/1.1 var(--font-logo);color:var(--gold);margin:4px 0}
+.upsell ul{list-style:none;padding:0;margin:8px 0;font-weight:700}
+.upsell li{margin:3px 0}
+.nudge-streak{border:2px solid #ff9a3d}
 .lb li.gap{display:block;background:none;padding:0 10px;text-align:center;color:var(--text-2);letter-spacing:4px}
 .empty{text-align:center;padding:22px 8px;color:var(--text-2)}
 .empty .mascot{margin:0 auto 12px}
@@ -687,6 +693,9 @@ const CONFIG = {
   // Stripe Payment Link for the £2.99 Unlimited unlock, e.g. 'https://buy.stripe.com/abc123'. See README.
   STRIPE_PAYMENT_LINK: '',
   PRICE_LABEL: '£2.99',
+  // Optional tip jar: a second Stripe Payment Link for a small one-off tip (no unlock attached). Leave '' to hide it.
+  TIP_LINK: '',
+  TIP_LABEL: '£1',
   // Developer sandbox passcode for the hosted site: the SHA-256 hash of a passcode only you know.
   // Make one in the browser console with: await DialIn.devHash('your passcode'). Leave '' to disable on hosted sites.
   DEV_PASS_HASH: '',
@@ -706,7 +715,7 @@ const CONFIG = {
 (function(){
   const c = typeof window !== 'undefined' && window.DIAL_IN_CONFIG;
   if (!c || typeof c !== 'object') return;
-  for (const k of ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'STRIPE_PAYMENT_LINK', 'PRICE_LABEL', 'DEV_PASS_HASH']) if (typeof c[k] === 'string') CONFIG[k] = c[k].trim();
+  for (const k of ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'STRIPE_PAYMENT_LINK', 'PRICE_LABEL', 'TIP_LINK', 'TIP_LABEL', 'DEV_PASS_HASH']) if (typeof c[k] === 'string') CONFIG[k] = c[k].trim();
 })();
 
 /* ------------------------- QUESTION BANK ---------------------------- */
@@ -2164,7 +2173,7 @@ const NAME_B = ['Pigeon','Otter','Comet','Badger','Falcon','Panda','Rocket','Wal
 const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*16)] + ' ' + NAME_B[Math.floor(r()*16)] + ' ' + (10 + Math.floor(r()*90)); };
 
 function blankState(){
-  return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, friends:[], days:{},
+  return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, friends:[], days:{},
     endless:{ best:0, bestN:0, runs:0, answered:0, freeDay:'', hist:[], recent:[] }, run:null,
     premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0 };
 }
@@ -2177,6 +2186,7 @@ function sanitize(raw){
   out.player.name = cleanName(p.name);
   out.introSeen = raw.introSeen === true;
   out.sound = raw.sound !== false;
+  out.badge = raw.badge !== false;
   if (raw.dev && typeof raw.dev === 'object') out.dev = { timer:[20,5,0].includes(raw.dev.timer) ? raw.dev.timer : 20, infHearts:raw.dev.infHearts === true,
     showAns:raw.dev.showAns === true, dayOffset:Number.isInteger(raw.dev.dayOffset) ? raw.dev.dayOffset : 0, bots:[1,2,3].includes(raw.dev.bots) ? raw.dev.bots : 2 };
   out.updatedAt = Number(raw.updatedAt) || 0;
@@ -4044,7 +4054,7 @@ function viewPinball(){
       </div>
       <div class="px card">
         <p class="label">How it works</p>
-        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving, so time your shot. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. In a hurry? <b>Fire all</b> sends every ball in at once. Every point goes on top of today’s score.</p>
+        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire all</b> and it blasts every ball into the machine at once, fanning them out as it sweeps; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. Every point goes on top of today’s score.</p>
         <div class="pin-legend">${[[250, 1000, 'Jackpot'], [100, 750, ''], [50, 400, ''], [25, 200, '']].map(([v, t, l]) => `<span class="t${t}"><b>${v}</b>${l}</span>`).join('')}</div>
       </div>
       <button class="btn btn-mint btn-block btn-xl" data-act="pinstart" id="nextbtn">Play the bonus round</button>
@@ -4058,8 +4068,7 @@ function viewPinball(){
       <span>Bonus <b id="pin-bonus">+${fmtNum(pin.bonus)}</b></span>
     </div>
     <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
-    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Fire!</button>
-    ${pin.balls > 1 ? `<button class="btn btn-ghost btn-block" data-act="pinauto" id="pinauto">Fire all</button>` : ''}
+    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">${left > 1 ? `Fire all ${left} balls!` : 'Fire!'}</button>
   </section>`;
 }
 function startPinball(){
@@ -4074,9 +4083,7 @@ function startPinball(){
     const flying = Pinball.flying, n = Pinball.st ? Pinball.st.balls.length : 0;
     set('#pin-ball', Math.min(pin.used + (flying ? 0 : 1), pin.balls));
     set('#pin-left', '●'.repeat(Math.min(left, 21)));
-    const lb = $('#pinlaunch'); if (lb) { lb.disabled = flying || left <= 0; lb.textContent = flying ? (n > 1 ? `${n} balls in play…` : 'Ball in play…') : left <= 0 ? 'Last ball…' : left === 1 && pin.balls > 1 ? 'Fire the golden ball!' : 'Fire!'; }
-    if (Pinball.st) Pinball.st.nextGold = left === 1 && pin.balls > 1;
-    const ab = $('#pinauto'); if (ab) { ab.style.display = left < 2 ? 'none' : ''; ab.disabled = flying; ab.textContent = `Fire all ${left} balls at once`; }
+    const lb = $('#pinlaunch'); if (lb) { lb.disabled = flying || left <= 0; lb.textContent = flying ? (n > 1 ? `${n} balls in play…` : 'Ball in play…') : left <= 0 ? 'Last ball…' : left > 1 ? `Fire all ${left} balls!` : 'Fire!'; }
   };
   Pinball.start(cv, {
     onPoints: paint,
@@ -4086,17 +4093,11 @@ function startPinball(){
     },
     onLaunch(){ pin.used++; save(); paint(); }   // each ball of a volley counts as it leaves the cannon
   });
-  cv.addEventListener('pointerdown', e => { e.preventDefault(); launchPin(); });
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); fireAllPin(); });
   App.pinPaint = paint; paint();
   if (pin.used >= pin.balls && !pin.done) finishPinball();   // every ball was already fired (the page was reloaded mid-flight)
 }
-function launchPin(){
-  const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
-  const pin = day.pin; if (pin.used >= pin.balls) return;
-  if (!Pinball.launch(pin.balls > 1 && pin.used === pin.balls - 1, false)) return;
-  pin.used++; save();   // the ball counts as soon as it's launched, so a refresh can't re-roll it
-  if (App.pinPaint) App.pinPaint();
-}
+// The only way to play: every ball left goes in together (each counts as it leaves the cannon, so a refresh can't re-roll it)
 function fireAllPin(){
   const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
   const pin = day.pin, left = pin.balls - pin.used; if (left < 1) return;
@@ -4106,7 +4107,6 @@ function fireAllPin(){
 function finishPinball(){
   const day = S.days[App.today], pin = day.pin;
   pin.done = true; save();
-  { const ab = $('#pinauto'); if (ab) ab.style.display = 'none'; }
   Pinball.finale(pin.bonus);
   const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = pin.bonus > 0 ? 'Bonus banked!' : 'Round over'; }
   if (pin.bonus > 0 && !reducedMotion()) setTimeout(() => { if (App.view === 'pinball') Hype.party(pin.bonus >= 500); }, 1300);
@@ -4138,6 +4138,8 @@ function viewResults(){
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
     </div>
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
+    ${streakNudgeHTML(st)}
+    ${upsellHTML()}
     <div class="statgrid">
       <div class="px stat"><span class="label">Dialed in</span><b>${exacts}</b></div>
       <div class="px stat"><span class="label">Personal best</span><b>${fmtNum(st.best)}</b></div>
@@ -4151,6 +4153,31 @@ function viewResults(){
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
+}
+// Guests' streaks live only on this device: offer to protect them with an email once there's something to lose
+function streakNudgeHTML(st){
+  if (!Backend.on || DEV.on || Backend.email || st.current < 2) return '';
+  return `<div class="px card stack center nudge-streak">
+    <p class="label">🔥 ${st.current}-day streak</p>
+    <p class="small">Your streak is only saved on this device. Add your email so you never lose it, even on a new phone.</p>
+    <button class="btn btn-coral" data-act="protect">Protect my streak</button></div>`;
+}
+// The moment straight after Dial Ball is when players want more: offer Unlimited (or the tip jar to people who own it)
+function upsellHTML(){
+  if (DEV.on) return '';
+  if (paywallOn() && !isPremium()) {
+    const free = freeRunLeft();
+    return `<div class="px card stack upsell">
+      <p class="label">Want more?</p>
+      <p class="up-big">Play Unlimited</p>
+      <ul><li>${fmtNum(BANK.length)} questions, shuffled just for you</li><li>As many runs as you like, every day</li><li>${CONFIG.PRICE_LABEL} once. No subscription.</li></ul>
+      <div class="btnrow" style="justify-content:center"><button class="btn btn-mint btn-xl" data-act="pay">Unlock · ${CONFIG.PRICE_LABEL}</button>${free ? '<button class="btn btn-ghost" data-act="endless">Try a free run</button>' : ''}</div>
+    </div>`;
+  }
+  if (tipOn() && S.premium.source === 'stripe') return `<div class="px card stack center">
+      <p class="small">Enjoying DIAL IN? A ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions.</p>
+      <button class="btn btn-sky" data-act="tip">Buy the dev a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>`;
+  return '';
 }
 /* ---- Daily ranking: how many people you beat today ---- */
 const rankFor = date => App.rank && App.rank.date === date ? App.rank : null;
@@ -4481,6 +4508,7 @@ async function finishSignIn(){
   toast(`You’re in as ${Backend.email}.`, 3500);
   render(false);
   if (App.view === 'settings') loadFriendNames();
+  if (S.badge === false) Backend.rpc('set_show_badge', { p_show: false }).catch(() => {});   // carry a hidden badge over to this profile
   await confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
   if (App.afterEmail === 'pay') { App.afterEmail = null; if (paywallOn() && !isPremium()) openPay(); }   // carry on with the purchase they started
 }
@@ -4534,7 +4562,7 @@ function lbRows(rows, meId, kind){
     const sub = B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
     // the global boards list the top 50 plus your own row: mark the jump when you're further down
     const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
-    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
+    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.supporter === true ? '<span class="sup" title="Bought Unlimited to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
 const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
@@ -4623,6 +4651,13 @@ function viewSettings(){
       <p class="label">Unlimited</p>
       <p class="small">${isPremium() ? (S.premium.source === 'demo' ? 'Unlocked in preview mode (no payment was taken).' : 'Unlocked. Thank you for supporting DIAL IN!') : `One free run a day. Unlock unlimited runs for ${CONFIG.PRICE_LABEL}, a one-off payment.`}</p>
       <div class="btnrow">${isPremium() ? '' : `<button class="btn" data-act="pay">Unlock · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
+      ${S.premium.source === 'stripe' ? `<div class="btnrow"><button class="btn ${S.badge ? 'btn-mint' : 'btn-ghost'}" data-act="badge" aria-pressed="${S.badge}">Supporter badge: ${S.badge ? 'On' : 'Off'}</button></div>
+      <p class="small muted">Shows a SUPPORTER badge next to your name on the leaderboards.</p>` : ''}
+    </div>` : ''}
+    ${tipOn() ? `<div class="px card stack">
+      <p class="label">Tip jar</p>
+      <p class="small">DIAL IN is made by one person. If it brightens your day, a ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions and keeps the daily puzzle free.</p>
+      <div class="btnrow"><button class="btn btn-sky" data-act="tip">Buy the dev a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
     </div>` : ''}
     <div class="px card stack">
       <p class="label">Sound &amp; effects</p>
@@ -4666,6 +4701,9 @@ function openPay(){
          <button class="btn btn-block" data-act="demounlock">Preview Unlimited (free demo)</button>`}`;
   openDialog('dlg-pay');
 }
+const tipOn = () => /^https:\/\/buy\.stripe\.com\//.test(CONFIG.TIP_LINK) && !DEV.on;
+// A tip is a plain donation: no player id is attached, so the webhook never treats it as an Unlimited purchase
+function tip(){ if (tipOn()) window.open(CONFIG.TIP_LINK, '_blank', 'noopener'); }
 async function buy(){
   try {
     await Backend.auth();
@@ -4823,11 +4861,14 @@ function flashKey(k){ const b = document.querySelector(`.key[data-k="${k}"]`); i
 const siteLink = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|\[::1\])/.test(location.hostname) && window.top === window) ? location.origin + location.pathname : '';
 function shareDailyText(){
   const day = S.days[App.today], st = getStats(App.today);
-  const lines = [`${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayBase(day))} / 7,000${dayBonus(day) ? ` + ${fmtNum(dayBonus(day))} bonus` : ''}`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
+  const lines = [`📻 ${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayTotal(day))} points`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
+  const ex = day.answers.filter(a => a.s === 1000).length;
+  lines.push(`🎯 ${fmtNum(dayBase(day))} / 7,000${ex ? ` · ${ex} dialed in` : ''}`);
+  if (day.pin && day.pin.balls) lines.push(`🎰 Dial Ball +${fmtNum(day.pin.bonus)} (${day.pin.balls} ${day.pin.balls === 1 ? 'ball' : 'balls'})`);
   const r = rankFor(App.today);
   if (r && r.rank !== null && r.players > 1) { const w = rankWords(r); lines.push(`🏆 ${r.rank === 1 ? '#1 today' : w.top <= 50 ? 'Top ' + w.top + '%' : '#' + r.rank + ' of ' + r.players} · beat ${fmtNum(r.beaten)} ${r.beaten === 1 ? 'player' : 'players'}`); }
   if (st.current > 1) lines.push(`🔥 ${st.current}-day streak`);
-  if (siteLink()) lines.push(siteLink());
+  if (siteLink()) lines.push('', 'Can you beat me? ' + siteLink());
   return lines.join('\n');
 }
 function shareRunText(){
@@ -4863,8 +4904,7 @@ function onClick(e){
     case 'share': share(shareDailyText()); break;
     case 'rank': loadRank(true); break;
     case 'pinstart': App.pinGo = true; render(); break;
-    case 'pinlaunch': launchPin(); break;
-    case 'pinauto': fireAllPin(); break;
+    case 'pinlaunch': fireAllPin(); break;
     case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
     case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
@@ -4892,6 +4932,9 @@ function onClick(e){
     case 'buy': buy(); break;
     case 'payemail': closeDialog('dlg-pay'); App.afterEmail = 'pay'; go('settings'); loadFriendNames(); break;
     case 'restorebuy': confirmPurchase(true); break;
+    case 'badge': S.badge = !S.badge; save(); render(false); Backend.rpc('set_show_badge', { p_show: S.badge }).catch(() => toast('Couldn’t update the badge. Try again in a moment.')); break;
+    case 'tip': tip(); break;
+    case 'protect': App.afterEmail = 'streak'; go('settings'); loadFriendNames(); break;
     case 'demounlock': S.premium = { active:true, source:'demo', at:Date.now() }; save(); closeDialog('dlg-pay'); Sfx.init(); Sfx.land(1000); toast('Unlimited preview unlocked.'); render(false); break;
     case 'dice': $('#pname').value = randomName(); break;
   }
@@ -4900,7 +4943,7 @@ function onKeyDown(e){
   if (anyDialogOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
   if (e.key === 'Enter' || e.key === ' ') {
-    if (App.view === 'pinball' && $('#pinball')) { e.preventDefault(); launchPin(); return; }
+    if (App.view === 'pinball' && $('#pinball')) { e.preventDefault(); fireAllPin(); return; }
     if (Meter.running) { e.preventDefault(); Meter.skip(); return; }
     const nb = $('#nextbtn');
     if (e.key === 'Enter' && nb && document.activeElement !== nb && !keyTarget()) { e.preventDefault(); nb.click(); return; }
