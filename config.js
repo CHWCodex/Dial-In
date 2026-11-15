@@ -15,7 +15,7 @@ window.DIAL_IN_CONFIG = {
 
   // Optional tip jar. A second Stripe Payment Link for a small fixed tip, e.g. £1. Leave '' to hide it.
   // Tips never unlock anything (the webhook only unlocks Unlimited for a £2.99+ checkout).
-  TIP_LINK: '',
+  TIP_LINK: 'https://buy.stripe.com/7sYfZh5KJaad50a4nZ8Zq01',
   TIP_LABEL: '£1',
 
   // Optional. SHA-256 hash of a passcode that opens the developer sandbox on the live site.
