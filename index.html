@@ -23,7 +23,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DIAL IN">
 <link rel="canonical" href="https://playdialin.com/">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"DIAL IN","alternateName":"DIAL IN: The Daily Numbers Game","url":"https://playdialin.com/","description":"Seven questions a day. Every answer is a number. Spin the dial and see how close you get.","image":"https://playdialin.com/icons/og-image.png","genre":["Trivia","Puzzle","Quiz"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en-GB","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"DIAL IN","alternateName":"DIAL IN: The Daily Numbers Game","url":"https://playdialin.com/","description":"Seven questions a day. Every answer is a number. Spin the dial and see how close you get.","image":"https://playdialin.com/icons/og-image.png","genre":["Trivia","Puzzle","Quiz"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en-GB","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@id":"https://playdialin.com/#org"}}</script>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebSite","@id":"https://playdialin.com/#site","name":"DIAL IN","alternateName":["Dial In game","DIAL IN daily number game","playdialin"],"url":"https://playdialin.com/","inLanguage":"en-GB","publisher":{"@id":"https://playdialin.com/#org"}},{"@context":"https://schema.org","@type":"Organization","@id":"https://playdialin.com/#org","name":"Dial In","url":"https://playdialin.com/","logo":"https://playdialin.com/icons/icon-512.png","email":"hello@playdialin.com"}]</script>
 <link rel="preconnect" href="https://jfutntnbxwhstqgrwskj.supabase.co" crossorigin>
 <link rel="preload" href="fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/bungee-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -605,7 +606,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <p>DIAL IN is a free daily number trivia game. Every day there are seven new questions, and every answer is a number: a year, a distance, a height, a record. Type your guess, watch the dial swing, and see how close you got. Spot on scores 1,000 points; the further away you are, the fewer you get.</p>
     <p>Finish the daily puzzle to unlock <b>Dial Ball</b>, a pinball bonus round where your best answers earn extra balls. Then keep going in <b>Unlimited</b>, battle up to three friends with a room code, or climb the daily and all-time leaderboards.</p>
     <p>A new puzzle starts every day at midnight UK time, drawn from over 1,150 hand-checked questions on history, science, sport, geography, film, music, food and more. It works on any phone or computer, with no app to download.</p>
-    <p><a href="how-to-play">How to play DIAL IN: rules, scoring and tips</a></p>
+    <p><a href="how-to-play">How to play DIAL IN: rules, scoring and tips</a> · <a href="past-puzzles">Past puzzles and answers</a> · <a href="number-trivia-questions">Number trivia questions</a> · <a href="estimation-game">The estimation game</a></p>
     <p class="muted"><a href="terms">Terms</a> · <a href="privacy">Privacy</a></p>
   </div>
 </section>
@@ -4148,8 +4149,8 @@ function viewResults(){
       <div class="px stat"><span class="label">Vs your avg</span><b>${vs}</b></div>
       <div class="px stat"><span class="label">Played</span><b>${st.played}</b></div>
     </div>
-    <div class="btnrow"><button class="btn btn-mint btn-xl" data-act="share">Share results</button><button class="btn btn-sky" data-act="board">Leaderboard</button></div>
-    <div class="btnrow"><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
+    <div class="btnrow"><button class="btn btn-mint btn-xl" data-act="share">Share results</button><button class="btn btn-sky btn-xl" data-act="shareImg">Share image</button></div>
+    <div class="btnrow"><button class="btn btn-ghost" data-act="board">Leaderboard</button><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
@@ -4876,6 +4877,75 @@ function shareRunText(){
   if (siteLink()) lines.push(siteLink()); return lines.join('\n');
 }
 const inviteText = () => `Battle me at ${CONFIG.GAME_NAME}! Join room ${MP.code}.` + (siteLink() ? '\n' + siteLink() : '');
+/* Share image: a 1080×1350 picture of today's result for Instagram, TikTok and anywhere text doesn't travel.
+   Shows points per question and the totals, never the answers. */
+const IMG_TILE = { ...TIER_COL, 0:'#4a3f7e' };
+async function drawShareImage(){
+  const day = S.days[App.today], st = getStats(App.today), total = dayTotal(day), W = 1080, H = 1350;
+  try { await Promise.all(['400 90px Bungee', '800 40px Rubik', '900 40px Rubik'].map(f => document.fonts.load(f))); } catch(e){}
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const LOGO = 'Bungee, "Arial Black", sans-serif', UI = 'Rubik, system-ui, sans-serif';
+  // background: deep purple glow, gold rays and a dotted frame
+  const bg = c.createRadialGradient(W / 2, 520, 40, W / 2, 560, 900); bg.addColorStop(0, '#4a2a9e'); bg.addColorStop(.42, '#251856'); bg.addColorStop(1, '#150b33');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  c.save(); c.translate(W / 2, 520); c.fillStyle = 'rgba(255,210,63,.07)';
+  for (let i = 0; i < 20; i++) { c.rotate(Math.PI / 10); c.beginPath(); c.moveTo(0, 0); c.lineTo(-90, -1400); c.lineTo(90, -1400); c.closePath(); c.fill(); }
+  c.restore();
+  c.setLineDash([2, 22]); c.lineCap = 'round'; c.lineWidth = 9; c.strokeStyle = 'rgba(255,210,63,.55)';
+  c.beginPath(); c.roundRect(36, 36, W - 72, H - 72, 54); c.stroke(); c.setLineDash([]);
+  const text = (t, x, y, font, fill, shadow = 7) => { c.font = font; if (shadow) { c.fillStyle = '#0a0520'; c.fillText(t, x, y + shadow); } c.fillStyle = fill; c.fillText(t, x, y); };
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  // logo
+  c.font = `400 92px ${LOGO}`; const wD = c.measureText('DIAL ').width, wI = c.measureText('IN').width, x0 = W / 2 - (wD + wI) / 2;
+  c.textAlign = 'left'; text('DIAL ', x0, 168, `400 92px ${LOGO}`, '#fff6e5'); text('IN', x0 + wD, 168, `400 92px ${LOGO}`, '#ff3d7f'); c.textAlign = 'center';
+  text(`DAILY #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today).toUpperCase()}`, W / 2, 232, `800 34px ${UI}`, '#c6bbec', 0);
+  // mascot
+  const svg = mascot(moodFor(dayBase(day)), 300).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+  await new Promise(res => { const im = new Image(); im.onload = () => { c.drawImage(im, W / 2 - 150, 250, 300, 300); res(); }; im.onerror = res; im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+  // score
+  c.shadowColor = 'rgba(255,210,63,.5)'; c.shadowBlur = 50; text(fmtNum(total), W / 2, 700, `400 150px ${LOGO}`, '#ffd23f', 9); c.shadowBlur = 0;
+  text('POINTS', W / 2, 752, `900 34px ${UI}`, '#fff6e5', 0);
+  // seven tiles: colour = how close, number = points
+  const tw = 120, gap = netGap(7, tw, W - 160), tx = W / 2 - (7 * tw + 6 * gap) / 2;
+  function netGap(n, w, span){ return Math.min(18, (span - n * w) / (n - 1)); }
+  day.answers.forEach((a, k) => { const x = tx + k * (tw + gap), y = 800;
+    c.fillStyle = '#0a0520'; c.beginPath(); c.roundRect(x, y + 8, tw, tw, 22); c.fill();
+    c.fillStyle = IMG_TILE[a.s] || IMG_TILE[0]; c.beginPath(); c.roundRect(x, y, tw, tw, 22); c.fill();
+    c.font = `400 ${a.s >= 1000 ? 34 : 40}px ${LOGO}`; c.fillStyle = a.s ? '#1a0833' : '#c6bbec'; c.fillText(a.s ? String(a.s) : '0', x + tw / 2, y + tw / 2 + 15);
+    c.font = `900 24px ${UI}`; c.fillStyle = '#c6bbec'; c.fillText('Q' + (k + 1), x + tw / 2, y + tw + 44); });
+  // details
+  let y = 1048;
+  const ex = day.answers.filter(a => a.s === 1000).length;
+  text(Scoring.title(dayBase(day)), W / 2, y, `400 48px ${LOGO}`, '#fff6e5', 5); y += 62;
+  const bits = [`${fmtNum(dayBase(day))} / 7,000`]; if (ex) bits.push(`${ex} dialed in`); if (dayBonus(day)) bits.push(`+${fmtNum(dayBonus(day))} Dial Ball`);
+  text(bits.join('  ·  '), W / 2, y, `800 36px ${UI}`, '#c6bbec', 0); y += 54;
+  const r = rankFor(App.today), extra = [];
+  if (r && r.rank !== null && r.players > 1) { const w = rankWords(r); extra.push(r.rank === 1 ? '#1 TODAY' : w.top <= 50 ? `TOP ${w.top}%` : `#${r.rank} OF ${r.players}`); }
+  if (st.current > 1) extra.push(`${st.current}-DAY STREAK`);
+  if (extra.length) { text(extra.join('  ·  '), W / 2, y, `900 36px ${UI}`, '#ff9a3d', 0); }
+  // footer call to action
+  const cta = 'CAN YOU BEAT ME?  playdialin.com'; c.font = `900 40px ${UI}`; const pw = Math.min(W - 140, c.measureText(cta).width + 100);
+  c.fillStyle = '#0a0520'; c.beginPath(); c.roundRect(W / 2 - pw / 2, 1194, pw, 92, 46); c.fill();
+  c.fillStyle = '#ffd23f'; c.beginPath(); c.roundRect(W / 2 - pw / 2, 1186, pw, 92, 46); c.fill();
+  c.fillStyle = '#1a0833'; c.fillText(cta, W / 2, 1246);
+  return new Promise(res => cv.toBlob(res, 'image/png'));
+}
+async function shareImage(){
+  const day = S.days[App.today]; if (!day || !day.done) return;
+  const btn = $('[data-act=shareImg]'); if (btn) { btn.disabled = true; btn.textContent = 'Making image…'; }
+  try {
+    const blob = await drawShareImage(); if (!blob) throw new Error('no image');
+    const name = `dialin-${DateUK.puzzleNo(App.today)}.png`, file = new File([blob], name, { type:'image/png' });
+    if (navigator.canShare && navigator.canShare({ files:[file] }) && window.top === window) {
+      try { await navigator.share({ files:[file], text:`Can you beat me? ${siteLink() || 'https://playdialin.com/'}` }); return; }
+      catch(e){ if (e && e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('Image saved. Post it anywhere!', 3500);
+  } catch(e){ toast('Couldn’t make the image on this device. Try Share results instead.', 4000); }
+  finally { const b = $('[data-act=shareImg]'); if (b) { b.disabled = false; b.textContent = 'Share image'; } }
+}
 async function share(text){
   if (navigator.share && window.isSecureContext && window.top === window) {
     try { await navigator.share({ text }); return; } catch(e) { if (e && e.name === 'AbortError') return; }
@@ -4902,6 +4972,7 @@ function onClick(e){
     case 'next': Meter.stop(); nextDaily(); break;
     case 'skip': Meter.skip(); break;
     case 'share': share(shareDailyText()); break;
+    case 'shareImg': shareImage(); break;
     case 'rank': loadRank(true); break;
     case 'pinstart': App.pinGo = true; render(); break;
     case 'pinlaunch': fireAllPin(); break;

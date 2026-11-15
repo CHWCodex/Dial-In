@@ -1,0 +1,27 @@
+# Every night just after midnight UK time, adds yesterday's puzzle to /past-puzzles and refreshes the sitemap.
+# Cloudflare Pages redeploys automatically when this pushes to main.
+name: Daily search pages
+on:
+  schedule:
+    - cron: '20 0 * * *'    # 00:20 UK in winter (GMT)
+    - cron: '20 23 * * *'   # 00:20 UK in summer (BST); a run with nothing new commits nothing
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: daily-pages
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/build-seo-pages.mjs
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet; then echo "No changes"; exit 0; fi
+          git config user.name "dialin-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Daily: update past puzzles and sitemap"
+          git push
