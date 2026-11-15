@@ -4054,7 +4054,7 @@ function viewPinball(){
       </div>
       <div class="px card">
         <p class="label">How it works</p>
-        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire</b> when it points where you want; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving, so time your shot. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. In a hurry? <b>Fire all</b> sends every ball in at once. Every point goes on top of today’s score.</p>
+        <p class="small">The cannon at the bottom sweeps left and right. Tap <b>Fire all</b> and it blasts every ball into the machine at once, fanning them out as it sweeps; the flippers and bumpers do the rest. Land in a dial to score its number. One dial is always <b>lit up gold and pays double</b>, and it keeps moving. Bumpers add +5 a hit, and your <b>last ball is golden and scores double</b>. Every point goes on top of today’s score.</p>
         <div class="pin-legend">${[[250, 1000, 'Jackpot'], [100, 750, ''], [50, 400, ''], [25, 200, '']].map(([v, t, l]) => `<span class="t${t}"><b>${v}</b>${l}</span>`).join('')}</div>
       </div>
       <button class="btn btn-mint btn-block btn-xl" data-act="pinstart" id="nextbtn">Play the bonus round</button>
@@ -4068,8 +4068,7 @@ function viewPinball(){
       <span>Bonus <b id="pin-bonus">+${fmtNum(pin.bonus)}</b></span>
     </div>
     <canvas class="pinball" id="pinball" role="img" aria-label="Pinball machine with dial targets worth 250, 100, 50 and 25 points"></canvas>
-    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">Fire!</button>
-    ${pin.balls > 1 ? `<button class="btn btn-ghost btn-block" data-act="pinauto" id="pinauto">Fire all</button>` : ''}
+    <button class="btn btn-mint btn-block btn-xl" data-act="pinlaunch" id="pinlaunch">${left > 1 ? `Fire all ${left} balls!` : 'Fire!'}</button>
   </section>`;
 }
 function startPinball(){
@@ -4084,9 +4083,7 @@ function startPinball(){
     const flying = Pinball.flying, n = Pinball.st ? Pinball.st.balls.length : 0;
     set('#pin-ball', Math.min(pin.used + (flying ? 0 : 1), pin.balls));
     set('#pin-left', '●'.repeat(Math.min(left, 21)));
-    const lb = $('#pinlaunch'); if (lb) { lb.disabled = flying || left <= 0; lb.textContent = flying ? (n > 1 ? `${n} balls in play…` : 'Ball in play…') : left <= 0 ? 'Last ball…' : left === 1 && pin.balls > 1 ? 'Fire the golden ball!' : 'Fire!'; }
-    if (Pinball.st) Pinball.st.nextGold = left === 1 && pin.balls > 1;
-    const ab = $('#pinauto'); if (ab) { ab.style.display = left < 2 ? 'none' : ''; ab.disabled = flying; ab.textContent = `Fire all ${left} balls at once`; }
+    const lb = $('#pinlaunch'); if (lb) { lb.disabled = flying || left <= 0; lb.textContent = flying ? (n > 1 ? `${n} balls in play…` : 'Ball in play…') : left <= 0 ? 'Last ball…' : left > 1 ? `Fire all ${left} balls!` : 'Fire!'; }
   };
   Pinball.start(cv, {
     onPoints: paint,
@@ -4096,17 +4093,11 @@ function startPinball(){
     },
     onLaunch(){ pin.used++; save(); paint(); }   // each ball of a volley counts as it leaves the cannon
   });
-  cv.addEventListener('pointerdown', e => { e.preventDefault(); launchPin(); });
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); fireAllPin(); });
   App.pinPaint = paint; paint();
   if (pin.used >= pin.balls && !pin.done) finishPinball();   // every ball was already fired (the page was reloaded mid-flight)
 }
-function launchPin(){
-  const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
-  const pin = day.pin; if (pin.used >= pin.balls) return;
-  if (!Pinball.launch(pin.balls > 1 && pin.used === pin.balls - 1, false)) return;
-  pin.used++; save();   // the ball counts as soon as it's launched, so a refresh can't re-roll it
-  if (App.pinPaint) App.pinPaint();
-}
+// The only way to play: every ball left goes in together (each counts as it leaves the cannon, so a refresh can't re-roll it)
 function fireAllPin(){
   const day = S.days[App.today]; if (!day || !day.pin || pinDone(day) || Pinball.flying) return;
   const pin = day.pin, left = pin.balls - pin.used; if (left < 1) return;
@@ -4116,7 +4107,6 @@ function fireAllPin(){
 function finishPinball(){
   const day = S.days[App.today], pin = day.pin;
   pin.done = true; save();
-  { const ab = $('#pinauto'); if (ab) ab.style.display = 'none'; }
   Pinball.finale(pin.bonus);
   const lb = $('#pinlaunch'); if (lb) { lb.disabled = true; lb.textContent = pin.bonus > 0 ? 'Bonus banked!' : 'Round over'; }
   if (pin.bonus > 0 && !reducedMotion()) setTimeout(() => { if (App.view === 'pinball') Hype.party(pin.bonus >= 500); }, 1300);
@@ -4914,8 +4904,7 @@ function onClick(e){
     case 'share': share(shareDailyText()); break;
     case 'rank': loadRank(true); break;
     case 'pinstart': App.pinGo = true; render(); break;
-    case 'pinlaunch': launchPin(); break;
-    case 'pinauto': fireAllPin(); break;
+    case 'pinlaunch': fireAllPin(); break;
     case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
     case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
@@ -4954,7 +4943,7 @@ function onKeyDown(e){
   if (anyDialogOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
   if (e.key === 'Enter' || e.key === ' ') {
-    if (App.view === 'pinball' && $('#pinball')) { e.preventDefault(); launchPin(); return; }
+    if (App.view === 'pinball' && $('#pinball')) { e.preventDefault(); fireAllPin(); return; }
     if (Meter.running) { e.preventDefault(); Meter.skip(); return; }
     const nb = $('#nextbtn');
     if (e.key === 'Enter' && nb && document.activeElement !== nb && !keyTarget()) { e.preventDefault(); nb.click(); return; }
