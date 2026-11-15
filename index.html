@@ -4177,7 +4177,7 @@ function upsellHTML(){
   }
   if (tipOn() && S.premium.source === 'stripe') return `<div class="px card stack center">
       <p class="small">Enjoying DIAL IN? A ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions.</p>
-      <button class="btn btn-sky" data-act="tip">Buy the dev a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>`;
+      <button class="btn btn-sky" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>`;
   return '';
 }
 /* ---- Daily ranking: how many people you beat today ---- */
@@ -4657,8 +4657,8 @@ function viewSettings(){
     </div>` : ''}
     ${tipOn() ? `<div class="px card stack">
       <p class="label">Tip jar</p>
-      <p class="small">DIAL IN is made by one person. If it brightens your day, a ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions and keeps the daily puzzle free.</p>
-      <div class="btnrow"><button class="btn btn-sky" data-act="tip">Buy the dev a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
+      <p class="small">DIAL IN is made by a team of two. If it brightens your day, a ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions and keeps the daily puzzle free.</p>
+      <div class="btnrow"><button class="btn btn-sky" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
     </div>` : ''}
     <div class="px card stack">
       <p class="label">Sound &amp; effects</p>
