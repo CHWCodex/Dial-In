@@ -66,7 +66,7 @@
   --ghost:#3a2a7a; --on-ghost:#fff6e5; --danger:#ff4f64; --on-danger:#1a0833;
   --special:#ff3d7f; --warn:#ff9a3d; --up:#7dff6a; --down:#ff4f64; --brand-2:#ff3d7f;
   --heart:#ff3d7f; --heart-off:#3a2d6e;
-  --m-daily:#ffd23f; --m-unl:#4de1ff; --m-battle:#ff3d7f;
+  --m-daily:#ffd23f; --m-unl:#4de1ff; --m-battle:#ff3d7f; --m-past:#7dff6a;
   --banner-bg:#3a2a12; --banner-text:#ffd23f; --me-bg:#3a2a12; --dev-bg:#3a1530;
   /* signal tiers: fill, text-on-dark, text-on-fill (1000 · 900 · 750 · 600 · 400 · 200 · 0) */
   --t1000:#ffd23f; --t900:#7dff6a; --t750:#2fe0a8; --t600:#4de1ff; --t400:#a77bff; --t200:#ff9a3d; --t0:#4a3f7e;
@@ -189,7 +189,16 @@ h1,h2,h3{margin:0;font-weight:normal}
 .modes{display:grid;gap:12px}
 .mode{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;text-align:left;cursor:pointer;border:0;width:calc(100% - 2 * var(--px));min-height:68px;touch-action:manipulation;transition:transform var(--dur-1) var(--e-std)}
 .mode:active{transform:var(--press)}
-.m-daily{--mc:var(--m-daily)} .m-unl{--mc:var(--m-unl)} .m-battle{--mc:var(--m-battle)}
+.m-daily{--mc:var(--m-daily)} .m-unl{--mc:var(--m-unl)} .m-battle{--mc:var(--m-battle)} .m-past{--mc:var(--m-past)}
+.archlist{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.archlist button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:left;padding:12px 14px;border:0;border-radius:var(--r-sm);background:var(--inset);color:var(--text);font:inherit;cursor:pointer}
+.archlist button:disabled{cursor:default;opacity:.75}
+.archlist .no{font:var(--fw-d) 15px var(--font-num);color:var(--text-2);min-width:38px}
+.archlist .dt{font-weight:700}
+.archlist .dt small{display:block;color:var(--text-2);font-size:12px;font-weight:600}
+.archlist .sc{font:var(--fw-d) 16px var(--font-num);color:var(--gold)}
+.archlist .sc.go{font:var(--fw-d) 13px var(--font-display);color:var(--m-past);text-transform:uppercase;letter-spacing:.04em}
+.plusbadge{display:inline-block;font:900 11px/1 var(--font-ui);letter-spacing:.06em;color:#1a0833;background:var(--m-past);padding:4px 7px;border-radius:var(--r-pill);vertical-align:2px}
 .mode .mi{display:grid;place-items:center;color:var(--mc)}
 .mode .mt{display:flex;flex-direction:column;gap:4px;min-width:0}
 .mode .mt b{font:var(--fw-d) var(--fs-head)/1.3 var(--font-display);text-transform:var(--tt)}
@@ -657,7 +666,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 
 <dialog id="dlg-pay" aria-labelledby="pay-h">
   <div class="px dlg">
-    <h2 id="pay-h">Unlock Unlimited</h2>
+    <h2 id="pay-h">Get DIAL IN+</h2>
     <div id="pay-body"></div>
     <button class="btn btn-ghost btn-block" data-close>Maybe later</button>
   </div>
@@ -2194,7 +2203,7 @@ const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*1
 function blankState(){
   return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, friends:[], days:{},
     endless:{ best:0, bestN:0, runs:0, answered:0, freeDay:'', hist:[], recent:[] }, run:null,
-    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0 };
+    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'' };
 }
 // Never trust stored data: validate shape and recompute scores from guesses.
 function sanitize(raw){
@@ -2229,6 +2238,20 @@ function sanitize(raw){
       }
     }
   }
+  // Past puzzles played from the archive (DIAL IN+). Kept apart from days so streaks, stats and leaderboards never change.
+  if (raw.archive && typeof raw.archive === 'object') {
+    for (const [d, v] of Object.entries(raw.archive)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < CONFIG.EPOCH || !v || !Array.isArray(v.ids) || v.ids.length !== 7) continue;
+      if (!v.ids.every(id => BY_ID.has(id)) || new Set(v.ids).size !== 7) continue;
+      const answers = v.ids.map((id, i) => { const a = Array.isArray(v.answers) ? v.answers[i] : null; if (!a) return null;
+        if (a.to === true) return { g:null, s:0, t:Number(a.t) || 0, to:true };
+        if (typeof a.g !== 'number' || !isFinite(a.g) || a.g < 0) return null;
+        return { g:a.g, s:Scoring.points(BY_ID.get(id), a.g), t:Number(a.t) || 0 }; });
+      const st = v.ids.map((_, i) => { const x = Array.isArray(v.st) ? Number(v.st[i]) : 0; return x > 0 ? x : null; });
+      out.archive[d] = { ids:v.ids.slice(), answers, st, done:answers.every(Boolean), doneAt:Number(v.doneAt) || 0 };
+    }
+  }
+  out.archFree = /^\d{4}-\d{2}-\d{2}$/.test(raw.archFree) ? raw.archFree : '';
   const e = raw.endless || {};
   out.endless = { best:Math.max(0, Number(e.best) || 0), bestN:Math.max(0, Number(e.bestN) || 0), runs:Math.max(0, Number(e.runs) || 0),
     answered:Math.max(0, Number(e.answered) || 0), freeDay: /^\d{4}-\d{2}-\d{2}$/.test(e.freeDay) ? e.freeDay : '',
@@ -2260,6 +2283,11 @@ function mergeStates(a, b){
     const count = x => x ? x.answers.filter(Boolean).length : -1;
     if (!mine || (JSON.stringify(mine.ids) === JSON.stringify(v.ids) && count(v) > count(mine))) out.days[d] = JSON.parse(JSON.stringify(v));
   }
+  for (const [d, v] of Object.entries(older.archive || {})) {
+    const mine = out.archive[d], count = x => x ? x.answers.filter(Boolean).length : -1;
+    if (!mine || count(v) > count(mine)) out.archive[d] = JSON.parse(JSON.stringify(v));
+  }
+  out.archFree = out.archFree || older.archFree || '';
   out.friends = [...new Set(a.friends.concat(b.friends))].slice(0, 100);
   const ea = a.endless, eb = b.endless;
   out.endless.best = Math.max(ea.best, eb.best); out.endless.bestN = Math.max(ea.bestN, eb.bestN);
@@ -2866,6 +2894,7 @@ const Hype = {
 
 /* Chunky line icons on a 24px grid */
 const LINE_ICONS = {
+  past:'<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5v4.6h4.6"/><path d="M12 7.5v4.7l3.2 2"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.9" r="1.2" fill="currentColor" stroke="none"/>',
   stats:'<path d="M5 20v-7M12 20V5M19 20V10"/>',
   board:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3.4 4M16 6h3a3 3 0 0 1-3.4 4M12 13v4M8.5 20h7M10 17h4"/>',
@@ -3545,7 +3574,7 @@ function viewHome(){
   const rs = done && S.rankSeen && S.rankSeen.d === App.today && S.rankSeen.players > 1 ? S.rankSeen : null;
   const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : dayBonus(day) ? ` · incl. +${fmtNum(dayBonus(day))} bonus` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
   const run = S.run && !S.run.over ? S.run : null;
-  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>${paywallOn() ? ' · unlocked' : ''}` : freeRunLeft() ? 'Free run available today' : `Unlock for ${CONFIG.PRICE_LABEL}`;
+  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>` : freeRunLeft() ? 'Free run available today' : `Unlock with ${PLUS}`;
   const bStatus = MP.code ? `In room <b>${MP.code}</b>` : 'Up to 4 friends · room codes';
   return `<section class="stack">
     ${DEV.on ? `<button class="px devbanner" data-act="devopen"><b>DEV SANDBOX</b><span>Nothing here counts. Tap for the developer panel.</span></button>` : ''}
@@ -3557,6 +3586,8 @@ function viewHome(){
         <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
       <button class="px mode m-unl" data-act="endless"><span class="mi">${icon('inf', 30)}</span>
         <span class="mt"><b>Unlimited</b><span>${eStatus}</span></span><span class="go">${!isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play'}</span></button>
+      <button class="px mode m-past" data-act="archive"><span class="mi">${icon('past', 30)}</span>
+        <span class="mt"><b>Past puzzles</b><span>${archStatus()}</span></span><span class="go">${archAllLocked() ? icon('lock', 16) : 'Play'}</span></button>
       <button class="px mode m-battle" data-act="battle"><span class="mi">${icon('swords', 30)}</span>
         <span class="mt"><b>Battle</b><span>${bStatus}</span></span><span class="go">${MP.code ? 'Return' : 'Play'}</span></button>
     </div>
@@ -3568,6 +3599,101 @@ function viewHome(){
     </div>
     ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Settings so you don’t lose progress.</p>'}
     <p class="center"><button class="link" data-act="intro">How to play &amp; scoring</button></p>
+  </section>`;
+}
+
+/* ---- DIAL IN+ : past puzzles ----
+   Every finished daily puzzle can be played again from the archive. Archive games are scored like the
+   daily (no Dial Ball) but kept in S.archive, so they never touch streaks, stats or the leaderboards.
+   Without DIAL IN+ you get one archive puzzle free, as a taster. */
+const PLUS = 'DIAL IN+';
+const archDates = () => { const out = []; for (let n = DateUK.puzzleNo(App.today) - 1; n >= 1; n--) { const d = new Date(CONFIG.EPOCH + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n - 1); out.push(d.toISOString().slice(0, 10)); } return out; };
+const playedOnDay = d => S.days[d] && S.days[d].done ? S.days[d] : null;
+const archOpenFree = d => !S.archFree || S.archFree === d;
+const archLocked = d => !isPremium() && !archOpenFree(d) && !playedOnDay(d);
+const archAllLocked = () => !isPremium() && !!S.archFree && !(S.archive[S.archFree] && !S.archive[S.archFree].done);
+function archStatus(){
+  const ds = archDates(), left = ds.filter(d => !playedOnDay(d) && !(S.archive[d] && S.archive[d].done)).length;
+  if (!ds.length) return 'Available from tomorrow';
+  if (!isPremium()) return S.archFree ? `${left} to catch up on · ${PLUS}` : `${ds.length} puzzles · try one free`;
+  return left ? `<b>${left}</b> ${left === 1 ? 'puzzle' : 'puzzles'} to catch up on` : 'All caught up!';
+}
+function getArch(d, create){
+  if (!S.archive[d] && create) S.archive[d] = { ids:dailyIds(d), answers:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
+  return S.archive[d] || null;
+}
+function viewArchive(){
+  const ds = archDates(), prem = isPremium();
+  const rows = ds.map(d => { const no = DateUK.puzzleNo(d), day = playedOnDay(d), A = S.archive[d], lock = archLocked(d);
+    const n = A ? A.answers.filter(Boolean).length : 0;
+    const right = day ? `<span class="sc">${fmtNum(dayTotal(day))}</span>` : A && A.done ? `<span class="sc">${fmtNum(dayBase(A))}</span>`
+      : lock ? `<span class="sc go">${icon('lock', 16)}</span>` : `<span class="sc go">${n ? n + '/7' : 'Play'}</span>`;
+    const sub = day ? 'Played on the day' : A && A.done ? 'Played from the archive' : n ? 'In progress' : !prem && !S.archFree ? 'Free to try' : '';
+    return `<li><button data-act="archopen" data-d="${d}" ${day ? 'disabled' : ''}><span class="no">#${no}</span><span class="dt">${esc(DateUK.pretty(d))}${sub ? `<small>${sub}</small>` : ''}</span>${right}</button></li>`; }).join('');
+  return `<section class="stack">
+    <h1 class="label" tabindex="-1">Past puzzles <span class="plusbadge">${PLUS}</span></h1>
+    <p class="small">Missed a day? Every daily puzzle is here. Scores from the archive don’t count towards your streak or the leaderboards, so play them whenever you like.</p>
+    ${prem ? '' : `<div class="px card stack upsell"><p class="label">${PLUS}</p><p class="up-big">Catch up on every puzzle</p>
+      <ul><li>All ${ds.length} past puzzles, and a new one every day</li><li>Unlimited runs, every day</li><li>${CONFIG.PRICE_LABEL} once. No subscription.</li></ul>
+      <div class="btnrow" style="justify-content:center"><button class="btn btn-mint btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button></div>
+      ${S.archFree ? '' : '<p class="small muted">Not sure? Pick any puzzle below and play it free.</p>'}</div>`}
+    ${ds.length ? `<ol class="archlist">${rows}</ol>` : emptyState('The archive starts tomorrow, once today’s puzzle is finished.', 'happy')}
+  </section>`;
+}
+function openArch(d){
+  if (!archDates().includes(d) || playedOnDay(d)) return;
+  if (archLocked(d)) { openPay(); return; }
+  if (!isPremium() && !S.archFree) { S.archFree = d; }
+  const A = getArch(d, true); App.archDate = d; save();
+  if (A.done) { go('archres'); return; }
+  App.cur = firstOpen(A); App.entry = ''; go('arch');
+}
+function viewArch(){
+  const A = getArch(App.archDate, false); if (!A) { App.view = 'archive'; return viewArchive(); }
+  const i = App.cur, q = BY_ID.get(A.ids[i]), a = A.answers[i], open = firstOpen(A);
+  if (!a && !A.st[i]) { A.st[i] = Date.now(); save(); }
+  const answered = A.answers.filter(Boolean).length, fresh = App.fresh === i, total = dayBase(A), shown = fresh && a ? total - a.s : total;
+  const pips = A.ids.map((_, k) => { const x = A.answers[k], can = x || k === open;
+    return `<li><button class="pip ${x ? 'done t' + x.s : ''}" data-act="archq" data-i="${k}" ${k === i ? 'aria-current="step"' : ''} ${can ? '' : 'disabled'} aria-label="Question ${k + 1}${x ? ', ' + x.s + ' points' : ', unanswered'}">${x ? (x.to ? '⏱' : x.s === 1000 ? '★' : k + 1) : k + 1}</button></li>`; }).join('');
+  const body = !a ? entryHTML(q)
+    : `${revealHTML(q, a, fresh, '')}<button class="btn btn-mint btn-block btn-xl next" data-act="archnext" id="nextbtn">${A.done ? 'See my score' : 'Next question →'}</button>`;
+  return `<section class="play">
+    <p class="small muted center" style="margin:0 0 6px">Past puzzle #${DateUK.puzzleNo(App.archDate)} · ${esc(DateUK.pretty(App.archDate))}</p>
+    <ol class="pips" aria-label="Progress">${pips}</ol>
+    ${qcardHTML(q, `Q<b>${i + 1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
+    ${body}
+  </section>`;
+}
+function submitArch(timedOut){
+  if (App.busy) return;
+  const A = getArch(App.archDate, false), i = App.cur; if (!A || A.answers[i]) return;
+  const v = Entry.value(App.entry);
+  if (v === null && !timedOut) { showError('Tap in a number first.'); return; }
+  App.busy = true; Timer.stop(); $('#toast').classList.remove('on');
+  const q = BY_ID.get(A.ids[i]);
+  A.answers[i] = v === null ? { g:null, s:0, t:Date.now(), to:true } : { g:v, s:Scoring.points(q, v), t:Date.now() };
+  if (A.answers.every(Boolean)) { A.done = true; A.doneAt = Date.now(); }
+  save(); App.entry = ''; App.fresh = i; render(); App.busy = false;
+}
+function viewArchRes(){
+  const A = getArch(App.archDate, false); if (!A || !A.done) { App.view = 'archive'; return viewArchive(); }
+  const total = dayBase(A), exacts = A.answers.filter(a => a.s === 1000).length;
+  const rows = A.ids.map((id, k) => { const q = BY_ID.get(id), a = A.answers[k];
+    return `<li><button class="rowbtn t${a.s}" data-act="archq" data-i="${k}"><span class="n">Q${k + 1}</span>
+      <span class="t">${esc(q.question)}<span>${a.to ? 'Time ran out' : 'You ' + fmtAns(q, a.g)} · Ans ${fmtAns(q, q.answer)}</span></span><span class="p">${a.s}</span></button></li>`; }).join('');
+  const next = archDates().find(d => !playedOnDay(d) && !(S.archive[d] && S.archive[d].done) && !archLocked(d));
+  return `<section class="stack">
+    <div class="px card center">
+      ${mascot(moodFor(total), 64, 'bob')}
+      <h1 class="label" tabindex="-1" style="margin-top:12px">Past puzzle #${DateUK.puzzleNo(App.archDate)} · ${esc(DateUK.pretty(App.archDate))}</h1>
+      <div class="bigscore">${fmtNum(total)}<small> / 7,000</small></div>
+      ${tilesHTML(A.answers.map(a => a.s), false)}
+      <p class="rank-title">${rankTitle(total)}</p>
+      <p class="small muted">${exacts} dialed in · archive scores don’t count towards streaks or leaderboards</p>
+    </div>
+    ${isPremium() ? '' : upsellHTML()}
+    <div class="btnrow">${next ? `<button class="btn btn-mint btn-xl" data-act="archopen" data-d="${next}">Next past puzzle</button>` : ''}<button class="btn btn-sky" data-act="archive">All past puzzles</button></div>
+    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
 }
 
@@ -4189,9 +4315,9 @@ function upsellHTML(){
     const free = freeRunLeft();
     return `<div class="px card stack upsell">
       <p class="label">Want more?</p>
-      <p class="up-big">Play Unlimited</p>
-      <ul><li>${fmtNum(BANK.length)} questions, shuffled just for you</li><li>As many runs as you like, every day</li><li>${CONFIG.PRICE_LABEL} once. No subscription.</li></ul>
-      <div class="btnrow" style="justify-content:center"><button class="btn btn-mint btn-xl" data-act="pay">Unlock · ${CONFIG.PRICE_LABEL}</button>${free ? '<button class="btn btn-ghost" data-act="endless">Try a free run</button>' : ''}</div>
+      <p class="up-big">Get ${PLUS}</p>
+      <ul><li>Play every past puzzle (${archDates().length} so far)</li><li>Unlimited runs, every day</li><li>${CONFIG.PRICE_LABEL} once. No subscription.</li></ul>
+      <div class="btnrow" style="justify-content:center"><button class="btn btn-mint btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>${free ? '<button class="btn btn-ghost" data-act="endless">Try a free run</button>' : !S.archFree && archDates().length ? '<button class="btn btn-ghost" data-act="archive">Try a past puzzle free</button>' : ''}</div>
     </div>`;
   }
   if (tipOn() && S.premium.source === 'stripe') return `<div class="px card stack center">
@@ -4297,9 +4423,9 @@ function viewEndless(){
           <div class="px stat"><span class="label">Longest</span><b>${S.endless.bestN} Qs</b></div>
         </div>
         ${locked ? `<p class="small muted" style="margin-top:14px">You’ve used today’s free run.</p>
-            <button class="btn btn-block btn-xl" data-act="pay">Unlock Unlimited · ${CONFIG.PRICE_LABEL}</button>`
+            <button class="btn btn-block btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`
           : `<button class="btn btn-mint btn-block btn-xl" data-act="startrun" style="margin-top:14px">${isPremium() ? 'Start a run' : 'Start today’s free run'}</button>
-             ${isPremium() ? '' : `<button class="link" data-act="pay">Unlock unlimited runs · ${CONFIG.PRICE_LABEL}</button>`}`}
+             ${isPremium() ? '' : `<button class="link" data-act="pay">Unlimited runs with ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}`}
       </div>
       ${last ? `<div><p class="label">Recent runs</p><ul class="hist">${last}</ul></div>` : ''}
     </section>`;
@@ -4590,7 +4716,7 @@ function lbRows(rows, meId, kind){
     const sub = B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
     // the global boards list the top 50 plus your own row: mark the jump when you're further down
     const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
-    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.supporter === true ? '<span class="sup" title="Bought Unlimited to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
+    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
 const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
@@ -4793,9 +4919,9 @@ function viewSettings(){
       <div class="btnrow"><button class="btn btn-ghost" data-act="copysave">Copy save code</button><button class="btn btn-ghost" data-act="restore">Restore a save</button></div>
     </div>
     ${paywallOn() ? `<div class="px card stack">
-      <p class="label">Unlimited</p>
-      <p class="small">${isPremium() ? (S.premium.source === 'demo' ? 'Unlocked in preview mode (no payment was taken).' : 'Unlocked. Thank you for supporting DIAL IN!') : `One free run a day. Unlock unlimited runs for ${CONFIG.PRICE_LABEL}, a one-off payment.`}</p>
-      <div class="btnrow">${isPremium() ? '' : `<button class="btn" data-act="pay">Unlock · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
+      <p class="label">${PLUS}</p>
+      <p class="small">${isPremium() ? (S.premium.source === 'demo' ? 'Unlocked in preview mode (no payment was taken).' : 'Unlocked: every past puzzle and unlimited runs. Thank you for supporting DIAL IN!') : `Every past puzzle and unlimited runs, for ${CONFIG.PRICE_LABEL}, a one-off payment.`}</p>
+      <div class="btnrow">${isPremium() ? '' : `<button class="btn" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
       ${S.premium.source === 'stripe' ? `<div class="btnrow"><button class="btn ${S.badge ? 'btn-mint' : 'btn-ghost'}" data-act="badge" aria-pressed="${S.badge}">Supporter badge: ${S.badge ? 'On' : 'Off'}</button></div>
       <p class="small muted">Shows a SUPPORTER badge next to your name on the leaderboards.</p>` : ''}
     </div>` : ''}
@@ -4836,14 +4962,14 @@ function viewSettings(){
 function openPay(){
   const live = CONFIG.STRIPE_PAYMENT_LINK && Backend.on;
   $('#pay-body').innerHTML = `
-    <ul class="perks"><li>Every question in the game (${BANK.length} hand-checked and growing), shuffled just for you</li><li>Play as many runs as you like, every day</li><li>Chase your best score and longest run</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
+    <ul class="perks"><li><b>Every past puzzle.</b> Missed a day? Catch up on all ${archDates().length} so far, plus each new one</li><li><b>Unlimited runs</b> every day, from all ${fmtNum(BANK.length)} questions</li><li>A <b>SUPPORTER</b> badge on the leaderboards</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
     ${live && !Backend.email ? `<p class="banner">Add your email first, so your purchase is linked to you and works on every device.</p>
         <button class="btn btn-mint btn-block btn-xl" data-act="payemail">Add my email</button>`
       : live ? `<button class="btn btn-mint btn-block btn-xl" data-act="buy">Pay ${CONFIG.PRICE_LABEL} securely</button>
         <p class="small muted center">Payment is handled by Stripe. You’ll come straight back here afterwards.</p>
-        <p class="small muted center">By paying you agree to the <a href="terms">terms</a>. Unlimited unlocks straight away, so the 14-day right to cancel ends once it’s unlocked. Bought by mistake? Email us within 14 days for a refund.</p>`
+        <p class="small muted center">By paying you agree to the <a href="terms">terms</a>. DIAL IN+ unlocks straight away, so the 14-day right to cancel ends once it’s unlocked. Bought by mistake? Email us within 14 days for a refund.</p>`
       : `<p class="banner">Payments switch on once the game is hosted with Stripe connected (see the README). No money can be taken here.</p>
-         <button class="btn btn-block" data-act="demounlock">Preview Unlimited (free demo)</button>`}`;
+         <button class="btn btn-block" data-act="demounlock">Preview DIAL IN+ (free demo)</button>`}`;
   openDialog('dlg-pay');
 }
 const tipOn = () => /^https:\/\/buy\.stripe\.com\//.test(CONFIG.TIP_LINK) && !DEV.on;
@@ -4867,7 +4993,7 @@ async function confirmPurchase(manual){
   for (let i = 0; i < (fromCheckout ? 15 : 1); i++) {
     try {
       const ok = await Backend.checkPremium();
-      if (ok) { S.premium = { active:true, source:'stripe', at:Date.now() }; save(); if (fromCheckout || manual) { toast('Unlimited unlocked. Enjoy!', 4000); Sfx.init(); Sfx.land(1000); } render(false); return; }
+      if (ok) { S.premium = { active:true, source:'stripe', at:Date.now() }; save(); if (fromCheckout || manual) { toast('DIAL IN+ unlocked. Enjoy!', 4000); Sfx.init(); Sfx.land(1000); } render(false); return; }
       if (ok === false && S.premium.source === 'stripe' && !fromCheckout) { S.premium = { active:false, source:'', at:0 }; save(); render(false); }
     } catch(e){}
     if (fromCheckout) await new Promise(r => setTimeout(r, 2000));
@@ -4880,7 +5006,7 @@ function render(focus = true){
   Meter.stop(); MultiMeter.stop(); Timer.stop(); Hype.clear(); Pinball.stop();
   if (App.view === 'play') expireDaily();
   if (App.view === 'endless') expireRun();
-  const views = { dev:viewDev, home:viewHome, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
+  const views = { dev:viewDev, home:viewHome, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
   const about = $('#about'); if (about) about.hidden = App.view !== 'home';
@@ -4888,7 +5014,7 @@ function render(focus = true){
   document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
   const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
   if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN' }[App.view] || 'DIAL IN – Daily Number Trivia Game | Guess the Number';
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN' }[App.view] || 'DIAL IN – Daily Number Trivia Game | Guess the Number';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
@@ -4904,6 +5030,11 @@ function postRender(){
     const day = S.days[App.today], i = App.cur, a = day.answers[i];
     if (!a) { if (T) Timer.start(day.st[i] + T, T, () => submitDaily(true)); }
     else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); bankBalls(day, a); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
+  }
+  if (App.view === 'arch') {
+    const A = getArch(App.archDate, false), i = App.cur, a = A && A.answers[i];
+    if (A && !a) { if (T) Timer.start(A.st[i] + T, T, () => submitArch(true)); }
+    else if (A) { const q = BY_ID.get(A.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayBase(A) - a.s, dayBase(A)] : null, null, 0); }
   }
   if (App.view === 'endless' && S.run && !S.run.over) {
     const r = S.run;
@@ -4929,7 +5060,7 @@ function postRender(){
   }
   if (App.view === 'board') loadBoard();
   if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
-  if (App.view === 'play' || App.view === 'endless' || (App.view === 'battle' && $('.play'))) {
+  if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
     if (over > 0) window.scrollTo(0, over);
   }
@@ -4953,6 +5084,7 @@ function countUp(){
 function keyTarget(){
   if (App.view === 'play') { const d = S.days[App.today]; return d && !d.answers[App.cur] ? 'daily' : null; }
   if (App.view === 'endless') return S.run && !S.run.over && !S.run.ans ? 'endless' : null;
+  if (App.view === 'arch') { const A = getArch(App.archDate, false); return A && !A.answers[App.cur] ? 'arch' : null; }
   if (App.view === 'battle') {
     if (!MP.code) return Net.ready ? 'join' : null;
     const R = MP.room; if (!R || R.status !== 'question') return null;
@@ -4983,6 +5115,7 @@ function pressKey(k){
   if (k === 'enter') {
     if (tgt === 'daily') return submitDaily(false);
     if (tgt === 'endless') return submitRun(false);
+    if (tgt === 'arch') return submitArch(false);
     if (tgt === 'join') return mpJoin();
     if (tgt === 'battle') { const v = Entry.value(App.entry); if (v === null) return showError('Tap in a number first.'); Timer.stop(); MP.submit(v); App.entry = ''; Sfx.land(400); render(false); return; }
   }
@@ -5114,6 +5247,11 @@ function onClick(e){
       App.cur = i; App.entry = ''; go('play'); break;
     }
     case 'next': Meter.stop(); nextDaily(); break;
+    case 'archive': go('archive'); break;
+    case 'archopen': openArch(el.dataset.d); break;
+    case 'archq': { const A = getArch(App.archDate, false); if (!A) break; const i = Math.max(0, Math.min(6, +el.dataset.i || 0));
+      if (!A.answers[i] && i !== firstOpen(A)) break; App.cur = i; App.entry = ''; go('arch'); break; }
+    case 'archnext': { Meter.stop(); const A = getArch(App.archDate, false); if (!A) { go('archive'); break; } if (A.done) { go('archres'); break; } App.cur = firstOpen(A); App.entry = ''; go('arch'); break; }
     case 'skip': Meter.skip(); break;
     case 'share': share(shareDailyText()); break;
     case 'shareImg': shareImage(); break;
@@ -5161,7 +5299,7 @@ function onClick(e){
     case 'badge': S.badge = !S.badge; save(); render(false); Backend.rpc('set_show_badge', { p_show: S.badge }).catch(() => toast('Couldn’t update the badge. Try again in a moment.')); break;
     case 'tip': tip(); break;
     case 'protect': App.afterEmail = 'streak'; go('settings'); loadFriendNames(); break;
-    case 'demounlock': S.premium = { active:true, source:'demo', at:Date.now() }; save(); closeDialog('dlg-pay'); Sfx.init(); Sfx.land(1000); toast('Unlimited preview unlocked.'); render(false); break;
+    case 'demounlock': S.premium = { active:true, source:'demo', at:Date.now() }; save(); closeDialog('dlg-pay'); Sfx.init(); Sfx.land(1000); toast('DIAL IN+ preview unlocked.'); render(false); break;
     case 'dice': $('#pname').value = randomName(); break;
   }
 }
