@@ -207,6 +207,11 @@ h1,h2,h3{margin:0;font-weight:normal}
 .h2h i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
 .chal-verdict{font:400 clamp(24px,7vw,32px)/1.1 var(--font-logo);color:var(--gold);margin:4px 0}
 .chalcard{border:2px solid var(--m-battle)}
+.habit{border:2px solid var(--m-past)}
+.habit .hi{display:flex;gap:12px;align-items:center;text-align:left}
+.habit .hi svg{flex:none}
+.iosteps{margin:8px 0 0;padding-left:20px;text-align:left}
+.iosteps li{margin:4px 0}
 .plusbadge{display:inline-block;font:900 11px/1 var(--font-ui);letter-spacing:.06em;color:#1a0833;background:var(--m-past);padding:4px 7px;border-radius:var(--r-pill);vertical-align:2px}
 .mode .mi{display:grid;place-items:center;color:var(--mc)}
 .mode .mt{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -678,6 +683,19 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <h2 id="pay-h">Get DIAL IN+</h2>
     <div id="pay-body"></div>
     <button class="btn btn-ghost btn-block" data-close>Maybe later</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-ios" aria-labelledby="ios-h">
+  <div class="px dlg">
+    <h2 id="ios-h">Add DIAL IN to your home screen</h2>
+    <ol class="iosteps">
+      <li>In <b>Safari</b>, tap the <b>Share</b> button (the square with an arrow pointing up).</li>
+      <li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+      <li>Open DIAL IN from your home screen. You can then switch on the daily reminder in Settings.</li>
+    </ol>
+    <p class="small muted">Opened this from Instagram, Snapchat or TikTok? Open it in Safari first: tap ••• then Open in browser.</p>
+    <button class="btn btn-mint btn-block" data-close>Got it</button>
   </div>
 </dialog>
 
@@ -2916,6 +2934,8 @@ const Hype = {
 
 /* Chunky line icons on a 24px grid */
 const LINE_ICONS = {
+  bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
+  phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
   past:'<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5v4.6h4.6"/><path d="M12 7.5v4.7l3.2 2"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.9" r="1.2" fill="currentColor" stroke="none"/>',
   stats:'<path d="M5 20v-7M12 20V5M19 20V10"/>',
@@ -3721,6 +3741,80 @@ function viewArchRes(){
   </section>`;
 }
 
+/* ---- Home screen + daily reminders ----
+   Install: Android/desktop Chrome hand us a beforeinstallprompt event; iPhone needs Share → Add to Home Screen.
+   Reminders: Web Push, opt-in only. The daily-push function sends one at 6:30pm UK to players who haven't played.
+   On iPhone, notifications only work once DIAL IN is on the home screen, so the install card comes first there. */
+const Habit = {
+  evt: null, pushSub: null, pushReady: false,
+  standalone: () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true,
+  ios: () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  canInstall(){ return !this.standalone() && (!!this.evt || this.ios()); },
+  pushSupported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.isSecureContext && Backend.on && !DEV.on,
+  snoozed(k){ const v = Store.get(CONFIG.STORAGE_KEY + ':snooze:' + k); return !!(v && (v.n >= 3 || Date.now() - v.at < 7 * 864e5)); },
+  snooze(k){ const v = Store.get(CONFIG.STORAGE_KEY + ':snooze:' + k) || { n:0 }; Store.set(CONFIG.STORAGE_KEY + ':snooze:' + k, { n:v.n + 1, at:Date.now() }); },
+  async init(){
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); this.evt = e; if (App.view === 'results' || App.view === 'settings') render(false); });
+    window.addEventListener('appinstalled', () => { this.evt = null; toast('DIAL IN is on your home screen!', 3500); if (['results','settings'].includes(App.view)) render(false); });
+    if (this.pushSupported()) {
+      try { const reg = await navigator.serviceWorker.ready; this.pushSub = await reg.pushManager.getSubscription(); } catch(e){}
+      this.pushReady = true; if (['results','settings'].includes(App.view)) render(false);
+    }
+  },
+  async install(){
+    if (this.evt) { const e = this.evt; this.evt = null; e.prompt(); try { const c = await e.userChoice; if (c && c.outcome !== 'accepted') this.snooze('install'); } catch(err){} render(false); return; }
+    if (this.ios()) openDialog('dlg-ios');
+  },
+  async subscribe(){
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { toast(perm === 'denied' ? 'Notifications are blocked for DIAL IN. You can allow them in your browser or phone settings.' : 'No problem, reminders are off.', 4500); render(false); return; }
+      await Backend.auth();
+      const key = await Backend.rpc('push_public_key', {}); if (!key) throw new Error('Reminders aren’t ready yet. Try again later.');
+      const reg = await navigator.serviceWorker.ready;
+      const raw = atob(key.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - key.length % 4) % 4));
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: Uint8Array.from(raw, c => c.charCodeAt(0)) });
+      await this.save(sub); this.pushSub = sub;
+      Sfx.init(); Sfx.land(750); toast('Reminders on. We’ll nudge you at 6:30pm if you haven’t played.', 4500); render(false);
+    } catch(e) { toast('Couldn’t turn on reminders: ' + e.message, 5000); }
+  },
+  async save(sub){ const j = sub.toJSON(); await Backend.rpc('save_push', { p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth }); },
+  async unsubscribe(){
+    const sub = this.pushSub; this.pushSub = null; render(false);
+    if (!sub) return;
+    try { await Backend.rpc('delete_push', { p_endpoint: sub.endpoint }); } catch(e){}
+    try { await sub.unsubscribe(); } catch(e){}
+    toast('Reminders off.');
+  },
+  // One card at a time on the results screen: get it on the home screen first, then switch on reminders
+  cardHTML(){
+    if (DEV.on) return '';
+    if (this.canInstall() && !this.snoozed('install')) {
+      return `<div class="px card stack habit center"><div class="hi">${icon('phone', 34, 'var(--m-past)')}<div><p class="label" style="margin:0">Never miss a day</p>
+        <p class="small" style="margin:2px 0 0">Add DIAL IN to your home screen. It opens like an app, works offline${this.ios() ? ', and lets us remind you each day' : ''}.</p></div></div>
+        <div class="btnrow"><button class="btn btn-mint" data-act="install">Add to home screen</button><button class="btn btn-ghost" data-act="habitlater" data-k="install">Not now</button></div></div>`;
+    }
+    if (this.pushReady && !this.pushSub && Notification.permission !== 'denied' && !this.snoozed('push')) {
+      return `<div class="px card stack habit center"><div class="hi">${icon('bell', 34, 'var(--m-past)')}<div><p class="label" style="margin:0">Daily reminder</p>
+        <p class="small" style="margin:2px 0 0">One notification at 6:30pm, only on days you haven’t played yet. Turn it off any time.</p></div></div>
+        <div class="btnrow"><button class="btn btn-mint" data-act="pushon">Remind me</button><button class="btn btn-ghost" data-act="habitlater" data-k="push">Not now</button></div></div>`;
+    }
+    return '';
+  },
+  settingsHTML(){
+    const rows = [];
+    if (this.pushSupported()) {
+      const denied = 'Notification' in window && Notification.permission === 'denied';
+      rows.push(`<div class="btnrow"><button class="btn ${this.pushSub ? 'btn-mint' : 'btn-ghost'}" data-act="${this.pushSub ? 'pushoff' : 'pushon'}" aria-pressed="${!!this.pushSub}" ${denied && !this.pushSub ? 'disabled' : ''}>Daily reminder: ${this.pushSub ? 'On' : 'Off'}</button></div>
+        <p class="small muted">${denied && !this.pushSub ? 'Notifications are blocked for this site. Allow them in your browser or phone settings, then come back.' : 'A notification at 6:30pm UK time, only on days you haven’t played.'}</p>`);
+    } else if (this.ios() && !this.standalone() && Backend.on) {
+      rows.push(`<p class="small">On iPhone, daily reminders work once DIAL IN is on your home screen.</p><div class="btnrow"><button class="btn btn-ghost" data-act="install">How to add it</button></div>`);
+    }
+    if (this.evt && !this.standalone()) rows.push(`<div class="btnrow"><button class="btn btn-ghost" data-act="install">Add to home screen</button></div>`);
+    return rows.length ? `<div class="px card stack"><p class="label">Reminders &amp; home screen</p>${rows.join('')}</div>` : '';
+  }
+};
+
 /* ---- Challenge links ----
    playdialin.com/c/23-0011245-485-Charlie : puzzle number, each answer's points (as a tier digit, never the
    answer itself), Dial Ball bonus and name. The link carries the score, so it works for guests too.
@@ -4387,6 +4481,7 @@ function viewResults(){
     ${h2hHTML(App.today)}
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
     <div class="px card stack leaguecard" id="leaguecard" hidden></div>
+    ${Habit.cardHTML()}
     ${streakNudgeHTML(st)}
     ${upsellHTML()}
     <div class="statgrid">
@@ -4758,7 +4853,8 @@ async function finishSignIn(){
   toast(`You’re in as ${Backend.email}.`, 3500);
   render(false);
   if (App.view === 'settings') loadFriendNames();
-  if (S.badge === false) Backend.rpc('set_show_badge', { p_show: false }).catch(() => {});   // carry a hidden badge over to this profile
+  if (S.badge === false) Backend.rpc('set_show_badge', { p_show: false }).catch(() => {});
+  if (Habit.pushSub) Habit.save(Habit.pushSub).catch(() => {});   // reminders follow you to this profile   // carry a hidden badge over to this profile
   await confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
   if (App.afterEmail === 'pay') { App.afterEmail = null; if (paywallOn() && !isPremium()) openPay(); }
   else if (pendingLeague()) { App.afterEmail = null; await joinLeague(pendingLeague().code, true); }   // carry on with the purchase they started
@@ -5039,6 +5135,7 @@ function viewSettings(){
       <div class="btnrow"><button class="btn ${S.sound === false ? 'btn-ghost' : 'btn-mint'}" data-act="sound" aria-pressed="${S.sound !== false}">Sound: ${S.sound === false ? 'Off' : 'On'}</button></div>
       <p class="small muted">Arcade bleeps for key taps, dial clicks and scores. Animations follow your phone’s reduce-motion setting.</p>
     </div>
+    ${Habit.settingsHTML()}
     ${Backend.on ? `<div class="px card stack">
         <p class="label">Online profile</p>
         <div><span class="label">Your friend code</span><code class="mono">${Backend.profile ? esc(Backend.profile.code) : 'Loading…'}</code></div>
@@ -5355,6 +5452,10 @@ function onClick(e){
     }
     case 'next': Meter.stop(); nextDaily(); break;
     case 'archive': go('archive'); break;
+    case 'install': Habit.install(); break;
+    case 'pushon': Habit.subscribe(); break;
+    case 'pushoff': Habit.unsubscribe(); break;
+    case 'habitlater': Habit.snooze(el.dataset.k); render(false); break;
     case 'archopen': openArch(el.dataset.d); break;
     case 'archq': { const A = getArch(App.archDate, false); if (!A) break; const i = Math.max(0, Math.min(6, +el.dataset.i || 0));
       if (!A.answers[i] && i !== firstOpen(A)) break; App.cur = i; App.entry = ''; go('arch'); break; }
@@ -5571,6 +5672,7 @@ async function boot(){
     Cloud.queue();
   }
   await Net.init();
+  Habit.init();
   if (CONFIG.STRIPE_PAYMENT_LINK && S.premium.source === 'demo') { S.premium = { active:false, source:'', at:0 }; save(); }  // previews end when payments go live
   let devFlag = null; try { devFlag = localStorage.getItem('pinpoint:devmode'); } catch(e){}
   if (devFlag === '1' && await enterDev(true)) return;
