@@ -4,5 +4,6 @@
 /play       /  302
 /l/:code    /?league=:code  302
 /c/:token   /?c=:token  302
+/b/:code    /?room=:code  302
 /supabase/* /  302
 /scripts/*  /  302
