@@ -2633,8 +2633,11 @@ const Net = {
    the same question against the clock; the worst answer loses a life.
    The host's game runs the round logic; everyone else submits answers. */
 const PCOL = ['#ff3d7f','#4de1ff','#7dff6a','#ffd23f'];
+// An answer counts only for the same game (seed changes on rematch) and the same round
+const ansFor = (pd, R) => pd && pd.ans && pd.ans.round === R.round && (pd.ans.game || '') === (R.seed || '') ? pd.ans : null;
+const roundKey = R => (R.seed || '') + '|' + R.round;
 const MP = {
-  code:null, room:null, players:{}, unsub:null, busy:false, hostLoop:0, seen:{}, err:'',
+  code:null, room:null, players:{}, unsub:null, busy:false, hostLoop:0, seen:{}, err:'', present:new Set(),
   get host(){ return this.room && this.room.host === Net.me; },
   get mePlayer(){ return this.room && this.room.roster.find(p => p.id === Net.me); },
   defaults(){ return { time:20, lives:3, max:4 }; },
@@ -2658,18 +2661,30 @@ const MP = {
   },
   enter(code){
     this.leaveWatch();
-    this.code = code; this.room = null; this.players = {}; this.seen = {}; this.err = '';
+    this.code = code; this.room = null; this.players = {}; this.seen = {}; this.err = ''; this.present = new Set();
     S.mp = { code }; save();
     this.unsub = Net.t.watch(code, (room, players) => this.onUpdate(room, players), e => { this.err = 'Connection problem: ' + ((e && e.message) || 'try again'); if (App.view === 'battle') render(false); });
     clearInterval(this.hostLoop); this.hostLoop = setInterval(() => this.hostStep(), 500);
   },
   leaveWatch(){ if (this.unsub) { try { this.unsub(); } catch(e){} } this.unsub = null; clearInterval(this.hostLoop); },
   async leave(){
-    const code = this.code; const wasHost = this.host;
+    const code = this.code, wasHost = this.host, others = Object.keys(this.players).filter(id => id !== Net.me && this.players[id]);
     this.leaveWatch(); this.code = null; this.room = null; S.mp = null; save();
     if (!code) return;
     try {
-      if (wasHost) { const r = await Net.t.get('rooms/' + code); if (r) await Net.t.set('rooms/' + code, Object.assign(r, { status:'closed', updated:Date.now() })); }
+      if (wasHost) {
+        const r = await Net.t.get('rooms/' + code);
+        if (r) {
+          const next = r.roster.find(p => p.id !== Net.me && others.includes(p.id) && p.lives > 0) || r.roster.find(p => p.id !== Net.me && others.includes(p.id));
+          if (next) {   // someone else takes over as host and the game carries on
+            r.host = next.id;
+            r.roster.forEach(p => { if (p.id === Net.me) { if (r.status === 'lobby') p.gone = true; else { p.lives = 0; p.out = p.out || r.round || 1; } } });
+            if (r.status === 'lobby') r.roster = r.roster.filter(p => p.id !== Net.me);
+            else { const alive = r.roster.filter(p => p.lives > 0 && others.includes(p.id)); if (alive.length <= 1 && r.status !== 'over') { r.status = 'over'; r.winner = alive[0] ? alive[0].id : null; } }
+          } else r.status = 'closed';
+          r.updated = Date.now(); await Net.t.set('rooms/' + code, r);
+        }
+      }
       await Net.t.del(`rooms/${code}/players/${Net.me}`);
     } catch(e){}
   },
@@ -2677,8 +2692,9 @@ const MP = {
     const prev = this.room;
     this.room = room; this.players = players || {};
     if (!room) { if (App.view === 'battle') render(false); return; }
-    if (room.status === 'question' && !this.seen[room.round]) { this.seen[room.round] = Date.now(); App.entry = ''; }
-    const changed = !prev || prev.status !== room.status || prev.round !== room.round;
+    Object.keys(this.players).forEach(id => this.present.add(id));
+    if (room.status === 'question' && !this.seen[roundKey(room)]) { this.seen[roundKey(room)] = Date.now(); App.entry = ''; }
+    const changed = !prev || prev.status !== room.status || prev.round !== room.round || prev.seed !== room.seed || prev.host !== room.host;
     if (App.view === 'battle') {
       if (changed) render(true); else Battle.refresh();
     }
@@ -2689,8 +2705,8 @@ const MP = {
   async submit(g){
     const r = this.room; if (!r || r.status !== 'question') return;
     const me = this.players[Net.me] || { id:Net.me, name:displayName(), joined:Date.now() };
-    if (me.ans && me.ans.round === r.round) return;
-    const doc = Object.assign({}, me, { ans:{ round:r.round, g, at:Date.now() } });
+    if (ansFor(me, r)) return;
+    const doc = Object.assign({}, me, { ans:{ round:r.round, game:r.seed || '', g, at:Date.now() } });
     this.players[Net.me] = doc;
     await Net.t.set(`rooms/${this.code}/players/${Net.me}`, doc);
   },
@@ -2699,12 +2715,14 @@ const MP = {
   async hostAction(fn){ if (!this.host || this.busy) return; const R = JSON.parse(JSON.stringify(this.room)); if (fn(R) !== false) await this.writeRoom(R); },
   setSetting(k, v){ return this.hostAction(R => { if (R.status !== 'lobby') return false; R.settings[k] = v; if (k === 'lives') R.roster.forEach(p => p.lives = v); if (k === 'max' && R.roster.length > v) return false; }); },
   start(){ return this.hostAction(R => { if (R.status !== 'lobby' || R.roster.length < 2) return false; R.roster.forEach(p => { p.lives = R.settings.lives; p.out = 0; }); this.nextRound(R, 1); }); },
-  rematch(){ return this.hostAction(R => { R.status = 'lobby'; R.round = 0; R.q = null; R.last = null; R.winner = null; R.used = []; R.roster = R.roster.filter(p => this.players[p.id]); R.roster.forEach(p => { p.lives = R.settings.lives; p.out = 0; }); }); },
+  rematch(){ return this.hostAction(R => { if (R.status !== 'over') return false; R.status = 'lobby'; R.round = 0; R.q = null; R.last = null; R.winner = null;
+    R.seed = Math.random().toString(36).slice(2, 10); R.games = (R.games || 1) + 1;   /* new questions; R.used keeps the ones already played */
+    R.roster = R.roster.filter(p => this.players[p.id]); R.roster.forEach(p => { p.lives = R.settings.lives; p.out = 0; }); }); },
   nextRound(R, n){ const q = battleQ(R.seed, n, R.used || []); R.used = (R.used || []).concat(q.id).slice(-200); R.round = n; R.q = qPayload(q); R.qAt = Date.now(); R.status = 'question'; R.last = null; },
   resolve(R){
     const q = R.q, alive = R.roster.filter(p => p.lives > 0);
     const rows = alive.map(p => {
-      const pd = this.players[p.id], a = pd && pd.ans && pd.ans.round === R.round ? pd.ans : null;
+      const a = ansFor(this.players[p.id], R);
       const g = a && typeof a.g === 'number' && isFinite(a.g) ? a.g : null;
       return { id:p.id, g, pts: g === null ? -1 : Scoring.points(q, g), err: g === null ? null : Math.abs(g - q.answer) };
     });
@@ -2733,9 +2751,16 @@ const MP = {
       });
       R.roster.forEach(p => { if (P[p.id] && P[p.id].name && cleanName(P[p.id].name) !== p.name) p.name = cleanName(P[p.id].name); });
       changed = JSON.stringify(R.roster) !== before;
-    } else if (R.status === 'question') {
+    }
+    // Mid-game: anyone who has left the room is out (only players we've actually seen connected, so a slow load can't knock people out)
+    if (R.status === 'question' || R.status === 'reveal') {
+      R.roster.forEach(p => { if (p.lives > 0 && p.id !== R.host && this.present.has(p.id) && !P[p.id]) { p.lives = 0; p.out = p.out || R.round; changed = true; } });
+      const left = R.roster.filter(p => p.lives > 0);
+      if (changed && left.length <= 1) { R.status = 'over'; R.winner = left[0] ? left[0].id : null; await this.writeRoom(R); return; }
+    }
+    if (R.status === 'question') {
       const alive = R.roster.filter(p => p.lives > 0);
-      const all = alive.every(p => P[p.id] && P[p.id].ans && P[p.id].ans.round === R.round);
+      const all = alive.every(p => ansFor(P[p.id], R));
       if (all || now > R.qAt + R.settings.time * 1000 + CONFIG.MP_GRACE_MS) { this.resolve(R); changed = true; }
     } else if (R.status === 'reveal') {
       if (now > R.revealAt + CONFIG.MP_REVEAL_MS) {
@@ -4708,7 +4733,7 @@ const Battle = {
 };
 function mpbarHTML(){
   const R = MP.room, P = MP.players;
-  return R.roster.map(p => { const done = P[p.id] && P[p.id].ans && P[p.id].ans.round === R.round;
+  return R.roster.map(p => { const done = !!ansFor(P[p.id], R);
     return `<div class="mpp ${p.lives <= 0 ? 'out' : ''}" style="--pc:${PCOL[p.col % 4]}"><span class="nm">${esc(p.name)}${p.id === Net.me ? ' (you)' : ''}</span>
       <span class="hl">${hearts(p.lives, R.settings.lives, 10)}</span><span class="st">${p.lives <= 0 ? 'Out' : done ? '✓ Locked' : '…'}</span></div>`; }).join('');
 }
@@ -4768,13 +4793,14 @@ function viewBattle(){
   }
   const q = R.q, mine = R.roster.find(p => p.id === Net.me), alive = mine && mine.lives > 0;
   if (R.status === 'question') {
-    const P = MP.players, done = P[Net.me] && P[Net.me].ans && P[Net.me].ans.round === R.round;
+    const P = MP.players, done = !!ansFor(P[Net.me], R);
     const body = !alive ? `<div class="px card center"><p>You’re out. Watching the rest of the battle…</p></div>`
       : done ? `<div class="px card center locked">${mascot('happy', 40, 'bob')}<p class="label">Locked in: <b>${fmtAns(q, P[Net.me].ans.g)}</b></p><p class="small muted">Waiting for the others…</p></div>`
       : entryHTML(q);
     return `<section class="play"><div class="mpbar" id="mpbar">${mpbarHTML()}</div>
       ${qcardHTML(q, `Round <b>${R.round}</b>`, `Room <b>${esc(MP.code)}</b>`, alive && !done)}
-      ${body}</section>`;
+      ${body}
+      <p class="center" style="margin-top:10px"><button class="link quiet" data-act="mpquit">Leave battle</button></p></section>`;
   }
   if (R.status === 'reveal' && R.last) {
     const rows = R.last.rows.map(r => { const p = R.roster.find(x => x.id === r.id) || { name:'?', col:0, lives:0 }; return Object.assign({}, r, { name:p.name, col:p.col, lives:p.lives }); });
@@ -4788,6 +4814,7 @@ function viewBattle(){
         <ul class="mprows">${list}</ul>
         <p class="why">${esc(q.explanation)}</p>
         <p class="small muted center">${rows.some(r => r.lost) ? 'Worst answer loses a life.' : 'Dead heat: nobody loses a life.'} Next round coming up…</p></div>
+      <p class="center"><button class="link quiet" data-act="mpquit">Leave battle</button></p>
     </section>`;
   }
   if (R.status === 'over') {
@@ -4810,6 +4837,18 @@ async function mpCreate(){
     try { await MP.create(); App.view = 'battle'; render(); Sfx.land(750); }
     catch(e){ toast(e.message || 'Couldn’t create a room.'); }
     App.joining = false; render(false);
+  });
+}
+// Opened from a battle invite link (playdialin.com/b/1234)
+function openRoomLink(code){
+  App.pendingRoom = null;
+  if (S.mp && S.mp.code === code) { MP.enter(code); go('battle'); return; }
+  App.view = 'battle'; render(false);
+  requireName(async () => {
+    App.joining = true;
+    try { if (MP.code && MP.code !== code) await MP.leave(); await MP.join(code); App.joinEntry = ''; go('battle'); Sfx.land(750); }
+    catch(e){ toast(e.message || 'Couldn’t join that room.', 4500); render(false); }
+    App.joining = false;
   });
 }
 function mpJoin(){
@@ -5255,11 +5294,11 @@ function postRender(){
   if (App.view === 'battle' && MP.room) {
     const R = MP.room, mine = R.roster.find(p => p.id === Net.me);
     if (R.status === 'question' && mine && mine.lives > 0 && $('#tfill')) {
-      const total = R.settings.time * 1000; Timer.start((MP.seen[R.round] || Date.now()) + total, total, () => { MP.submit(Entry.value(App.entry)); App.entry = ''; render(false); });
+      const total = R.settings.time * 1000; Timer.start((MP.seen[roundKey(R)] || Date.now()) + total, total, () => { MP.submit(Entry.value(App.entry)); App.entry = ''; render(false); });
     }
     if (R.status === 'reveal' && R.last && $('#mmeter')) {
       const rows = R.last.rows.map(r => { const p = R.roster.find(x => x.id === r.id) || { name:'?', col:0 }; return Object.assign({}, r, { col:p.col, tag:p.name.slice(0, 3).toUpperCase() }); });
-      const first = !App.mpShown[MP.code + R.round]; App.mpShown[MP.code + R.round] = true;
+      const first = !App.mpShown[MP.code + roundKey(R)]; App.mpShown[MP.code + roundKey(R)] = true;
       MultiMeter.start($('#mmeter'), R.q, rows, first && !reducedMotion());
     }
   }
@@ -5294,7 +5333,7 @@ function keyTarget(){
     if (!MP.code) return Net.ready ? 'join' : null;
     const R = MP.room; if (!R || R.status !== 'question') return null;
     const mine = R.roster.find(p => p.id === Net.me), P = MP.players[Net.me];
-    return mine && mine.lives > 0 && !(P && P.ans && P.ans.round === R.round) ? 'battle' : null;
+    return mine && mine.lives > 0 && !ansFor(P, R) ? 'battle' : null;
   }
   return null;
 }
@@ -5358,7 +5397,8 @@ function shareRunText(){
   const r = S.run; const lines = [`${CONFIG.GAME_NAME} ∞ UNLIMITED`, `${fmtNum(r.score)} pts · ${r.count} questions`, r.hist.slice(-14).map(p => Scoring.emoji(p)).join('')];
   if (siteLink()) lines.push(siteLink()); return lines.join('\n');
 }
-const inviteText = () => `Battle me at ${CONFIG.GAME_NAME}! Join room ${MP.code}.` + (siteLink() ? '\n' + siteLink() : '');
+const roomLink = code => (siteLink() ? location.origin : 'https://playdialin.com') + '/b/' + code;
+const inviteText = () => `Battle me at ${CONFIG.GAME_NAME}! Tap to join room ${MP.code}:\n${roomLink(MP.code)}`;
 /* Share image: a 1080×1350 picture of today's result for Instagram, TikTok and anywhere text doesn't travel.
    Shows points per question and the totals, never the answers. */
 const IMG_TILE = { ...TIER_COL, 0:'#4a3f7e' };
@@ -5479,6 +5519,9 @@ function onClick(e){
     case 'battle': go('battle'); break;
     case 'mpcreate': mpCreate(); break;
     case 'mpleave': if (DEV.on) Bots.clear(); MP.leave().then(() => render(false)); App.joinEntry = ''; render(false); break;
+    case 'mpquit': { const R = MP.room, me = R && R.roster.find(p => p.id === Net.me), still = me && me.lives > 0 && R.status !== 'over';
+      if (still && !confirm(MP.host ? 'Leave the battle? You’ll be out, and someone else will take over as host.' : 'Leave the battle? You’ll be out of this game.')) break;
+      if (DEV.on) Bots.clear(); Timer.stop(); MP.leave().then(() => render(false)); App.joinEntry = ''; render(false); break; }
     case 'mpset': MP.setSetting(el.dataset.k, Number(el.dataset.v)); break;
     case 'mpstart': MP.start(); break;
     case 'mprematch': MP.rematch(); break;
@@ -5639,6 +5682,8 @@ async function boot(){
   App.today = DateUK.today();
   { const m = /[?&]league=([A-Za-z0-9]{6})\b/.exec(location.search);
     if (m) { setPendingLeague({ code:m[1].toUpperCase(), name:'' }); try { history.replaceState(null, '', location.pathname); } catch(e){} App.showInvite = true; } }
+  { const m = /[?&]room=(\d{4})\b/.exec(location.search);
+    if (m) { App.pendingRoom = m[1]; try { history.replaceState(null, '', location.pathname); } catch(e){} } }
   { const m = /[?&]c=([^&#]+)/.exec(location.search);
     if (m) { let t = m[1]; try { t = decodeURIComponent(t.replace(/\+/g, ' ')); } catch(e){} App.pendingChal = parseChallenge(t); try { history.replaceState(null, '', location.pathname); } catch(e){} } }
   const hashNote = Backend.on ? Backend.takeHash() : '';
@@ -5665,7 +5710,7 @@ async function boot(){
   save();
   render(false);
   if (App.pendingChal) showChallenge();
-  else if (!S.introSeen && !App.showInvite) openDialog('dlg-intro');
+  else if (!S.introSeen && !App.showInvite && !App.pendingRoom) openDialog('dlg-intro');
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
@@ -5681,7 +5726,8 @@ async function boot(){
   let devFlag = null; try { devFlag = localStorage.getItem('pinpoint:devmode'); } catch(e){}
   if (devFlag === '1' && await enterDev(true)) return;
   if (devFlag === '1') { try { localStorage.removeItem('pinpoint:devmode'); } catch(e){} }
-  if (S.mp && Net.ready) MP.enter(S.mp.code);
+  if (App.pendingRoom && Net.ready) openRoomLink(App.pendingRoom);
+  else if (S.mp && Net.ready) MP.enter(S.mp.code);
   devAllowed().then(ok => { DEV.allowed = ok; if (ok && App.view === 'settings') render(false); });
   if (App.view === 'battle' || App.view === 'home') render(false);
   if (Backend.on) { Backend.sync().catch(() => {}); confirmPurchase(false); }
