@@ -1,0 +1,10 @@
+# Project files that are not part of the website
+.git
+.github
+.assetsignore
+wrangler.jsonc
+supabase
+scripts
+node_modules
+*.md
+.wrangler

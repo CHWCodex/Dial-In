@@ -1,0 +1,13 @@
+// Cloudflare Workers settings for playdialin.com (a static site served as Worker static assets).
+// Deployed automatically from GitHub; "name" must match the Worker in the Cloudflare dashboard.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dial-in",
+  "compatibility_date": "2026-11-17",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": ".",
+    // Unknown addresses show 404.html ("No signal on this page") with a 404 status, instead of an empty page
+    "not_found_handling": "404-page"
+  }
+}

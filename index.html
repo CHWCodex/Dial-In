@@ -207,6 +207,8 @@ h1,h2,h3{margin:0;font-weight:normal}
 .h2h i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
 .chal-verdict{font:400 clamp(24px,7vw,32px)/1.1 var(--font-logo);color:var(--gold);margin:4px 0}
 .chalcard{border:2px solid var(--m-battle)}
+.sharebox{display:grid;gap:12px;margin:6px 0 10px}
+.sharebox .btnrow .btn{white-space:nowrap}
 .habit{border:2px solid var(--m-past)}
 .habit .hi{display:flex;gap:12px;align-items:center;text-align:left}
 .habit .hi svg{flex:none}
@@ -3734,7 +3736,7 @@ function viewArchRes(){
       <p class="small muted">${exacts} dialed in · archive scores don’t count towards streaks or leaderboards</p>
     </div>
     ${h2hHTML(App.archDate)}
-    <button class="btn btn-coral btn-block" data-act="challenge" data-d="${App.archDate}">Challenge a friend on this puzzle</button>
+    <div class="sharebox"><button class="btn btn-coral btn-block" data-act="challenge" data-d="${App.archDate}">Challenge a friend on this puzzle</button></div>
     ${isPremium() ? '' : upsellHTML()}
     <div class="btnrow">${next ? `<button class="btn btn-mint btn-xl" data-act="archopen" data-d="${next}">Next past puzzle</button>` : ''}<button class="btn btn-sky" data-act="archive">All past puzzles</button></div>
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
@@ -4480,6 +4482,10 @@ function viewResults(){
     </div>
     ${h2hHTML(App.today)}
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
+    <div class="sharebox">
+      <button class="btn btn-coral btn-block btn-xl" data-act="challenge" data-d="${App.today}">Challenge a friend</button>
+      <div class="btnrow"><button class="btn btn-mint" data-act="share">Share score</button><button class="btn btn-sky" data-act="shareImg">Share image</button></div>
+    </div>
     <div class="px card stack leaguecard" id="leaguecard" hidden></div>
     ${Habit.cardHTML()}
     ${streakNudgeHTML(st)}
@@ -4492,8 +4498,6 @@ function viewResults(){
       <div class="px stat"><span class="label">Vs your avg</span><b>${vs}</b></div>
       <div class="px stat"><span class="label">Played</span><b>${st.played}</b></div>
     </div>
-    <button class="btn btn-coral btn-block btn-xl" data-act="challenge" data-d="${App.today}">Challenge a friend</button>
-    <div class="btnrow"><button class="btn btn-mint btn-xl" data-act="share">Share results</button><button class="btn btn-sky btn-xl" data-act="shareImg">Share image</button></div>
     <div class="btnrow"><button class="btn btn-ghost" data-act="board">Leaderboard</button><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
