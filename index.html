@@ -336,6 +336,16 @@ canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620
 .stat b{display:block;font:var(--fw-d) var(--fs-stat)/1.3 var(--font-num);margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .up{color:var(--up)} .down{color:var(--down)}
 .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.tab.wide{grid-column:1/-1}
+.lglist{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.lglist button{width:100%;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;text-align:left;padding:12px 14px;border:0;border-radius:var(--r-sm);background:var(--inset);color:var(--text);font:inherit;cursor:pointer}
+.lglist b{font:var(--fw-d) 17px/1.2 var(--font-display)}
+.lglist small{grid-column:1;color:var(--text-2);font-size:13px}
+.lglist .rk{grid-row:1/3;grid-column:2;font:var(--fw-d) 20px var(--font-num);color:var(--gold)}
+.lghead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lghead h2{margin:0;font:var(--fw-d) 22px/1.2 var(--font-display);color:var(--gold)}
+.waiting{color:var(--text-2);font-size:14px}
+.leaguecard .lglist button{background:var(--surface)}
 .tab{min-height:44px;border:0;background:var(--pip-bg);font:var(--fw-d) var(--fs-label) var(--font-display);cursor:pointer;color:var(--pip-text);border-radius:var(--r-sm);text-transform:var(--tt);transition:background var(--dur-2)}
 .tab[aria-selected="true"]{background:var(--sel-bg);color:var(--sel-text)}
 .lb{list-style:none;margin:0;padding:0}
@@ -650,6 +660,14 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <h2 id="pay-h">Unlock Unlimited</h2>
     <div id="pay-body"></div>
     <button class="btn btn-ghost btn-block" data-close>Maybe later</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-league" aria-labelledby="league-h">
+  <div class="px dlg">
+    <h2 id="league-h">You’re invited to a league</h2>
+    <div id="league-body"></div>
+    <button class="btn btn-ghost btn-block" data-close>Not now</button>
   </div>
 </dialog>
 
@@ -3417,7 +3435,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, friendNames:{}, acct:{ step:'email', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'email', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -4139,6 +4157,7 @@ function viewResults(){
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
     </div>
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
+    <div class="px card stack leaguecard" id="leaguecard" hidden></div>
     ${streakNudgeHTML(st)}
     ${upsellHTML()}
     <div class="statgrid">
@@ -4511,7 +4530,8 @@ async function finishSignIn(){
   if (App.view === 'settings') loadFriendNames();
   if (S.badge === false) Backend.rpc('set_show_badge', { p_show: false }).catch(() => {});   // carry a hidden badge over to this profile
   await confirmPurchase(false);   // a profile signed in to on a new device may already own Unlimited
-  if (App.afterEmail === 'pay') { App.afterEmail = null; if (paywallOn() && !isPremium()) openPay(); }   // carry on with the purchase they started
+  if (App.afterEmail === 'pay') { App.afterEmail = null; if (paywallOn() && !isPremium()) openPay(); }
+  else if (pendingLeague()) { App.afterEmail = null; await joinLeague(pendingLeague().code, true); }   // carry on with the purchase they started
 }
 // Bring the email box into view and put the cursor in it
 function focusEmailBox(){
@@ -4535,14 +4555,21 @@ function viewBoard(){
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="px card stack">
       <p class="label">Join the leaderboards</p>
+      ${pendingLeague() ? `<p class="banner">You’re invited to the <b>${esc(pendingLeague().name || 'DIAL IN')}</b> league. Add your email below and you’ll join it straight away.</p>` : ''}
       <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
-      <p class="small">Add your email to post your daily scores and see the Daily, All-time and Friends boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
+      <p class="small">Add your email to post your daily scores and see the Daily, All-time, Friends and Leagues boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
       ${accountHTML()}
     </div>
   </section>`;
-  const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today];
+  const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
   const tabs = Object.keys(BOARDS).map(k =>
-    `<button class="tab" role="tab" aria-selected="${kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('');
+    `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
+    + (Backend.on && !DEV.on ? `<button class="tab wide" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '');
+  if (lg) return `<section class="stack">
+    <h1 class="label" tabindex="-1">Leaderboards</h1>
+    <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
+    <div id="board-body" aria-live="polite">${App.league ? leagueBoardShell() : leagueListShell()}</div>
+  </section>`;
   const playNudge = !B.total && (!day || !day.done) && Backend.on && !DEV.on
     ? `<p class="banner">You haven’t finished today’s puzzle yet. Play it to get on this board.<br><button class="btn btn-mint" data-act="play" style="margin-top:8px">Play today</button></p>` : '';
   return `<section class="stack">
@@ -4578,6 +4605,7 @@ function demoBoard(){
   return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
 async function loadBoard(){
+  if (App.boardTab === 'leagues' && Backend.on && !DEV.on && Backend.email) return App.league ? loadLeagueBoard() : loadLeagueList();
   if (Backend.on && !DEV.on && App.view === 'board' && !Backend.email) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
   if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.email) return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
@@ -4601,6 +4629,122 @@ async function loadBoard(){
     if (token !== App.boardToken) return;
     el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
   }
+}
+
+/* ---- Leagues ----
+   Private leaderboards for a group chat, office or family. Shared as playdialin.com/l/CODE.
+   Joining needs an email, like every board, so the invite doubles as the best reason to add one. */
+const LEAGUE_KEY = () => CONFIG.STORAGE_KEY + ':league';
+const pendingLeague = () => { const v = Store.get(LEAGUE_KEY()); return v && /^[A-Z2-9]{6}$/.test(v.code || '') ? v : null; };
+const setPendingLeague = v => { try { if (v) Store.set(LEAGUE_KEY(), v); else localStorage.removeItem(LEAGUE_KEY()); } catch(e){} };
+const leagueLink = code => (siteLink() ? location.origin : 'https://playdialin.com') + '/l/' + code;
+const leagueInviteText = (name, code) => `Join my DIAL IN league “${name}”! Seven number questions a day, and a private leaderboard to see who’s best.\n${leagueLink(code)}`;
+
+function leagueListShell(){
+  return `<p class="small muted">Private leaderboards for your group chat, office or family. Make one, share the link, and see who’s best every day.</p>
+    <div id="league-list"><p class="empty">Loading…</p></div>
+    <form id="leaguecreate" class="px card stack" novalidate>
+      <label class="label" for="lgname">Start a league</label>
+      <div class="formrow"><input id="lgname" maxlength="16" placeholder="e.g. The Smiths" autocomplete="off"><button class="btn btn-mint" type="submit">Create</button></div>
+      <p class="small muted">Up to 16 letters, numbers and spaces. You’ll get a link to send to the group.</p>
+    </form>
+    <form id="leaguejoin" class="px card stack" novalidate>
+      <label class="label" for="lgcode">Got a league code?</label>
+      <div class="formrow"><input id="lgcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters" autocomplete="off"><button class="btn btn-sky" type="submit">Join</button></div>
+    </form>`;
+}
+function leagueItems(list){
+  return `<ul class="lglist">${list.map(l => { const n = Number(l.members), p = Number(l.played_today);
+    return `<li><button data-act="lgopen" data-code="${esc(l.code)}"><b>${esc(l.name)}</b><span class="rk">${l.my_rank ? '#' + l.my_rank : '—'}</span>
+      <small>${n} ${n === 1 ? 'player' : 'players'} · ${p} played today${l.my_rank ? '' : ' · you haven’t yet'}</small></button></li>`; }).join('')}</ul>`;
+}
+async function fetchLeagues(){ const r = await Backend.rpc('my_leagues', { p_date: App.today }); App.leagues = Array.isArray(r) ? r : []; return App.leagues; }
+async function loadLeagueList(){
+  const el = $('#league-list'); if (!el) return; const token = ++App.boardToken;
+  try {
+    await Backend.sync().catch(() => {});
+    const list = await fetchLeagues(); if (token !== App.boardToken || !$('#league-list')) return;
+    el.innerHTML = list.length ? `<p class="label">Your leagues</p>${leagueItems(list)}`
+      : emptyState('You’re not in a league yet. Start one below and send the link to your group chat.', 'happy');
+  } catch(e) { if (token === App.boardToken) el.innerHTML = emptyState(`Couldn’t load your leagues: ${esc(e.message)}`, 'sad'); }
+}
+function leagueBoardShell(){
+  const L = (App.leagues || []).find(l => l.code === App.league) || { code:App.league, name:'League', members:0, is_owner:false }, n = Number(L.members);
+  return `<div class="px card stack">
+      <div class="lghead"><h2>${esc(L.name)}</h2><button class="link" data-act="lgback">All leagues</button></div>
+      <p class="small muted">${n ? `${n} ${n === 1 ? 'player' : 'players'} · ` : ''}league code <b style="letter-spacing:.08em">${esc(L.code)}</b></p>
+      <div class="btnrow"><button class="btn btn-mint" data-act="lginvite">Invite friends</button></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Today or all-time">
+      <button class="tab" role="tab" aria-selected="${App.leagueMode === 'today'}" data-act="lgmode" data-mode="today">Today</button>
+      <button class="tab" role="tab" aria-selected="${App.leagueMode === 'all'}" data-act="lgmode" data-mode="all">All-time</button>
+    </div>
+    <div id="league-board"><p class="empty">Loading…</p></div>
+    <p class="waiting" id="league-waiting"></p>
+    <p class="center"><button class="link quiet" data-act="lgleave">${L.is_owner ? 'Close this league' : 'Leave this league'}</button></p>`;
+}
+async function loadLeagueBoard(){
+  const el = $('#league-board'); if (!el) return; const token = ++App.boardToken, code = App.league, today = App.leagueMode === 'today';
+  try {
+    if (!App.leagues) { await fetchLeagues(); if (token === App.boardToken && App.view === 'board') { const b = $('#board-body'); if (b) b.innerHTML = leagueBoardShell(); } }
+    const [rows, waiting] = await Promise.all([
+      Backend.rpc('get_league_board', { p_code: code, p_date: today ? App.today : null }),
+      today ? Backend.rpc('league_waiting', { p_code: code, p_date: App.today }) : Promise.resolve([])
+    ]);
+    const box = $('#league-board'); if (token !== App.boardToken || !box) return;
+    const me = Backend.sess && Backend.sess.user_id, day = S.days[App.today];
+    box.innerHTML = rows && rows.length ? `<ol class="lb">${rows.map(r => { const isMe = r.player_id === me, d = Number(r.days_played);
+        const sub = today ? `${r.exact_count} dialed in` : `${d} ${d === 1 ? 'day' : 'days'} played · ${r.exact_count} dialed in`;
+        return `<li class="${isMe ? 'me' : ''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${isMe ? ' (you)' : ''}${r.supporter === true ? '<span class="sup">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${fmtNum(Number(r.score))}</span></li>`; }).join('')}</ol>`
+      : emptyState(today ? (day && day.done ? 'Nobody else has played yet today. Give them a nudge!' : 'Nobody has played today’s puzzle yet. Be first!') + (day && day.done ? '' : '<br><br><button class="btn btn-mint" data-act="play">Play today</button>') : 'No scores yet. They appear once members finish a daily puzzle.', 'happy');
+    const w = $('#league-waiting'), names = (waiting || []).map(x => x.display_name).filter(Boolean);
+    if (w) w.innerHTML = today && names.length ? `Still to play today: ${names.slice(0, 12).map(esc).join(', ')}${names.length > 12 ? ` and ${names.length - 12} more` : ''}. <button class="link" data-act="lgnudge">Nudge them</button>` : '';
+  } catch(e) {
+    const box = $('#league-board'); if (token !== App.boardToken || !box) return;
+    box.innerHTML = emptyState(`Couldn’t load this league: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="lgback">Back to your leagues</button>`, 'sad');
+  }
+}
+function openLeague(code){ App.boardTab = 'leagues'; App.league = code; App.leagueMode = 'today'; go('board'); }
+async function createLeague(name){
+  try { const r = await Backend.rpc('create_league', { p_name: name }); const row = Array.isArray(r) ? r[0] : r;
+    App.leagues = null; await fetchLeagues().catch(() => {}); openLeague(row.code);
+    toast(`“${row.name}” is ready. Send the link to your group!`, 4000);
+    setTimeout(() => share(leagueInviteText(row.name, row.code)), 400);
+  } catch(e) { toast(e.message, 4000); }
+}
+async function joinLeague(code, quiet){
+  try { const r = await Backend.rpc('join_league', { p_code: code }); const row = Array.isArray(r) ? r[0] : r;
+    setPendingLeague(null); App.leagues = null; await fetchLeagues().catch(() => {});
+    Sfx.init(); Sfx.land(900); toast(`You’re in “${row.name}”!`, 3500); openLeague(row.code); return true;
+  } catch(e) { if (/doesn.t work/.test(e.message)) setPendingLeague(null); if (!quiet || !/email/i.test(e.message)) toast(e.message, 4500); return false; }
+}
+// Opened from an invite link: say what it is, then join (or collect the email first)
+async function showLeagueInvite(){
+  const P = pendingLeague(); if (!P || !Backend.on || DEV.on) return;
+  let info = null;
+  try { await Backend.auth(); const r = await Backend.rpc('league_preview', { p_code: P.code }); info = Array.isArray(r) ? r[0] : r; } catch(e){}
+  if (!info) { setPendingLeague(null); toast('That league link doesn’t work any more. Ask for a new one.', 4500); return; }
+  setPendingLeague({ code:P.code, name:info.name });
+  if (info.is_member) { setPendingLeague(null); openLeague(P.code); return; }
+  const n = Number(info.members);
+  $('#league-body').innerHTML = `<p class="lgname" style="font:var(--fw-d) 24px/1.2 var(--font-display);color:var(--gold);margin:4px 0">${esc(info.name)}</p>
+    <p class="small">${n} ${n === 1 ? 'player is' : 'players are'} comparing scores on today’s puzzle. Join to see the league’s leaderboard and get your name on it.</p>
+    ${Backend.email ? `<button class="btn btn-mint btn-block btn-xl" data-act="lgaccept">Join the league</button>`
+      : `<p class="banner">Leagues are linked to your email, so your scores follow you to any device. It takes one code.</p>
+         <button class="btn btn-mint btn-block btn-xl" data-act="lgemail">Add my email and join</button>
+         <button class="btn btn-ghost btn-block" data-act="lgplayfirst">Play today’s puzzle first</button>`}`;
+  openDialog('dlg-league');
+}
+// Results screen: where you stand in your leagues today (or an invitation to start one)
+async function loadLeagueCard(){
+  const el = $('#leaguecard'); if (!el || !Backend.on || DEV.on || !Backend.email) return;
+  try {
+    await Backend.sync().catch(() => {});
+    const list = await fetchLeagues(), box = $('#leaguecard'); if (!box) return;
+    box.innerHTML = list.length ? `<p class="label">Your leagues today</p>${leagueItems(list.slice(0, 5))}`
+      : `<p class="label">Play with your group</p><p class="small">Start a league, send the link to your group chat and see who’s best every day.</p><button class="btn btn-sky" data-act="lgstart">Start a league</button>`;
+    box.hidden = false;
+  } catch(e){}
 }
 
 /* ---- Stats ---- */
@@ -4784,7 +4928,7 @@ function postRender(){
     }
   }
   if (App.view === 'board') loadBoard();
-  if (App.view === 'results') { countUp(); loadRank(false); }
+  if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
   if (App.view === 'play' || App.view === 'endless' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
     if (over > 0) window.scrollTo(0, over);
@@ -4993,7 +5137,18 @@ function onClick(e){
     case 'stats': go('stats'); break;
     case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); loadFriendNames(); break;
     case 'intro': openDialog('dlg-intro'); break;
-    case 'tab': App.boardTab = el.dataset.tab; render(false); break;
+    case 'tab': App.boardTab = el.dataset.tab; if (App.boardTab === 'leagues') App.league = null; render(false); break;
+    case 'lgopen': openLeague(el.dataset.code); break;
+    case 'lgback': App.league = null; render(false); break;
+    case 'lgmode': App.leagueMode = el.dataset.mode === 'all' ? 'all' : 'today'; render(false); break;
+    case 'lgstart': App.boardTab = 'leagues'; App.league = null; go('board'); setTimeout(() => { const i = $('#lgname'); if (i) { i.scrollIntoView({ block:'center' }); i.focus({ preventScroll:true }); } }, 80); break;
+    case 'lginvite': case 'lgnudge': { const L = (App.leagues || []).find(l => l.code === App.league); if (L) share(act === 'lgnudge' ? `Today’s DIAL IN is waiting! You haven’t played yet in “${L.name}”.\n${leagueLink(L.code)}` : leagueInviteText(L.name, L.code)); break; }
+    case 'lgleave': { const L = (App.leagues || []).find(l => l.code === App.league); if (!L) break;
+      if (!confirm(L.is_owner ? `Close “${L.name}” for everyone? This can’t be undone.` : `Leave “${L.name}”?`)) break;
+      Backend.rpc('leave_league', { p_code: L.code }).then(() => { toast(L.is_owner ? 'League closed.' : 'You’ve left the league.'); App.league = null; App.leagues = null; render(false); }).catch(e => toast(e.message, 4000)); break; }
+    case 'lgaccept': { closeDialog('dlg-league'); const P = pendingLeague(); if (P) joinLeague(P.code); break; }
+    case 'lgemail': closeDialog('dlg-league'); App.afterEmail = 'league'; go('settings'); loadFriendNames(); break;
+    case 'lgplayfirst': closeDialog('dlg-league'); go('home'); break;
     case 'rmfriend': S.friends = S.friends.filter(c => c !== el.dataset.code); save(); render(false); break;
     case 'export': showCopy('YOUR DATA', JSON.stringify(S, null, 2)); break;
     case 'copysave': showCopy('YOUR SAVE CODE', saveCode()); break;
@@ -5032,6 +5187,8 @@ function onKeyDown(e){
 async function onSubmit(e){
   e.preventDefault();
   const f = e.target;
+  if (f.id === 'leaguecreate') { const n = $('#lgname').value.trim(); if (!n) { toast('Give your league a name.'); return; } createLeague(n); return; }
+  if (f.id === 'leaguejoin') { const c = $('#lgcode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{6}$/.test(c)) { toast('League codes are 6 letters and numbers.'); return; } joinLeague(c); return; }
   if (f.id === 'devsearch') {
     const s = $('#devq').value.trim().toLowerCase(); if (!s) return;
     DEV.search = BANK.filter(q => q.id.toLowerCase() === s || q.question.toLowerCase().includes(s) || String(q.answer) === s || q.explanation.toLowerCase().includes(s)).slice(0, 30);
@@ -5130,6 +5287,8 @@ async function boot(){
   if (!local) local = await Store.idbGet();
   S = sanitize(local);
   App.today = DateUK.today();
+  { const m = /[?&]league=([A-Za-z0-9]{6})\b/.exec(location.search);
+    if (m) { setPendingLeague({ code:m[1].toUpperCase(), name:'' }); try { history.replaceState(null, '', location.pathname); } catch(e){} App.showInvite = true; } }
   const hashNote = Backend.on ? Backend.takeHash() : '';
   if (Backend.on) Backend.email = Store.get(CONFIG.STORAGE_KEY + ':email') || '';
   if (hashNote) setTimeout(() => toast(hashNote, 5000), 600);
@@ -5138,7 +5297,7 @@ async function boot(){
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('submit', onSubmit);
   document.querySelectorAll('dialog').forEach(d => {
-    d.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === d) { if (d.id === 'dlg-name') App.afterName = null; closeDialog(d); } });
+    d.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === d) { if (d.id === 'dlg-name') App.afterName = null; if (d.id === 'dlg-league') setPendingLeague(null); closeDialog(d); } });
     d.addEventListener('close', () => { if (d.id === 'dlg-intro' && !S.introSeen) { S.introSeen = true; save(); } });
   });
   $('#copy-btn').addEventListener('click', async () => {
@@ -5153,7 +5312,7 @@ async function boot(){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (App.view === 'play' || App.view === 'endless') render(false); } });
   save();
   render(false);
-  if (!S.introSeen) openDialog('dlg-intro');
+  if (!S.introSeen && !App.showInvite) openDialog('dlg-intro');
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
@@ -5172,6 +5331,8 @@ async function boot(){
   devAllowed().then(ok => { DEV.allowed = ok; if (ok && App.view === 'settings') render(false); });
   if (App.view === 'battle' || App.view === 'home') render(false);
   if (Backend.on) { Backend.sync().catch(() => {}); confirmPurchase(false); }
+  if (Backend.on && App.showInvite) { App.showInvite = false; showLeagueInvite(); }
+  else if (Backend.on && Backend.email && pendingLeague()) joinLeague(pendingLeague().code, true);   // came back through the email sign-in link
   // installable + offline play on a hosted site
   if ('serviceWorker' in navigator && location.protocol === 'https:' && window.top === window) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

@@ -2,5 +2,6 @@
 /Dial-In/*  /  301
 /dial-in/*  /  301
 /play       /  302
+/l/:code    /?league=:code  302
 /supabase/* /  302
 /scripts/*  /  302
