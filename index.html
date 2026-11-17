@@ -2586,23 +2586,31 @@ const SupaNet = {
   get uid(){ return Backend.sess && Backend.sess.user_id; },
   async init(){ if (!Backend.on) return false; try { await Backend.auth(); return true; } catch(e){ return false; } },
   async get(path){ const r = await Backend.rest('GET', '/rest/v1/mp_docs?select=data&path=eq.' + encodeURIComponent(path)); return r && r[0] ? r[0].data : null; },
-  async set(path, data){ const room = path.split('/')[1]; await Backend.rest('POST', '/rest/v1/mp_docs', { path, room, data }, { Prefer:'resolution=merge-duplicates,return=minimal' }); },
+  async set(path, data){
+    const room = path.split('/')[1];
+    // Room changes go through mp_update_room so a new host (after a handover) is allowed to run the game
+    if (/^rooms\/\d{4}$/.test(path)) { await Backend.rpc('mp_update_room', { p_code: room, p_data: data }); return; }
+    await Backend.rest('POST', '/rest/v1/mp_docs', { path, room, data }, { Prefer:'resolution=merge-duplicates,return=minimal' });
+  },
   async del(path){ await Backend.rest('DELETE', '/rest/v1/mp_docs?path=eq.' + encodeURIComponent(path), undefined, { Prefer:'return=minimal' }); },
   async create(data){ const r = await Backend.rpc('mp_create_room', { p_data: data }); return Array.isArray(r) ? r[0] : r; },
   watch(code, cb, onErr){
-    let stop = false, fails = 0;
+    let stop = false, fails = 0, busy = false, timer = 0;
     const tick = async () => {
-      if (stop) return;
+      if (stop || busy) return; busy = true; clearTimeout(timer);
       try {
         const rows = await Backend.rest('GET', '/rest/v1/mp_docs?select=path,data&room=eq.' + code);
         let room = null; const players = {};
         for (const r of rows || []) { if (r.path === 'rooms/' + code) room = r.data; else { const m = r.path.match(/\/players\/(.+)$/); if (m) players[m[1]] = r.data; } }
         fails = 0; cb(room, players);
       } catch(e){ if (++fails === 5 && onErr) onErr(e); }
-      if (!stop) setTimeout(tick, 1000);
+      busy = false; if (!stop) timer = setTimeout(tick, 1000);
     };
     tick();
-    return () => { stop = true; };
+    // Phones throttle background timers: check the room the moment the page is visible again
+    const wake = () => { if (!document.hidden && !stop) tick(); };
+    document.addEventListener('visibilitychange', wake);
+    return () => { stop = true; document.removeEventListener('visibilitychange', wake); };
   }
 };
 
@@ -2636,8 +2644,11 @@ const PCOL = ['#ff3d7f','#4de1ff','#7dff6a','#ffd23f'];
 // An answer counts only for the same game (seed changes on rematch) and the same round
 const ansFor = (pd, R) => pd && pd.ans && pd.ans.round === R.round && (pd.ans.game || '') === (R.seed || '') ? pd.ans : null;
 const roundKey = R => (R.seed || '') + '|' + R.round;
+// Each phone in a room writes a heartbeat every few seconds, so the room knows who is really still there
+const BEAT_MS = 5000, STALE_MS = 25000;
+const fresh = pd => !!pd && Date.now() - (pd.at || pd.joined || 0) < STALE_MS;
 const MP = {
-  code:null, room:null, players:{}, unsub:null, busy:false, hostLoop:0, seen:{}, err:'', present:new Set(),
+  code:null, room:null, players:{}, unsub:null, busy:false, hostLoop:0, seen:{}, err:'', present:new Set(), beat:0, pending:null, resendAt:0,
   get host(){ return this.room && this.room.host === Net.me; },
   get mePlayer(){ return this.room && this.room.roster.find(p => p.id === Net.me); },
   defaults(){ return { time:20, lives:3, max:4 }; },
@@ -2646,7 +2657,7 @@ const MP = {
     const room = { v:1, host:me, status:'lobby', settings:this.defaults(), roster:[{ id:me, name:displayName(), lives:3, col:0, out:0 }],
       round:0, q:null, qAt:0, revealAt:0, last:null, winner:null, used:[], seed: Math.random().toString(36).slice(2, 10), updated: now, created: now };
     const code = await Net.createRoom(room);
-    await Net.t.set(`rooms/${code}/players/${me}`, { id:me, name:displayName(), joined:now, ans:null });
+    await Net.t.set(`rooms/${code}/players/${me}`, { id:me, name:displayName(), joined:now, at:now, ans:null });
     this.enter(code);
     return code;
   },
@@ -2654,9 +2665,18 @@ const MP = {
     const room = await Net.t.get('rooms/' + code);
     if (!room || room.status === 'closed') throw new Error('No room with that code. Check the number and try again.');
     const inRoster = room.roster.some(p => p.id === Net.me);
-    if (!inRoster && room.status !== 'lobby') throw new Error('That battle has already started.');
-    if (!inRoster && room.roster.length >= room.settings.max) throw new Error('That room is full.');
-    await Net.t.set(`rooms/${code}/players/${Net.me}`, { id:Net.me, name:displayName(), joined:Date.now(), ans:null });
+    let claim = null;
+    if (!inRoster && room.status !== 'lobby') {
+      // Opened the link in another app or browser? Take back your own seat (same name, and that seat has gone quiet)
+      const docs = {}; try { for (const p of room.roster) docs[p.id] = await Net.t.get(`rooms/${code}/players/${p.id}`); } catch(e){}
+      const mineByName = room.roster.filter(p => p.name === cleanName(displayName()));
+      const seat = mineByName.find(p => !fresh(docs[p.id])) || mineByName[0];   // the room hands it over once the old one goes quiet
+      if (!seat) throw new Error('That battle has already started. Ask for a rematch to get in.');
+      claim = seat.id;
+    }
+    if (!inRoster && !claim && room.roster.length >= room.settings.max) throw new Error('That room is full.');
+    const now = Date.now();
+    await Net.t.set(`rooms/${code}/players/${Net.me}`, { id:Net.me, name:displayName(), joined:now, at:now, ans:null, claim });
     this.enter(code);
   },
   enter(code){
@@ -2665,8 +2685,15 @@ const MP = {
     S.mp = { code }; save();
     this.unsub = Net.t.watch(code, (room, players) => this.onUpdate(room, players), e => { this.err = 'Connection problem: ' + ((e && e.message) || 'try again'); if (App.view === 'battle') render(false); });
     clearInterval(this.hostLoop); this.hostLoop = setInterval(() => this.hostStep(), 500);
+    clearInterval(this.beat); this.beat = setInterval(() => this.heartbeat(), BEAT_MS); this.heartbeat();
+    this.pending = null;
   },
-  leaveWatch(){ if (this.unsub) { try { this.unsub(); } catch(e){} } this.unsub = null; clearInterval(this.hostLoop); },
+  async heartbeat(){
+    if (!this.code || document.hidden) return;
+    const mine = this.players[Net.me]; if (!mine) return;
+    try { await Net.t.set(`rooms/${this.code}/players/${Net.me}`, Object.assign({}, mine, { at:Date.now(), name:displayName() })); } catch(e){}
+  },
+  leaveWatch(){ if (this.unsub) { try { this.unsub(); } catch(e){} } this.unsub = null; clearInterval(this.hostLoop); clearInterval(this.beat); },
   async leave(){
     const code = this.code, wasHost = this.host, others = Object.keys(this.players).filter(id => id !== Net.me && this.players[id]);
     this.leaveWatch(); this.code = null; this.room = null; S.mp = null; save();
@@ -2692,6 +2719,16 @@ const MP = {
     const prev = this.room;
     this.room = room; this.players = players || {};
     if (!room) { if (App.view === 'battle') render(false); return; }
+    const pd = this.pending;
+    if (pd && pd.round === room.round && pd.game === (room.seed || '') && room.status === 'question') {
+      const srv = this.players[Net.me];
+      if (!ansFor(srv, room)) {
+        this.players[Net.me] = Object.assign({}, srv || { id:Net.me, name:displayName(), joined:Date.now() }, { ans:pd, at:Date.now() });
+        if (Date.now() > this.resendAt) { this.resendAt = Date.now() + 2000; Net.t.set(`rooms/${this.code}/players/${Net.me}`, this.players[Net.me]).catch(() => {}); }
+      } else this.pending = null;
+    } else if (pd && (pd.round !== room.round || room.status !== 'question')) this.pending = null;
+    // 3. reopened the site while in a battle: go straight back to it
+    if (!prev && App.autoBattle) { App.autoBattle = false; if (App.view === 'home' && room.status !== 'closed') { App.view = 'battle'; render(false); } }
     Object.keys(this.players).forEach(id => this.present.add(id));
     if (room.status === 'question' && !this.seen[roundKey(room)]) { this.seen[roundKey(room)] = Date.now(); App.entry = ''; }
     const changed = !prev || prev.status !== room.status || prev.round !== room.round || prev.seed !== room.seed || prev.host !== room.host;
@@ -2706,12 +2743,17 @@ const MP = {
     const r = this.room; if (!r || r.status !== 'question') return;
     const me = this.players[Net.me] || { id:Net.me, name:displayName(), joined:Date.now() };
     if (ansFor(me, r)) return;
-    const doc = Object.assign({}, me, { ans:{ round:r.round, game:r.seed || '', g, at:Date.now() } });
-    this.players[Net.me] = doc;
-    await Net.t.set(`rooms/${this.code}/players/${Net.me}`, doc);
+    const ans = { round:r.round, game:r.seed || '', g, at:Date.now() };
+    const doc = Object.assign({}, me, { ans, at:Date.now() });
+    this.players[Net.me] = doc; this.pending = ans; this.resendAt = Date.now() + 2000;
+    try { await Net.t.set(`rooms/${this.code}/players/${Net.me}`, doc); } catch(e){}   // if this fails, onUpdate re-sends it
   },
   // ---- host-only round logic ----
-  async writeRoom(R){ R.updated = Date.now(); this.busy = true; try { await Net.t.set('rooms/' + this.code, R); } finally { this.busy = false; } if (this.code) this.onUpdate(R, this.players); },
+  async writeRoom(R){
+    R.updated = Date.now(); this.busy = true;
+    try { await Net.t.set('rooms/' + this.code, R); } catch(e) { this.busy = false; return false; }   // refused or offline: the next tick tries again
+    this.busy = false; if (this.code) this.onUpdate(R, this.players); return true;
+  },
   async hostAction(fn){ if (!this.host || this.busy) return; const R = JSON.parse(JSON.stringify(this.room)); if (fn(R) !== false) await this.writeRoom(R); },
   setSetting(k, v){ return this.hostAction(R => { if (R.status !== 'lobby') return false; R.settings[k] = v; if (k === 'lives') R.roster.forEach(p => p.lives = v); if (k === 'max' && R.roster.length > v) return false; }); },
   start(){ return this.hostAction(R => { if (R.status !== 'lobby' || R.roster.length < 2) return false; R.roster.forEach(p => { p.lives = R.settings.lives; p.out = 0; }); this.nextRound(R, 1); }); },
@@ -2736,21 +2778,40 @@ const MP = {
     R.last = { round:R.round, rows: rows.map(r => Object.assign(r, { pts: Math.max(0, r.pts), lost: losers.includes(r.id) })) };
     R.status = 'reveal'; R.revealAt = Date.now();
   },
+  // If the host's phone has gone quiet, the first other player who is still here takes over running the game
+  async takeOverIfHostGone(){
+    const R = this.room, P = this.players;
+    if (!R || this.host || this.busy || !['lobby','question','reveal'].includes(R.status)) return;
+    const hd = P[R.host]; if (hd && fresh(hd)) return;
+    if (!hd && !this.present.has(R.host) && Date.now() - (R.updated || 0) < STALE_MS) return;   // haven't seen the host yet: give them a moment
+    const next = R.roster.find(p => p.id !== R.host && fresh(P[p.id]));
+    if (!next || next.id !== Net.me || !fresh(P[Net.me])) return;
+    const N = JSON.parse(JSON.stringify(R)); N.host = Net.me;
+    if (N.status === 'question') N.qAt = Math.max(N.qAt, Date.now() - N.settings.time * 1000 + 8000);   // a few seconds' grace for everyone
+    if (await this.writeRoom(N)) toast('The host dropped out, so you’re running the room now.', 4000);
+  },
   async hostStep(){
+    if (this.room && !this.host) return this.takeOverIfHostGone();
     if (!this.host || this.busy || !this.room) return;
     const R = JSON.parse(JSON.stringify(this.room)), P = this.players, now = Date.now();
     let changed = false;
+    // someone took back their seat from another browser
+    for (const pd of Object.values(P)) {
+      if (!pd || !pd.claim || pd.id === pd.claim) continue;
+      const seat = R.roster.find(p => p.id === pd.claim);
+      if (seat && !R.roster.some(p => p.id === pd.id) && !fresh(P[seat.id])) { if (R.host === seat.id) R.host = pd.id; seat.id = pd.id; changed = true; }
+    }
     if (R.status === 'lobby') {
       const before = JSON.stringify(R.roster);
-      R.roster = R.roster.filter(p => p.id === R.host || P[p.id]);
+      R.roster = R.roster.filter(p => p.id === R.host || (P[p.id] && (fresh(P[p.id]) || !P[p.id].at)));   // drop players who closed the game
       const seated = new Set(R.roster.map(p => p.id));
-      Object.values(P).filter(p => p && !seated.has(p.id)).sort((a, b) => a.joined - b.joined).forEach(p => {
+      Object.values(P).filter(p => p && !seated.has(p.id) && !p.claim && (fresh(p) || !p.at)).sort((a, b) => a.joined - b.joined).forEach(p => {
         if (R.roster.length >= R.settings.max) return;
         const used = new Set(R.roster.map(x => x.col)); let col = 0; while (used.has(col)) col++;
         R.roster.push({ id:p.id, name:cleanName(p.name) || 'Player', lives:R.settings.lives, col, out:0 });
       });
       R.roster.forEach(p => { if (P[p.id] && P[p.id].name && cleanName(P[p.id].name) !== p.name) p.name = cleanName(P[p.id].name); });
-      changed = JSON.stringify(R.roster) !== before;
+      changed = changed || JSON.stringify(R.roster) !== before;
     }
     // Mid-game: anyone who has left the room is out (only players we've actually seen connected, so a slow load can't knock people out)
     if (R.status === 'question' || R.status === 'reveal') {
@@ -3842,6 +3903,9 @@ const Habit = {
   }
 };
 
+// Anyone who has started any game is past the intro (it stays one tap away under Help)
+const hasPlayed = () => Object.keys(S.days).length > 0 || Object.keys(S.archive || {}).length > 0 || !!S.run || S.endless.runs > 0;
+
 /* ---- Challenge links ----
    playdialin.com/c/23-0011245-485-Charlie : puzzle number, each answer's points (as a tier digit, never the
    answer itself), Dial Ball bonus and name. The link carries the score, so it works for guests too.
@@ -4792,6 +4856,8 @@ function viewBattle(){
     </section>`;
   }
   const q = R.q, mine = R.roster.find(p => p.id === Net.me), alive = mine && mine.lives > 0;
+  if (!mine && MP.players[Net.me] && MP.players[Net.me].claim && R.status !== 'over') return `<section class="stack"><div class="px card center">${mascot('happy', 48, 'bob')}<p>Getting your seat back in room ${esc(MP.code)}…</p>
+    <button class="btn btn-ghost btn-block" data-act="mpleave">Leave</button></div></section>`;
   if (R.status === 'question') {
     const P = MP.players, done = !!ansFor(P[Net.me], R);
     const body = !alive ? `<div class="px card center"><p>You’re out. Watching the rest of the battle…</p></div>`
@@ -5654,9 +5720,11 @@ async function onSubmit(e){
 }
 function tick(){
   const t = effToday();
-  if (t !== App.today) {
+  // Midnight: anyone mid-puzzle, in the bonus round or on their results finishes yesterday's game first;
+  // the new day starts as soon as they're back on the home screen (yesterday's score still posts)
+  if (t !== App.today && !(App.today && ['play','pinball','results'].includes(App.view))) {
     const was = App.today; App.today = t;
-    if (was) { if (['play','results'].includes(App.view)) { App.view = 'home'; App.entry = ''; render(false); } toast('A new daily puzzle just dropped!'); }
+    if (was) { if (App.view === 'home') render(false); toast('A new daily puzzle just dropped!'); }
   }
   document.querySelectorAll('[data-countdown]').forEach(el => el.textContent = countdownText());
 }
@@ -5706,11 +5774,14 @@ async function boot(){
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if ($('#meter') && !Meter.running && Meter.st) { const s = Meter.st; Meter.start($('#meter'), App.view === 'endless' ? S.run.q : BY_ID.get(S.days[App.today].ids[App.cur]), s.a, false); } }, 150); });
   window.addEventListener('storage', e => { if (e.key === CONFIG.STORAGE_KEY) { S = sanitize(Store.read()); render(false); } });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Backend.on && !Backend.email && App.acct.step === 'code') Backend.loadUser().then(e => e && finishSignIn()).catch(() => {}); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (App.view === 'play' || App.view === 'endless') render(false); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (['play','endless','arch','battle'].includes(App.view) && !keyTarget()) render(false); else if (['play','endless','arch'].includes(App.view)) { expireDaily(); render(false); } } });
   save();
   render(false);
   if (App.pendingChal) showChallenge();
-  else if (!S.introSeen && !App.showInvite && !App.pendingRoom) openDialog('dlg-intro');
+  else if (!S.introSeen && !App.showInvite && !App.pendingRoom && !S.mp && !hasPlayed()) openDialog('dlg-intro');
+  if (!S.introSeen && hasPlayed()) { S.introSeen = true; save(); }   // already playing: never pop the intro over a game
+  // Arrived by a battle link (or are mid-battle): never cover the game with the intro later; it's in Help any time
+  if ((App.pendingRoom || S.mp) && !S.introSeen) { S.introSeen = true; save(); }
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
@@ -5727,7 +5798,7 @@ async function boot(){
   if (devFlag === '1' && await enterDev(true)) return;
   if (devFlag === '1') { try { localStorage.removeItem('pinpoint:devmode'); } catch(e){} }
   if (App.pendingRoom && Net.ready) openRoomLink(App.pendingRoom);
-  else if (S.mp && Net.ready) MP.enter(S.mp.code);
+  else if (S.mp && Net.ready) { App.autoBattle = true; MP.enter(S.mp.code); }
   devAllowed().then(ok => { DEV.allowed = ok; if (ok && App.view === 'settings') render(false); });
   if (App.view === 'battle' || App.view === 'home') render(false);
   if (Backend.on) { Backend.sync().catch(() => {}); confirmPurchase(false); }

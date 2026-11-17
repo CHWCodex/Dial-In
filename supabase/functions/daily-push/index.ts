@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
   if (!body.force && ukHour !== 18) return json({ skipped: true, ukHour });   // the job runs at 17:30 and 18:30 UTC; only the 6pm UK one sends
 
   webpush.setVapidDetails("mailto:hello@playdialin.com", pub, priv);
-  const no = Math.round((Date.parse(ukDate + "T12:00:00Z") - EPOCH) / 86400000) + 1;
+  const no = Math.round((Date.parse(ukDate + "T00:00:00Z") - EPOCH) / 86400000) + 1;   // whole days since puzzle #1
   const targets: { endpoint: string; p256dh: string; auth: string; streak: boolean }[] = await rpc("push_targets", { p_date: ukDate }) ?? [];
   const sent: string[] = [], gone: string[] = [], failed: string[] = [];
   for (let i = 0; i < targets.length; i += 20) {
