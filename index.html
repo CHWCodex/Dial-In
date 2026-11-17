@@ -198,6 +198,15 @@ h1,h2,h3{margin:0;font-weight:normal}
 .archlist .dt small{display:block;color:var(--text-2);font-size:12px;font-weight:600}
 .archlist .sc{font:var(--fw-d) 16px var(--font-num);color:var(--gold)}
 .archlist .sc.go{font:var(--fw-d) 13px var(--font-display);color:var(--m-past);text-transform:uppercase;letter-spacing:.04em}
+.h2h{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:4px}
+.h2h li{display:grid;grid-template-columns:34px 1fr 1fr;gap:8px;align-items:center;background:var(--inset);border-radius:var(--r-sm);padding:6px 10px;font:var(--fw-d) 15px var(--font-num)}
+.h2h li .n{color:var(--text-2);font-size:13px}
+.h2h li span{display:flex;align-items:center;gap:6px}
+.h2h li .w{color:var(--gold)}
+.h2h li.head{background:none;padding:0 10px;font:900 12px var(--font-ui);color:var(--text-2);letter-spacing:.05em;text-transform:uppercase}
+.h2h i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+.chal-verdict{font:400 clamp(24px,7vw,32px)/1.1 var(--font-logo);color:var(--gold);margin:4px 0}
+.chalcard{border:2px solid var(--m-battle)}
 .plusbadge{display:inline-block;font:900 11px/1 var(--font-ui);letter-spacing:.06em;color:#1a0833;background:var(--m-past);padding:4px 7px;border-radius:var(--r-pill);vertical-align:2px}
 .mode .mi{display:grid;place-items:center;color:var(--mc)}
 .mode .mt{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -669,6 +678,14 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <h2 id="pay-h">Get DIAL IN+</h2>
     <div id="pay-body"></div>
     <button class="btn btn-ghost btn-block" data-close>Maybe later</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-chal" aria-labelledby="chal-h">
+  <div class="px dlg">
+    <h2 id="chal-h">You’ve been challenged!</h2>
+    <div id="chal-body"></div>
+    <button class="btn btn-ghost btn-block" data-close>Not now</button>
   </div>
 </dialog>
 
@@ -2203,7 +2220,7 @@ const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*1
 function blankState(){
   return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, friends:[], days:{},
     endless:{ best:0, bestN:0, runs:0, answered:0, freeDay:'', hist:[], recent:[] }, run:null,
-    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'' };
+    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'', challenges:{} };
 }
 // Never trust stored data: validate shape and recompute scores from guesses.
 function sanitize(raw){
@@ -2252,6 +2269,10 @@ function sanitize(raw){
     }
   }
   out.archFree = /^\d{4}-\d{2}-\d{2}$/.test(raw.archFree) ? raw.archFree : '';
+  if (raw.challenges && typeof raw.challenges === 'object') {
+    const keep = Object.entries(raw.challenges).filter(([d]) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().slice(-15);
+    for (const [d, c] of keep) { const v = cleanChallenge(c); if (v) out.challenges[d] = v; }
+  }
   const e = raw.endless || {};
   out.endless = { best:Math.max(0, Number(e.best) || 0), bestN:Math.max(0, Number(e.bestN) || 0), runs:Math.max(0, Number(e.runs) || 0),
     answered:Math.max(0, Number(e.answered) || 0), freeDay: /^\d{4}-\d{2}-\d{2}$/.test(e.freeDay) ? e.freeDay : '',
@@ -2288,6 +2309,7 @@ function mergeStates(a, b){
     if (!mine || count(v) > count(mine)) out.archive[d] = JSON.parse(JSON.stringify(v));
   }
   out.archFree = out.archFree || older.archFree || '';
+  out.challenges = Object.assign({}, older.challenges || {}, out.challenges || {});
   out.friends = [...new Set(a.friends.concat(b.friends))].slice(0, 100);
   const ea = a.endless, eb = b.endless;
   out.endless.best = Math.max(ea.best, eb.best); out.endless.bestN = Math.max(ea.bestN, eb.bestN);
@@ -3691,13 +3713,93 @@ function viewArchRes(){
       <p class="rank-title">${rankTitle(total)}</p>
       <p class="small muted">${exacts} dialed in · archive scores don’t count towards streaks or leaderboards</p>
     </div>
+    ${h2hHTML(App.archDate)}
+    <button class="btn btn-coral btn-block" data-act="challenge" data-d="${App.archDate}">Challenge a friend on this puzzle</button>
     ${isPremium() ? '' : upsellHTML()}
     <div class="btnrow">${next ? `<button class="btn btn-mint btn-xl" data-act="archopen" data-d="${next}">Next past puzzle</button>` : ''}<button class="btn btn-sky" data-act="archive">All past puzzles</button></div>
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
 }
 
+/* ---- Challenge links ----
+   playdialin.com/c/23-0011245-485-Charlie : puzzle number, each answer's points (as a tier digit, never the
+   answer itself), Dial Ball bonus and name. The link carries the score, so it works for guests too.
+   Today's puzzle is played as the daily; yesterday's can be played free from the archive. */
+const TIERS = [1000, 900, 750, 600, 400, 200, 0];
+const TIER_COLS = { 1000:'#ffd23f', 900:'#7dff6a', 750:'#2fe0a8', 600:'#4de1ff', 400:'#a77bff', 200:'#ff9a3d', 0:'#4a3f7e' };
+function cleanChallenge(c){
+  if (!c || typeof c !== 'object' || !Array.isArray(c.pts) || c.pts.length !== 7 || !c.pts.every(x => TIERS.includes(x))) return null;
+  const balls = c.pts.reduce((t, x) => t + (BALLS_FOR[x] || 0), 0);
+  return { name: cleanName(c.name) || 'A friend', pts: c.pts.slice(), bonus: Math.max(0, Math.min(balls * PIN_MAX_PER_BALL, Math.round(Number(c.bonus) || 0))), at: Number(c.at) || 0 };
+}
+function parseChallenge(token){
+  const m = /^(\d{1,5})-([0-6]{7})-(\d{1,5})-(.{1,40})$/.exec(String(token || '')); if (!m) return null;
+  const no = +m[1]; if (no < 1 || no > DateUK.puzzleNo(App.today)) return null;
+  const d = new Date(CONFIG.EPOCH + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + no - 1);
+  let name = m[4]; try { name = decodeURIComponent(name.replace(/\+/g, ' ')); } catch(e){}
+  const c = cleanChallenge({ name, pts: m[2].split('').map(x => TIERS[+x]), bonus: +m[3], at: Date.now() });
+  return c ? { date: d.toISOString().slice(0, 10), c } : null;
+}
+function challengeLink(date, pts, bonus){
+  const t = `${DateUK.puzzleNo(date)}-${pts.map(x => TIERS.indexOf(x)).join('')}-${bonus || 0}-${encodeURIComponent(displayName()).replace(/%20/g, '+')}`;
+  return (siteLink() ? location.origin : 'https://playdialin.com') + '/c/' + t;
+}
+const chalTotal = (c, withBonus) => c.pts.reduce((a, b) => a + b, 0) + (withBonus ? c.bonus : 0);
+// Your game for a challenged date: the real daily if you played it on the day, otherwise the archive copy
+function myGameFor(d){ const day = S.days[d]; if (day && day.done && pinDone(day)) return { game: day, daily: true }; const A = S.archive[d]; return A && A.done ? { game: A, daily: false } : null; }
+const chalFree = d => d === App.today || archDates()[0] === d;
+function chalStartPlay(d){
+  closeDialog('dlg-chal');
+  if (d === App.today) { startDaily(); return; }
+  if (!archLocked(d) || chalFree(d)) { const A = getArch(d, true); App.archDate = d; save(); App.cur = firstOpen(A); App.entry = ''; requireName(() => go(A.done ? 'archres' : 'arch')); return; }
+  openPay();
+}
+function h2hHTML(d){
+  const c = S.challenges[d], mine = myGameFor(d); if (!c || !mine) return '';
+  const g = mine.game, bonus = mine.daily ? dayBonus(g) : 0, you = dayBase(g) + bonus, them = chalTotal(c, mine.daily), diff = you - them;
+  const verdict = diff > 0 ? `You win by ${fmtNum(diff)}!` : diff < 0 ? `${esc(c.name)} wins by ${fmtNum(-diff)}` : 'It’s a draw!';
+  const cell = (p, w) => `<span class="${w ? 'w' : ''}"><i style="background:${TIER_COLS[p]}"></i>${p}</span>`;
+  const rows = g.answers.map((a, k) => `<li><span class="n">Q${k + 1}</span>${cell(a.s, a.s > c.pts[k])}${cell(c.pts[k], c.pts[k] > a.s)}</li>`).join('');
+  const bonusRow = mine.daily && (bonus || c.bonus) ? `<li><span class="n">🎰</span><span class="${bonus > c.bonus ? 'w' : ''}">+${fmtNum(bonus)}</span><span class="${c.bonus > bonus ? 'w' : ''}">+${fmtNum(c.bonus)}</span></li>` : '';
+  return `<div class="px card stack chalcard center">
+    <p class="label">Challenge · you vs ${esc(c.name)}</p>
+    <p class="chal-verdict">${verdict}</p>
+    <p class="small">${fmtNum(you)} vs ${fmtNum(them)}${mine.daily ? '' : ' (questions only: no Dial Ball in past puzzles)'}</p>
+    <ol class="h2h"><li class="head"><span></span><span>You</span><span>${esc(c.name)}</span></li>${rows}${bonusRow}</ol>
+    <div class="btnrow"><button class="btn btn-mint" data-act="chalback" data-d="${d}">${diff >= 0 ? 'Tell them' : 'Challenge them back'}</button></div>
+  </div>`;
+}
+function chalBackText(d){
+  const c = S.challenges[d], mine = myGameFor(d); if (!c || !mine) return '';
+  const g = mine.game, you = dayBase(g) + (mine.daily ? dayBonus(g) : 0), them = chalTotal(c, mine.daily);
+  const head = you > them ? `I beat your ${fmtNum(them)} with ${fmtNum(you)} on DIAL IN #${DateUK.puzzleNo(d)} 😎` : you < them ? `Your ${fmtNum(them)} beat my ${fmtNum(you)} on DIAL IN #${DateUK.puzzleNo(d)}. Rematch?` : `We drew on DIAL IN #${DateUK.puzzleNo(d)}: ${fmtNum(you)} each!`;
+  return `${head}\n${g.answers.map(a => Scoring.emoji(a.s)).join('')}\nChallenge me back: ${challengeLink(d, g.answers.map(a => a.s), mine.daily ? dayBonus(g) : 0)}`;
+}
+function challengeText(d, g, daily){
+  const total = dayBase(g) + (daily ? dayBonus(g) : 0);
+  return `I scored ${fmtNum(total)} on ${d === App.today ? 'today’s ' : ''}DIAL IN #${DateUK.puzzleNo(d)}. Can you beat me? 🎯\n${g.answers.map(a => Scoring.emoji(a.s)).join('')}\n${challengeLink(d, g.answers.map(a => a.s), daily ? dayBonus(g) : 0)}`;
+}
+// Opened from a challenge link
+function showChallenge(){
+  const P = App.pendingChal; App.pendingChal = null; if (!P) return;
+  S.challenges[P.date] = P.c; save();
+  const c = P.c, d = P.date, mine = myGameFor(d), today = d === App.today, total = chalTotal(c, true);
+  const tiles = `<div class="tiles" style="margin:12px 0 22px" role="img" aria-label="${esc(c.name)}’s points: ${c.pts.join(', ')}">${c.pts.map((p, k) => `<span class="tile t${p}" style="--i:${k}"></span>`).join('')}</div>`;
+  const when = today ? 'today’s puzzle' : `puzzle #${DateUK.puzzleNo(d)} (${esc(DateUK.pretty(d))})`;
+  let action;
+  if (mine) action = h2hHTML(d);
+  else if (today || chalFree(d) || !archLocked(d)) action = `<button class="btn btn-mint btn-block btn-xl" data-act="chalgo" data-d="${d}">Accept the challenge</button>
+      <p class="small muted center">Same seven questions. ${today ? 'It’s today’s daily, so it counts towards your streak too.' : 'Free to play from the past puzzles.'}</p>`;
+  else action = `<p class="banner">This challenge is for an older puzzle. Older puzzles come with ${PLUS}, or try today’s puzzle instead.</p>
+      <button class="btn btn-mint btn-block" data-act="chalgo" data-d="${d}">Get ${PLUS}</button><button class="btn btn-sky btn-block" data-act="play">Play today’s puzzle</button>`;
+  $('#chal-body').innerHTML = `<p class="chal-verdict">${esc(c.name)} scored ${fmtNum(total)}</p>
+    <p class="small">on ${when}${c.bonus ? `, including +${fmtNum(c.bonus)} from Dial Ball` : ''}. Can you beat it?</p>
+    ${tiles}${action}`;
+  openDialog('dlg-chal');
+}
+
 /* ---- Daily ---- */
+function startDaily(){ requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); go('play'); }); }
 function firstOpen(day){ const i = day.answers.findIndex(a => !a); return i < 0 ? 0 : i; }
 function expireDaily(){
   const day = S.days[App.today]; if (!day) return false;
@@ -4282,6 +4384,7 @@ function viewResults(){
       <p class="rank-title ${first ? 'slam' : ''}">${rankTitle(dayBase(day))}</p>
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
     </div>
+    ${h2hHTML(App.today)}
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
     <div class="px card stack leaguecard" id="leaguecard" hidden></div>
     ${streakNudgeHTML(st)}
@@ -4294,6 +4397,7 @@ function viewResults(){
       <div class="px stat"><span class="label">Vs your avg</span><b>${vs}</b></div>
       <div class="px stat"><span class="label">Played</span><b>${st.played}</b></div>
     </div>
+    <button class="btn btn-coral btn-block btn-xl" data-act="challenge" data-d="${App.today}">Challenge a friend</button>
     <div class="btnrow"><button class="btn btn-mint btn-xl" data-act="share">Share results</button><button class="btn btn-sky btn-xl" data-act="shareImg">Share image</button></div>
     <div class="btnrow"><button class="btn btn-ghost" data-act="board">Leaderboard</button><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
@@ -5239,7 +5343,10 @@ function onClick(e){
   if (act.startsWith('dev')) { devAction(act, el); return; }
   switch (act) {
     case 'home': go('home'); break;
-    case 'play': requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); go('play'); }); break;
+    case 'play': closeDialog('dlg-chal'); startDaily(); break;
+    case 'chalgo': { const d = el.dataset.d; if (!S.challenges[d]) break; chalStartPlay(d); break; }
+    case 'chalback': closeDialog('dlg-chal'); share(chalBackText(el.dataset.d)); break;
+    case 'challenge': { const d = el.dataset.d || App.today, m = myGameFor(d); if (m) share(challengeText(d, m.game, m.daily)); break; }
     case 'key': pressKey(el.dataset.k); break;
     case 'goq': {
       const i = Math.max(0, Math.min(6, +el.dataset.i || 0)), day = getDay(App.today, true);
@@ -5427,6 +5534,8 @@ async function boot(){
   App.today = DateUK.today();
   { const m = /[?&]league=([A-Za-z0-9]{6})\b/.exec(location.search);
     if (m) { setPendingLeague({ code:m[1].toUpperCase(), name:'' }); try { history.replaceState(null, '', location.pathname); } catch(e){} App.showInvite = true; } }
+  { const m = /[?&]c=([^&#]+)/.exec(location.search);
+    if (m) { let t = m[1]; try { t = decodeURIComponent(t.replace(/\+/g, ' ')); } catch(e){} App.pendingChal = parseChallenge(t); try { history.replaceState(null, '', location.pathname); } catch(e){} } }
   const hashNote = Backend.on ? Backend.takeHash() : '';
   if (Backend.on) Backend.email = Store.get(CONFIG.STORAGE_KEY + ':email') || '';
   if (hashNote) setTimeout(() => toast(hashNote, 5000), 600);
@@ -5450,7 +5559,8 @@ async function boot(){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (App.view === 'play' || App.view === 'endless') render(false); } });
   save();
   render(false);
-  if (!S.introSeen && !App.showInvite) openDialog('dlg-intro');
+  if (App.pendingChal) showChallenge();
+  else if (!S.introSeen && !App.showInvite) openDialog('dlg-intro');
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
