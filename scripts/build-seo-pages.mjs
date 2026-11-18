@@ -134,7 +134,7 @@ ${qs.map(q => qItem(q)).join('\n')}
     <li>Everyone writes down a number for each question. No multiple choice, so nobody can guess at random.</li>
     <li>Closest answer wins the round. For a fairer score, give points by how close people are: within 10% scores well, spot on scores best.</li>
     <li>For years, count how many years off each guess is.</li>
-    <li>Short of questions? DIAL IN has over 1,150, and the Battle mode runs the quiz for you on everyone’s phones.</li>
+    <li>Short of questions? DIAL IN has over 1,300, and the Battle mode runs the quiz for you on everyone’s phones.</li>
   </ul>
 ` + cta()
 }));
