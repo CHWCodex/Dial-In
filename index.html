@@ -66,7 +66,7 @@
   --ghost:#3a2a7a; --on-ghost:#fff6e5; --danger:#ff4f64; --on-danger:#1a0833;
   --special:#ff3d7f; --warn:#ff9a3d; --up:#7dff6a; --down:#ff4f64; --brand-2:#ff3d7f;
   --heart:#ff3d7f; --heart-off:#3a2d6e;
-  --m-daily:#ffd23f; --m-unl:#4de1ff; --m-battle:#ff3d7f; --m-past:#7dff6a;
+  --m-daily:#ffd23f; --m-unl:#4de1ff; --m-battle:#ff3d7f; --m-past:#7dff6a; --m-fact:#2fe0a8; --fc-t:#7dff6a; --fc-f:#ff3d7f;
   --banner-bg:#3a2a12; --banner-text:#ffd23f; --me-bg:#3a2a12; --dev-bg:#3a1530;
   /* signal tiers: fill, text-on-dark, text-on-fill (1000 · 900 · 750 · 600 · 400 · 200 · 0) */
   --t1000:#ffd23f; --t900:#7dff6a; --t750:#2fe0a8; --t600:#4de1ff; --t400:#a77bff; --t200:#ff9a3d; --t0:#4a3f7e;
@@ -189,7 +189,47 @@ h1,h2,h3{margin:0;font-weight:normal}
 .modes{display:grid;gap:12px}
 .mode{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;text-align:left;cursor:pointer;border:0;width:calc(100% - 2 * var(--px));min-height:68px;touch-action:manipulation;transition:transform var(--dur-1) var(--e-std)}
 .mode:active{transform:var(--press)}
-.m-daily{--mc:var(--m-daily)} .m-unl{--mc:var(--m-unl)} .m-battle{--mc:var(--m-battle)} .m-past{--mc:var(--m-past)}
+.m-daily{--mc:var(--m-daily)} .m-unl{--mc:var(--m-unl)} .m-battle{--mc:var(--m-battle)} .m-past{--mc:var(--m-past)} .m-fact{--mc:var(--m-fact)}
+.fc-hero{overflow:hidden}
+.fc-logo{font:400 clamp(34px,11vw,46px)/1 var(--font-logo);color:var(--text);margin:6px 0 4px;letter-spacing:.02em;text-shadow:0 4px 0 #0a0520}
+.fc-logo span{color:var(--m-fact);display:inline-block;transform:rotate(-4deg)}
+.fc-how{margin:6px 0 0;padding-left:18px}.fc-how li{margin:4px 0}
+.fc-card{position:relative;overflow:hidden;min-height:150px}
+.fc-q{font-size:clamp(20px,5.6vw,25px);line-height:1.3}
+.fc-stamp{position:absolute;right:12px;bottom:12px;font:400 30px/1 var(--font-logo);padding:6px 12px 4px;border:4px solid currentColor;border-radius:10px;transform:rotate(-12deg);letter-spacing:.04em;background:rgba(10,5,32,.55);pointer-events:none}
+.fc-stamp.t{color:var(--fc-t)} .fc-stamp.f{color:var(--fc-f)}
+.fc-stamp.slam{animation:fcStamp .45s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes fcStamp{0%{transform:rotate(-30deg) scale(3);opacity:0}60%{opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+.fc-meter{display:flex;justify-content:center;margin:2px 0 -4px}
+.fc-meter svg{max-width:220px;width:62vw;height:auto;overflow:visible}
+.fc-meter .arc-f,.fc-meter .arc-t{fill:none;stroke-width:14;stroke-linecap:round}
+.fc-meter .arc-f{stroke:var(--fc-f)} .fc-meter .arc-t{stroke:var(--fc-t)}
+.fc-meter .ticks line{stroke:var(--text);stroke-width:2.5;opacity:.6}
+.fc-meter text{font:400 14px var(--font-logo);fill:var(--text-2)}
+.fc-meter.true .lbl-t{fill:var(--fc-t)} .fc-meter.false .lbl-f{fill:var(--fc-f)}
+.fc-meter .needle{transform-origin:110px 112px;transform-box:view-box;transition:transform .9s cubic-bezier(.3,1.7,.45,1)}
+.fc-meter .needle path{fill:var(--gold);stroke:#0a0520;stroke-width:2}
+.fc-meter .hub{fill:#0a0520;stroke:var(--gold);stroke-width:3}
+.fc-meter.live .needle{animation:fcWobble 1.6s ease-in-out infinite}
+@keyframes fcWobble{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+.fc-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.fc-btn{border:0;border-radius:16px;min-height:96px;font:400 22px/1 var(--font-logo);color:#1a0833;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 0 #0a0520;touch-action:manipulation;transition:transform .08s}
+.fc-btn span{font:900 30px/1 var(--font-ui)}
+.fc-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #0a0520}
+.fc-btn.t{background:var(--fc-t)} .fc-btn.f{background:var(--fc-f)}
+.fc-btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.fc-tbar{margin-top:6px} .fc-tsec{margin:4px 0 0}
+.fc-verdict{text-align:center;font:400 26px/1.1 var(--font-logo);margin:6px 0 2px}
+.fc-verdict.ok{color:var(--fc-t)} .fc-verdict.no{color:var(--fc-f)} .fc-verdict b{color:var(--gold)}
+.fc-verdict.pop{animation:ptsBoom .6s var(--e-pop) both}
+.fc-why b.t{color:var(--fc-t)} .fc-why b.f{color:var(--fc-f)}
+.pip.done.fc-ok{--tc:var(--fc-t);--tco:#1a0833;background:var(--fc-t);color:#1a0833} .pip.done.fc-no{--tc:var(--fc-f);--tco:#1a0833;background:var(--fc-f);color:#1a0833}
+[data-theme="dial"] .pip.done.fc-ok[aria-current="step"],[data-theme="dial"] .pip.done.fc-no[aria-current="step"]{color:#1a0833}
+.tile.fc-ok{background:var(--fc-t)} .tile.fc-no{background:var(--fc-f)}
+.fc-row.ok .n{color:var(--fc-t)} .fc-row.no .n{color:var(--fc-f)}
+.fc-runbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;margin-bottom:8px;font-weight:700}
+.fc-title{margin:0 0 6px}
+
 .archlist{list-style:none;padding:0;margin:0;display:grid;gap:6px}
 .archlist button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:left;padding:12px 14px;border:0;border-radius:var(--r-sm);background:var(--inset);color:var(--text);font:inherit;cursor:pointer}
 .archlist button:disabled{cursor:default;opacity:.75}
@@ -661,6 +701,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
       <li><b>Daily:</b> 7 questions, the same for everyone, new at midnight UK time. Finish to see how many players you beat.</li>
       <li><b>Unlimited:</b> keep going as long as you can with 3 hearts. More than 20% off loses a heart.</li>
       <li><b>Battle:</b> 2–4 friends in a room. Worst answer each round loses a life.</li>
+      <li><b>Fact Check!</b> 7 true-or-false claims a day, 12 seconds each. Hosts can also make a Battle a Fact Check.</li>
     </ol>
     <p class="label">Signal strength (per question)</p>
     <table class="scoretable">
@@ -744,6 +785,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 <div class="hype" id="hype" aria-hidden="true"></div>
 
 <script src="config.js"></script>
+<script src="facts.js"></script>
 <script>
 'use strict';
 /* =====================================================================
@@ -2395,7 +2437,7 @@ const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*1
 function blankState(){
   return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, friends:[], days:{},
     endless:{ best:0, bestN:0, runs:0, answered:0, freeDay:'', hist:[], recent:[] }, run:null,
-    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'', challenges:{} };
+    premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'', challenges:{}, facts:{ days:{}, best:0, bestN:0, runs:0, pos:0, hist:[] }, frun:null };
 }
 // Never trust stored data: validate shape and recompute scores from guesses.
 function sanitize(raw){
@@ -2445,6 +2487,26 @@ function sanitize(raw){
     }
   }
   out.archFree = /^\d{4}-\d{2}-\d{2}$/.test(raw.archFree) ? raw.archFree : '';
+  // Fact Check: answers are re-checked against the statement bank, points capped to what's possible
+  const fc = raw.facts && typeof raw.facts === 'object' ? raw.facts : {};
+  const fAns = (f, a) => { if (!a || typeof a !== 'object' || !f) return null; const v = a.to === true ? null : a.v === 1 ? 1 : a.v === 0 ? 0 : undefined; if (v === undefined) return null;
+    const ok = v !== null && (v === 1) === f.truth; return { v, ok, p: ok ? Math.max(100, Math.min(150, Math.round(Number(a.p) || 100))) : 0, to: v === null, at:Number(a.at) || 0 }; };
+  if (fc.days && typeof fc.days === 'object') for (const [d, v] of Object.entries(fc.days)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !v || !Array.isArray(v.ids) || v.ids.length !== 7 || !v.ids.every(id => FACT_BY_ID.has(id)) || new Set(v.ids).size !== 7) continue;
+    const ans = v.ids.map((id, i) => fAns(FACT_BY_ID.get(id), Array.isArray(v.ans) ? v.ans[i] : null));
+    const st = v.ids.map((_, i) => { const x = Array.isArray(v.st) ? Number(v.st[i]) : 0; return x > 0 ? x : null; });
+    out.facts.days[d] = { ids:v.ids.slice(), ans, st, done:ans.every(Boolean), doneAt:Number(v.doneAt) || 0 };
+  }
+  const nn = x => Math.max(0, Math.round(Number(x) || 0));
+  Object.assign(out.facts, { best:nn(fc.best), bestN:nn(fc.bestN), runs:nn(fc.runs), pos:nn(fc.pos),
+    hist: Array.isArray(fc.hist) ? fc.hist.filter(h => h && /^\d{4}-\d{2}-\d{2}$/.test(h.d) && isFinite(h.score) && isFinite(h.n)).slice(-30).map(h => ({ d:h.d, score:nn(h.score), n:nn(h.n) })) : [] });
+  const fr = raw.frun;
+  if (fr && typeof fr === 'object' && FACT_BY_ID.has(fr.id) && Number.isInteger(fr.lives) && fr.lives >= 0 && fr.lives <= FACT_LIVES) {
+    out.frun = { id:fr.id, lives:fr.lives, st:Number(fr.st) || 0, ans:fAns(FACT_BY_ID.get(fr.id), fr.ans), count:nn(fr.count), right:nn(fr.right), score:nn(fr.score),
+      streak:nn(fr.streak), bestStreak:nn(fr.bestStreak), over:fr.over === true, startedAt:Number(fr.startedAt) || 0 };
+    out.frun.score = Math.min(out.frun.score, out.frun.right * 150);
+  }
+
   if (raw.challenges && typeof raw.challenges === 'object') {
     const keep = Object.entries(raw.challenges).filter(([d]) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().slice(-15);
     for (const [d, c] of keep) { const v = cleanChallenge(c); if (v) out.challenges[d] = v; }
@@ -2486,6 +2548,9 @@ function mergeStates(a, b){
   }
   out.archFree = out.archFree || older.archFree || '';
   out.challenges = Object.assign({}, older.challenges || {}, out.challenges || {});
+  const fo = older.facts || {}, fn = out.facts || (out.facts = { days:{}, best:0, bestN:0, runs:0, pos:0, hist:[] });
+  for (const [d, v] of Object.entries(fo.days || {})) { const mine = fn.days[d], c = x => x ? x.ans.filter(Boolean).length : -1; if (!mine || c(v) > c(mine)) fn.days[d] = JSON.parse(JSON.stringify(v)); }
+  fn.best = Math.max(fn.best || 0, fo.best || 0); fn.bestN = Math.max(fn.bestN || 0, fo.bestN || 0); fn.runs = Math.max(fn.runs || 0, fo.runs || 0); fn.pos = Math.max(fn.pos || 0, fo.pos || 0);
   out.friends = [...new Set(a.friends.concat(b.friends))].slice(0, 100);
   const ea = a.endless, eb = b.endless;
   out.endless.best = Math.max(ea.best, eb.best); out.endless.bestN = Math.max(ea.bestN, eb.bestN);
@@ -2810,7 +2875,9 @@ const MP = {
   code:null, room:null, players:{}, unsub:null, busy:false, hostLoop:0, seen:{}, err:'', present:new Set(), beat:0, pending:null, resendAt:0,
   get host(){ return this.room && this.room.host === Net.me; },
   get mePlayer(){ return this.room && this.room.roster.find(p => p.id === Net.me); },
-  defaults(){ return { time:20, lives:3, max:4 }; },
+  defaults(){ return { time:20, lives:3, max:4, mode:'dial' }; },
+  isFact(R){ return !!R && R.settings && R.settings.mode === 'fact' && factOn(); },
+  setMode(m){ return this.hostAction(R => { if (R.status !== 'lobby' || !['dial','fact'].includes(m) || R.settings.mode === m) return false; R.settings.mode = m; }); },
   async create(){
     const me = Net.me, now = Date.now();
     const room = { v:1, host:me, status:'lobby', settings:this.defaults(), roster:[{ id:me, name:displayName(), lives:3, col:0, out:0 }],
@@ -2902,7 +2969,7 @@ const MP = {
     const r = this.room; if (!r || r.status !== 'question') return;
     const me = this.players[Net.me] || { id:Net.me, name:displayName(), joined:Date.now() };
     if (ansFor(me, r)) return;
-    const ans = { round:r.round, game:r.seed || '', g, at:Date.now() };
+    const ans = { round:r.round, game:r.seed || '', g, at:Date.now(), ms: Date.now() - (this.seen[roundKey(r)] || Date.now()) };   // how long *this* phone took
     const doc = Object.assign({}, me, { ans, at:Date.now() });
     this.players[Net.me] = doc; this.pending = ans; this.resendAt = Date.now() + 2000;
     try { await Net.t.set(`rooms/${this.code}/players/${Net.me}`, doc); } catch(e){}   // if this fails, onUpdate re-sends it
@@ -2919,8 +2986,12 @@ const MP = {
   rematch(){ return this.hostAction(R => { if (R.status !== 'over') return false; R.status = 'lobby'; R.round = 0; R.q = null; R.last = null; R.winner = null;
     R.seed = Math.random().toString(36).slice(2, 10); R.games = (R.games || 1) + 1;   /* new questions; R.used keeps the ones already played */
     R.roster = R.roster.filter(p => this.players[p.id]); R.roster.forEach(p => { p.lives = R.settings.lives; p.out = 0; }); }); },
-  nextRound(R, n){ const q = battleQ(R.seed, n, R.used || []); R.used = (R.used || []).concat(q.id).slice(-200); R.round = n; R.q = qPayload(q); R.qAt = Date.now(); R.status = 'question'; R.last = null; },
+  nextRound(R, n){
+    const fact = this.isFact(R), q = fact ? factBattlePick(R.seed, n, R.used || []) : battleQ(R.seed, n, R.used || []);
+    R.used = (R.used || []).concat(q.id).slice(-400); R.round = n; R.q = fact ? factPayload(q) : qPayload(q); R.qAt = Date.now(); R.status = 'question'; R.last = null;
+  },
   resolve(R){
+    if (R.q && R.q.kind === 'fact') return this.resolveFact(R);
     const q = R.q, alive = R.roster.filter(p => p.lives > 0);
     const rows = alive.map(p => {
       const a = ansFor(this.players[p.id], R);
@@ -2948,6 +3019,24 @@ const MP = {
     const N = JSON.parse(JSON.stringify(R)); N.host = Net.me;
     if (N.status === 'question') N.qAt = Math.max(N.qAt, Date.now() - N.settings.time * 1000 + 8000);   // a few seconds' grace for everyone
     if (await this.writeRoom(N)) toast('The host dropped out, so you’re running the room now.', 4000);
+  },
+  // Fact Check: a wrong answer (or none) loses a life. From round 10, if everyone is right, the slowest loses one too.
+  // If everyone gets it wrong, nobody loses (as in standard Battles, the game never knocks everyone out at once).
+  resolveFact(R){
+    const q = R.q, alive = R.roster.filter(p => p.lives > 0);
+    const rows = alive.map(p => { const a = ansFor(this.players[p.id], R), g = a && (a.g === 1 || a.g === 0) ? a.g : null;
+      return { id:p.id, g, ok: g !== null && (g === 1) === q.truth, ms: a && g !== null ? (Number.isFinite(a.ms) ? Math.max(0, a.ms) : Math.max(0, (a.at || 0) - R.qAt)) : null }; });
+    let losers = rows.filter(r => !r.ok).map(r => r.id), speed = false;
+    if (losers.length === rows.length) losers = [];
+    else if (!losers.length && R.round >= 10 && rows.length > 1) {
+      const slow = Math.max(...rows.map(r => r.ms || 0)), slowest = rows.filter(r => (r.ms || 0) === slow);
+      if (slowest.length < rows.length) { losers = slowest.map(r => r.id); speed = true; }
+    }
+    R.roster.forEach(p => { if (losers.includes(p.id)) p.lives--; });
+    if (R.roster.every(p => p.lives <= 0)) { R.roster.forEach(p => { if (losers.includes(p.id)) p.lives++; }); losers = []; }
+    R.roster.forEach(p => { if (p.lives <= 0 && !p.out) p.out = R.round; });
+    R.last = { round:R.round, fact:true, speed, rows: rows.map(r => Object.assign(r, { pts: r.ok ? 1 : 0, err:null, lost: losers.includes(r.id) })) };
+    R.status = 'reveal'; R.revealAt = Date.now();
   },
   async hostStep(){
     if (this.room && !this.host) return this.takeOverIfHostGone();
@@ -3181,6 +3270,7 @@ const Hype = {
 
 /* Chunky line icons on a 24px grid */
 const LINE_ICONS = {
+  check:'<circle cx="12" cy="12" r="9"/><path d="M7.8 12.4l2.9 2.9 5.6-6"/>',
   bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
   phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
   past:'<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5v4.6h4.6"/><path d="M12 7.5v4.7l3.2 2"/>',
@@ -3626,12 +3716,13 @@ const Bots = {
       const delay = 1500 + Math.random() * Math.min(room.settings.time * 800, 9000);
       this.timers.push(setTimeout(() => {
         const path = `rooms/${code}/players/${p.id}`, d = MemNet.docs.get(path); if (!d) return;
-        MemNet.set(path, Object.assign({}, d, { ans:{ round:room.round, g:this.guess(room.q), at:Date.now() } }));
+        MemNet.set(path, Object.assign({}, d, { ans:{ round:room.round, game:room.seed || '', g:this.guess(room.q), at:Date.now() } }));
       }, delay));
     }
   },
   // bots are decent but fallible: usually within 25%, sometimes way off
   guess(q){
+    if (q.kind === 'fact') return Math.random() < 0.75 ? (q.truth ? 1 : 0) : (q.truth ? 0 : 1);   // right about 3 times in 4
     const a = q.answer, wild = Math.random() < 0.2;
     if (q.scoring === 'year') return Math.max(0, Math.round(a + (Math.random() - 0.5) * (wild ? 80 : 20)));
     if (q.scoring === 'abs') return Math.max(0, Math.round(a + (Math.random() - 0.5) * (wild ? 8 : 3)));
@@ -3873,6 +3964,9 @@ function viewHome(){
     <div class="modes">
       <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
         <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
+      ${factOn() ? `<button class="px mode m-fact" data-act="facthome"><span class="mi">${icon('check', 30)}</span>
+        <span class="mt"><b>Fact Check!</b><span>${(() => { const fd = S.facts.days[App.today]; return fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : 'True or false? 7 new claims a day'; })()}</span></span>
+        <span class="go">${S.facts.days[App.today] && S.facts.days[App.today].done ? 'Results' : 'Play'}</span></button>` : ''}
       <button class="px mode m-unl" data-act="endless"><span class="mi">${icon('inf', 30)}</span>
         <span class="mt"><b>Unlimited</b><span>${eStatus}</span></span><span class="go">${!isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play'}</span></button>
       <button class="px mode m-past" data-act="archive"><span class="mi">${icon('past', 30)}</span>
@@ -3891,6 +3985,242 @@ function viewHome(){
     ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Settings so you don’t lose progress.</p>'}
     <p class="center"><button class="link" data-act="intro">How to play &amp; scoring</button></p>
   </section>`;
+}
+
+/* ---------------------------- FACT CHECK! ----------------------------
+   True or false? Statements live in facts.js (their own bank, separate from the number questions).
+   Daily: 7 statements, the same for everyone, free. Unlimited runs (3 hearts) come with DIAL IN+.
+   Scoring: a right answer earns 100, plus up to 50 for speed; a wrong answer or time-out earns 0. */
+const FACT_SECONDS = 12, FACT_EPOCH = '2026-11-19', FACT_LIVES = 3;
+const FACTS = (typeof window !== 'undefined' && Array.isArray(window.DIAL_IN_FACTS) ? window.DIAL_IN_FACTS : [])
+  .filter(r => Array.isArray(r) && /^f\d{3,5}$/.test(r[0]) && typeof r[2] === 'string' && r[2].length > 8 && (r[3] === 0 || r[3] === 1) && typeof r[4] === 'string')
+  .map(r => Object.freeze({ id:r[0], category:String(r[1] || 'Trivia'), statement:r[2], truth:r[3] === 1, explanation:r[4], source:String(r[5] || '') }));
+const FACT_BY_ID = new Map(FACTS.map(f => [f.id, f]));
+// Like the number puzzle's SCHEDULE: append facts, then add a segment with a FUTURE start date and the new total.
+const FACT_SCHEDULE = [{ from: FACT_EPOCH, size: 300 }];
+const factOn = () => FACTS.length >= 7;
+const factNo = d => DateUK.diff(FACT_EPOCH, d) + 1;
+const factCycleCache = new Map();
+function factCycle(seg, cycle){
+  const key = seg.from + '|' + cycle; if (factCycleCache.has(key)) return factCycleCache.get(key);
+  const size = Math.min(seg.size, FACTS.length), ids = FACTS.slice(0, size).map(f => f.id);
+  const rnd = mulberry32(hashStr('factcheck|' + key));
+  for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+  const days = [], queue = ids.slice(), per = Math.floor(size / 7);
+  for (let d = 0; d < per; d++) {
+    const day = [], cats = {}, tf = [0, 0];
+    for (let k = 0; k < queue.length && day.length < 7; ) {   // mix it up: at least 2 true and 2 false, at most 2 per topic
+      const f = FACT_BY_ID.get(queue[k]), t = f.truth ? 1 : 0;
+      if ((cats[f.category] || 0) < 2 && tf[t] < 5) { day.push(f.id); cats[f.category] = (cats[f.category] || 0) + 1; tf[t]++; queue.splice(k, 1); } else k++;
+    }
+    while (day.length < 7) day.push(queue.shift());
+    days.push(day);
+  }
+  factCycleCache.set(key, days); return days;
+}
+function factDailyIds(iso){
+  let seg = FACT_SCHEDULE[0]; for (const s of FACT_SCHEDULE) if (s.from <= iso) seg = s;
+  const per = Math.floor(Math.min(seg.size, FACTS.length) / 7), n = Math.max(0, DateUK.diff(seg.from, iso));
+  const cycle = Math.floor(n / per); return factCycle(seg, cycle)[n - cycle * per].slice();
+}
+// Unlimited: each player works through their own shuffle of the whole bank before anything repeats
+function factEndlessId(playerId, n){
+  const L = FACTS.length, cycle = Math.floor(n / L), key = playerId + '|' + cycle + '|' + L;
+  if (factEndlessId.key !== key) { const ids = FACTS.map(f => f.id), r = mulberry32(hashStr('factrun|' + key)); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } factEndlessId.key = key; factEndlessId.ids = ids; }
+  return factEndlessId.ids[n - cycle * L];
+}
+// Battles: a statement this room hasn't had yet (across rematches too)
+function factBattlePick(seed, round, used){
+  const r = mulberry32(hashStr('factbattle|' + seed + '|' + round)), seen = new Set(used || []), fresh = FACTS.filter(f => !seen.has(f.id));
+  const pool = fresh.length ? fresh : FACTS;
+  return pool[Math.floor(r() * pool.length)];
+}
+const factPayload = f => ({ kind:'fact', id:f.id, category:f.category, statement:f.statement, truth:f.truth, explanation:f.explanation, source:f.source });
+const factPts = (ok, msLeft) => ok ? 100 + Math.round(50 * Math.max(0, Math.min(1, msLeft / (FACT_SECONDS * 1000)))) : 0;
+function factAnswer(f, v, msLeft){ const ok = v !== null && (v === 1) === f.truth; return { v, ok, p:factPts(ok, msLeft), to: v === null, at:Date.now() }; }
+
+function getFactDay(iso, create){
+  if (!S.facts.days[iso] && create) S.facts.days[iso] = { ids:factDailyIds(iso), ans:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
+  return S.facts.days[iso] || null;
+}
+const factDayScore = d => d.ans.reduce((t, a) => t + (a ? a.p : 0), 0);
+const factDayRight = d => d.ans.filter(a => a && a.ok).length;
+const factFirstOpen = d => { const i = d.ans.findIndex(a => !a); return i < 0 ? 0 : i; };
+function factStreak(){ let n = 0, d = App.today; if (!(S.facts.days[d] && S.facts.days[d].done)) d = DateUK.add(d, -1); while (S.facts.days[d] && S.facts.days[d].done) { n++; d = DateUK.add(d, -1); } return n; }
+// The statement on screen right now, and its answer if there is one
+function factCurrent(){
+  if (App.fmode === 'run') { const r = S.frun; if (!r || r.over) return null; return { f:FACT_BY_ID.get(r.id), a:r.ans, st:r.st }; }
+  const d = getFactDay(App.fdate, false); if (!d) return null;
+  return { f:FACT_BY_ID.get(d.ids[App.fcur]), a:d.ans[App.fcur], st:d.st[App.fcur], day:d };
+}
+// Anyone who leaves a statement on screen past its time (closed the app, switched tabs) gets a time-out, as in the daily
+function expireFacts(){
+  const T = FACT_SECONDS * 1000 + 1500, live = App.view === 'factplay' && Timer.t;
+  // every unfinished day, not just the open one: after a reload nothing is open yet
+  Object.entries(S.facts.days).forEach(([iso, d]) => { if (d && !d.done) d.st.forEach((st, i) => { if (st && !d.ans[i] && Date.now() > st + T && !(live && App.fmode === 'daily' && App.fdate === iso && App.fcur === i)) { d.ans[i] = factAnswer(FACT_BY_ID.get(d.ids[i]), null, 0); if (d.ans.every(Boolean)) { d.done = true; d.doneAt = Date.now(); } save(); } }); });
+  const r = S.frun;
+  if (r && !r.over && r.st && !r.ans && Date.now() > r.st + T && !(live && App.fmode === 'run')) { recordFactRun(null, 0); save(); }
+}
+function openFactDaily(){
+  App.fmode = 'daily'; App.fdate = App.today;
+  const d = getFactDay(App.fdate, true); save();
+  if (d.done) { go('factres'); return; }
+  App.fcur = factFirstOpen(d); App.ffresh = -1; go('factplay');
+}
+function startFactRun(){
+  if (!isPremium()) { openPay(); return; }
+  App.fmode = 'run';
+  if (S.frun && !S.frun.over) { go('factplay'); return; }
+  S.frun = { id:factEndlessId(S.player.id, S.facts.pos), lives:FACT_LIVES, st:0, ans:null, count:0, right:0, score:0, streak:0, bestStreak:0, over:false, startedAt:Date.now() };
+  App.ffresh = -1; save(); go('factplay');
+}
+function recordFactRun(v, msLeft){
+  const r = S.frun, f = FACT_BY_ID.get(r.id); if (!f || r.ans) return;
+  r.ans = factAnswer(f, v, msLeft); r.count++; S.facts.pos++;
+  if (r.ans.ok) { r.right++; r.score += r.ans.p; r.streak++; r.bestStreak = Math.max(r.bestStreak, r.streak); }
+  else { r.lives--; r.streak = 0; }
+}
+function submitFact(v){
+  if (App.busy) return;
+  const cur = factCurrent(); if (!cur || !cur.f || cur.a) return;
+  App.busy = true; const left = Timer.t ? Timer.left() : 0; Timer.stop();
+  if (App.fmode === 'run') recordFactRun(v, left);
+  else { const d = cur.day, i = App.fcur; d.ans[i] = factAnswer(cur.f, v, left); if (d.ans.every(Boolean)) { d.done = true; d.doneAt = Date.now(); } }
+  const a = factCurrent().a;
+  save(); App.ffresh = App.fmode === 'run' ? 'run' : App.fcur; render(false); App.busy = false;
+  Sfx.init(); if (a.ok) { Sfx.land(1000); buzz(15); } else { Sfx.lose(); buzz([30, 40, 30]); }
+}
+function nextFact(){
+  if (App.fmode === 'run') {
+    const r = S.frun; if (!r) { go('facthome'); return; }
+    if (r.lives <= 0) {
+      r.over = true; S.facts.runs++;
+      S.facts.best = Math.max(S.facts.best, r.score); S.facts.bestN = Math.max(S.facts.bestN, r.right);
+      S.facts.hist = S.facts.hist.concat({ d:App.today, score:r.score, n:r.right }).slice(-30);
+      save(); App.ffresh = -1; go('factres');
+      if (r.score > 0 && r.score >= S.facts.best) setTimeout(() => Hype.party(true), 300);
+      return;
+    }
+    r.id = factEndlessId(S.player.id, S.facts.pos); r.st = 0; r.ans = null; App.ffresh = -1; save(); go('factplay'); return;
+  }
+  const d = getFactDay(App.fdate, false); App.ffresh = -1;
+  if (!d || d.done) { go('factres'); return; }
+  App.fcur = factFirstOpen(d); go('factplay');
+}
+
+/* ---- Fact Check screens ---- */
+// The fact meter: a little dial that hovers in the middle, then swings to FAKE (left) or FACT (right)
+function factMeterHTML(state){   // state: 'live' | 'true' | 'false'
+  const ang = state === 'true' ? 62 : state === 'false' ? -62 : 0;
+  const ticks = Array.from({ length:13 }, (_, i) => { const a = (-90 + i * 15) * Math.PI / 180, r1 = i % 3 ? 86 : 80;
+    return `<line x1="${(110 + Math.sin(a) * r1).toFixed(1)}" y1="${(112 - Math.cos(a) * r1).toFixed(1)}" x2="${(110 + Math.sin(a) * 94).toFixed(1)}" y2="${(112 - Math.cos(a) * 94).toFixed(1)}"/>`; }).join('');
+  return `<div class="fc-meter ${state}" aria-hidden="true"><svg viewBox="0 0 220 124" width="220" height="124">
+    <path d="M14 112 A96 96 0 0 1 110 16" class="arc-f"/><path d="M110 16 A96 96 0 0 1 206 112" class="arc-t"/>
+    <g class="ticks">${ticks}</g>
+    <text x="34" y="104" class="lbl-f">FAKE</text><text x="186" y="104" class="lbl-t" text-anchor="end">FACT</text>
+    <g class="needle" style="transform:rotate(${ang}deg)"><path d="M110 112 L106 40 L110 26 L114 40 Z"/></g>
+    <circle cx="110" cy="112" r="11" class="hub"/></svg></div>`;
+}
+function factCardHTML(f, answered, fresh){
+  const stamp = answered ? `<span class="fc-stamp ${f.truth ? 't' : 'f'} ${fresh ? 'slam' : ''}">${f.truth ? 'FACT!' : 'FAKE!'}</span>` : '';
+  return `<article class="px qcard fc-card"><div class="qmeta"><span class="chips"><span class="chip">${esc(f.category)}</span><span class="chip alt">True or false?</span></span></div>
+    <h2 class="qtext fc-q" tabindex="-1" id="qtext">${esc(f.statement)}</h2>${stamp}</article>`;
+}
+function viewFactHub(){
+  if (!factOn()) { App.view = 'home'; return viewHome(); }
+  const d = S.facts.days[App.today], n = d ? d.ans.filter(Boolean).length : 0, prem = isPremium(), run = S.frun && !S.frun.over ? S.frun : null;
+  const dStatus = d && d.done ? `Done · <b>${factDayRight(d)}/7</b> · ${fmtNum(factDayScore(d))} pts` : n ? `${n}/7 answered · carry on` : '7 claims · 12 seconds each';
+  const rStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : prem ? (S.facts.best ? `Best <b>${fmtNum(S.facts.best)}</b> · ${S.facts.bestN} right` : 'Keep going until you lose 3 hearts') : `Unlock with ${PLUS}`;
+  return `<section class="stack">
+    <div class="px card center fc-hero">
+      <p class="label" tabindex="-1">New game</p>
+      <h1 class="fc-logo">FACT <span>CHECK!</span></h1>
+      <p class="tagline">Every claim has a number in it. Some are real, some are fakes. Can you tell which?</p>
+      ${factMeterHTML('live')}
+    </div>
+    <div class="modes">
+      <button class="px mode m-fact ${d && d.done ? '' : 'hot'}" data-act="factdaily"><span class="mi">${icon('check', 30)}</span>
+        <span class="mt"><b>Today’s Fact Check #${factNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${d && d.done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
+      <button class="px mode m-unl" data-act="factrun"><span class="mi">${icon('inf', 30)}</span>
+        <span class="mt"><b>Unlimited Fact Check</b><span>${rStatus}</span></span><span class="go">${prem ? (run ? 'Go' : 'Play') : icon('lock', 16)}</span></button>
+    </div>
+    <div class="px card"><p class="label">How it works</p>
+      <ul class="fc-how"><li><b>Read the claim</b>, then tap <b>TRUE</b> or <b>FALSE</b> (or use ← and →).</li>
+      <li><b>12 seconds</b> each. A right answer scores 100, plus up to 50 for speed.</li>
+      <li><b>Daily:</b> 7 claims, the same for everyone, new at midnight UK time. Free.</li>
+      <li><b>Unlimited:</b> keep going until you’ve made 3 mistakes. Comes with ${PLUS}.</li></ul></div>
+    ${factStreak() > 1 ? `<p class="center small">🔥 ${factStreak()}-day Fact Check streak</p>` : ''}
+  </section>`;
+}
+function viewFactPlay(){
+  if (!factOn()) { App.view = 'home'; return viewHome(); }
+  const cur = factCurrent();
+  if (!cur || !cur.f) { App.view = 'facthome'; return viewFactHub(); }
+  const { f, a } = cur, run = App.fmode === 'run' ? S.frun : null, fresh = !!a && App.ffresh === (run ? 'run' : App.fcur);
+  if (!a && !cur.st) { if (run) run.st = Date.now(); else cur.day.st[App.fcur] = Date.now(); save(); }
+  let head;
+  if (run) head = `<div class="fc-runbar px"><span id="runhearts">${hearts(run.lives, FACT_LIVES, 16)}</span><span>Streak <b>${run.streak}</b></span><span>Score <b>${fmtNum(run.score)}</b></span></div>`;
+  else { const d = cur.day, open = factFirstOpen(d);
+    head = `<ol class="pips fc-pips" aria-label="Progress">${d.ids.map((_, k) => { const x = d.ans[k], can = x || k === open;
+      return `<li><button class="pip ${x ? 'done ' + (x.ok ? 'fc-ok' : 'fc-no') : ''}" data-act="factq" data-i="${k}" ${k === App.fcur ? 'aria-current="step"' : ''} ${can ? '' : 'disabled'} aria-label="Claim ${k + 1}${x ? (x.ok ? ', right' : ', wrong') : ''}">${x ? (x.ok ? '✓' : '✗') : k + 1}</button></li>`; }).join('')}</ol>`; }
+  const body = !a
+    ? `<div class="tbar fc-tbar" aria-hidden="true"><i id="tfill"></i></div><p class="center small muted fc-tsec"><span id="tsec"></span></p>
+       <div class="fc-btns"><button class="fc-btn f" data-act="factans" data-v="0" aria-label="False (left arrow)"><span>✗</span>FALSE</button>
+       <button class="fc-btn t" data-act="factans" data-v="1" aria-label="True (right arrow)"><span>✓</span>TRUE</button></div>`
+    : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
+       <p class="why fc-why">It’s ${f.truth ? '<b class="t">TRUE</b>' : '<b class="f">FALSE</b>'}. ${esc(f.explanation)}</p>
+       <button class="btn btn-mint btn-block btn-xl next" data-act="factnext" id="nextbtn">${run ? (run.lives <= 0 ? 'See my run' : 'Next claim →') : cur.day.done ? 'See my results' : 'Next claim →'}</button>`;
+  return `<section class="play fc">
+    <p class="small muted center fc-title">${run ? 'Unlimited Fact Check' : `Fact Check #${factNo(App.fdate)} · claim ${App.fcur + 1} of 7`}</p>
+    ${head}
+    ${factCardHTML(f, !!a, fresh)}
+    ${factMeterHTML(a ? (f.truth ? 'true' : 'false') : 'live')}
+    ${body}
+  </section>`;
+}
+function viewFactRes(){
+  if (!factOn()) { App.view = 'home'; return viewHome(); }
+  if (App.fmode === 'run') {
+    const r = S.frun; if (!r || !r.over) { App.view = 'facthome'; return viewFactHub(); }
+    const best = r.score > 0 && r.score >= S.facts.best;
+    return `<section class="stack"><div class="px card center">
+      ${mascot(r.right >= 15 ? 'wow' : r.right >= 6 ? 'happy' : 'meh', 64, 'bob')}
+      <h1 class="label" tabindex="-1" style="margin-top:12px">Unlimited Fact Check · run over</h1>
+      <div class="bigscore">${fmtNum(r.score)}<small> pts</small></div>
+      <p class="rank-title">${r.right} right · best streak ${r.bestStreak}</p>${best ? '<span class="pb">★ New best ★</span>' : ''}
+      <p class="small muted">Best ever: ${fmtNum(S.facts.best)} pts · ${S.facts.bestN} right</p></div>
+      <div class="btnrow"><button class="btn btn-mint btn-xl" data-act="factrun">Play again</button><button class="btn btn-sky" data-act="factshare">Share</button></div>
+      <button class="btn btn-ghost btn-block" data-act="facthome">Fact Check home</button></section>`;
+  }
+  const d = getFactDay(App.fdate || App.today, false); if (!d || !d.done) { App.view = 'facthome'; return viewFactHub(); }
+  const right = factDayRight(d), pts = factDayScore(d);
+  const rows = d.ids.map((id, k) => { const f = FACT_BY_ID.get(id), a = d.ans[k];
+    return `<li><button class="rowbtn fc-row ${a.ok ? 'ok' : 'no'}" data-act="factq" data-i="${k}"><span class="n">${a.ok ? '✓' : '✗'}</span>
+      <span class="t">${esc(f.statement)}<span>${f.truth ? 'True' : 'False'} · you said ${a.to ? 'nothing (time ran out)' : a.v === 1 ? 'true' : 'false'}</span></span><span class="p">${a.p}</span></button></li>`; }).join('');
+  const s = factStreak();
+  return `<section class="stack">
+    <div class="px card center">
+      ${mascot(right >= 6 ? 'wow' : right >= 4 ? 'happy' : right >= 2 ? 'meh' : 'sad', 64, 'bob')}
+      <h1 class="label" tabindex="-1" style="margin-top:12px">Fact Check #${factNo(App.fdate || App.today)} · ${esc(DateUK.pretty(App.fdate || App.today))}</h1>
+      <div class="bigscore">${right}<small> / 7 right</small></div>
+      <div class="tiles fc-tiles" role="img" aria-label="${right} of 7 right">${d.ans.map((a, k) => `<span class="tile ${a.ok ? 'fc-ok' : 'fc-no'}" style="--i:${k}"></span>`).join('')}</div>
+      <p class="rank-title">${right === 7 ? 'PERFECT FACT CHECK' : right >= 5 ? 'SHARP EYE' : right >= 3 ? 'HALF FOOLED' : 'FAKE NEWS VICTIM'}</p>
+      <p class="small">${fmtNum(pts)} points${s > 1 ? ` · 🔥 ${s}-day streak` : ''}</p>
+    </div>
+    <div class="sharebox"><div class="btnrow"><button class="btn btn-mint btn-xl" data-act="factshare">Share my Fact Check</button></div></div>
+    ${isPremium() ? `<button class="btn btn-sky btn-block" data-act="factrun">Keep going: Unlimited Fact Check</button>`
+      : `<div class="px card stack upsell"><p class="label">Want more?</p><p class="up-big">Unlimited Fact Check</p>
+        <ul><li>Keep going until you’ve made 3 mistakes</li><li>Plus every past puzzle and unlimited number runs</li><li>${CONFIG.PRICE_LABEL} once with ${PLUS}. No subscription.</li></ul>
+        <div class="btnrow" style="justify-content:center"><button class="btn btn-mint btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button></div></div>`}
+    <div class="btnrow"><button class="btn btn-ghost" data-act="play">Daily #${DateUK.puzzleNo(App.today)}</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
+    <p class="countdown">Next Fact Check in <b data-countdown>${countdownText()}</b></p>
+    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
+  </section>`;
+}
+function shareFactText(){
+  if (App.fmode === 'run' && S.frun && S.frun.over) { const r = S.frun; return `✅ ${CONFIG.GAME_NAME} Unlimited Fact Check\n${r.right} right · ${fmtNum(r.score)} pts · best streak ${r.bestStreak}${siteLink() ? '\nCan you spot the fakes? ' + siteLink() : ''}`; }
+  const date = App.fdate || App.today, d = S.facts.days[date]; if (!d || !d.done) return '';
+  return [`✅ ${CONFIG.GAME_NAME} Fact Check! #${factNo(date)}`, `${factDayRight(d)}/7 right · ${fmtNum(factDayScore(d))} pts`, d.ans.map(a => a.ok ? '🟩' : '🟥').join('')].concat(factStreak() > 1 ? [`🔥 ${factStreak()}-day streak`] : [], siteLink() ? ['', 'Can you spot the fakes? ' + siteLink()] : []).join('\n');
 }
 
 /* ---- DIAL IN+ : past puzzles ----
@@ -5006,6 +5336,11 @@ function viewBattle(){
       </div>
       <div class="px card"><p class="label">Players ${R.roster.length}/${st.max}</p><ul class="seats">${seats}</ul></div>
       <div class="px card stack">
+        <p class="label">${host ? 'Game mode (you choose)' : 'Game mode'}</p>
+        ${factOn() ? `<div class="opts modeopts" role="group" aria-label="Game mode"><button class="opt" data-act="mpmode" data-mode="dial" aria-pressed="${!MP.isFact(R)}" ${host ? '' : 'disabled'}>Standard</button><button class="opt" data-act="mpmode" data-mode="fact" aria-pressed="${MP.isFact(R)}" ${host ? '' : 'disabled'}>Fact Check</button></div>` : ''}
+        <p class="small muted">${MP.isFact(R) ? 'True or false? A wrong answer loses a life. From round 10, if everyone’s right, the slowest answer loses one too.' : 'Type a number. The worst answer each round loses a life.'}</p>
+      </div>
+      <div class="px card stack">
         <p class="label">${host ? 'Room settings (you’re the host)' : 'Room settings'}</p>
         <div><span class="small muted">Seconds per question</span><div class="opts">${[10,15,20,30,45,60].map(v => opt('time', v, v + 's')).join('')}</div></div>
         <div><span class="small muted">Lives</span><div class="opts">${[1,2,3,4,5].map(v => opt('lives', v, v)).join('')}</div></div>
@@ -5022,12 +5357,33 @@ function viewBattle(){
   if (R.status === 'question') {
     const P = MP.players, done = !!ansFor(P[Net.me], R);
     const body = !alive ? `<div class="px card center"><p>You’re out. Watching the rest of the battle…</p></div>`
-      : done ? `<div class="px card center locked">${mascot('happy', 40, 'bob')}<p class="label">Locked in: <b>${fmtAns(q, P[Net.me].ans.g)}</b></p><p class="small muted">Waiting for the others…</p></div>`
+      : done ? `<div class="px card center locked">${mascot('happy', 40, 'bob')}<p class="label">Locked in: <b>${q.kind === 'fact' ? (P[Net.me].ans.g === 1 ? 'TRUE' : P[Net.me].ans.g === 0 ? 'FALSE' : 'no answer') : fmtAns(q, P[Net.me].ans.g)}</b></p><p class="small muted">Waiting for the others…</p></div>`
+      : q.kind === 'fact' ? `<div class="fc-btns"><button class="fc-btn f" data-act="mpfact" data-v="0"><span>✗</span>FALSE</button><button class="fc-btn t" data-act="mpfact" data-v="1"><span>✓</span>TRUE</button></div>`
       : entryHTML(q);
+    if (q.kind === 'fact') return `<section class="play fc"><div class="mpbar" id="mpbar">${mpbarHTML()}</div>
+      ${factCardHTML(q, false, false)}
+      ${alive && !done ? `<div class="tbar fc-tbar" aria-hidden="true"><i id="tfill"></i></div><p class="center small muted fc-tsec">Round <b>${R.round}</b> · <span id="tsec"></span></p>` : `<p class="center small muted">Round <b>${R.round}</b> · Room <b>${esc(MP.code)}</b></p>`}
+      ${body}
+      <p class="center" style="margin-top:10px"><button class="link quiet" data-act="mpquit">Leave battle</button></p></section>`;
     return `<section class="play"><div class="mpbar" id="mpbar">${mpbarHTML()}</div>
       ${qcardHTML(q, `Round <b>${R.round}</b>`, `Room <b>${esc(MP.code)}</b>`, alive && !done)}
       ${body}
       <p class="center" style="margin-top:10px"><button class="link quiet" data-act="mpquit">Leave battle</button></p></section>`;
+  }
+  if (R.status === 'reveal' && R.last && q && q.kind === 'fact') {
+    const rows = R.last.rows.map(r => { const p = R.roster.find(x => x.id === r.id) || { name:'?', col:0, lives:0 }; return Object.assign({}, r, { name:p.name, col:p.col, lives:p.lives }); })
+      .sort((a, b) => (b.ok - a.ok) || ((a.ms == null ? 1e12 : a.ms) - (b.ms == null ? 1e12 : b.ms)));
+    const list = rows.map(r => `<li class="${r.lost ? 'lost' : ''}" style="--pc:${PCOL[r.col % 4]}"><span class="dot"></span><span class="nm">${esc(r.name)}${r.id === Net.me ? ' (you)' : ''}<small>${r.g === null ? 'No answer' : (r.g === 1 ? 'TRUE' : 'FALSE') + (r.ms != null ? ` · ${(r.ms / 1000).toFixed(1)}s` : '')} · ${r.ok ? '✓ right' : '✗ wrong'}</small></span>
+        <span class="hl">${r.lost ? `<b class="minus">−1</b>` : ''}${hearts(r.lives, R.settings.lives, 10)}</span></li>`).join('');
+    const lost = rows.some(r => r.lost);
+    return `<section class="stack">
+      ${factCardHTML(q, true, true)}
+      ${factMeterHTML(q.truth ? 'true' : 'false')}
+      <div class="px card"><ul class="mprows">${list}</ul>
+        <p class="why fc-why">It’s ${q.truth ? '<b class="t">TRUE</b>' : '<b class="f">FALSE</b>'}. ${esc(q.explanation)}</p>
+        <p class="small muted center">${R.last.speed ? 'Everyone was right, so the slowest answer loses a life.' : lost ? 'Wrong answers lose a life.' : rows.every(r => r.ok) ? 'Everyone got it! Nobody loses a life.' : 'Everyone was fooled: nobody loses a life.'} Next round coming up…</p></div>
+      <p class="center"><button class="link quiet" data-act="mpquit">Leave battle</button></p>
+    </section>`;
   }
   if (R.status === 'reveal' && R.last) {
     const rows = R.last.rows.map(r => { const p = R.roster.find(x => x.id === r.id) || { name:'?', col:0, lives:0 }; return Object.assign({}, r, { name:p.name, col:p.col, lives:p.lives }); });
@@ -5077,6 +5433,10 @@ function openRoomLink(code){
     catch(e){ toast(e.message || 'Couldn’t join that room.', 4500); render(false); }
     App.joining = false;
   });
+}
+function mpFact(v){
+  const R = MP.room; if (!R || R.status !== 'question' || !R.q || R.q.kind !== 'fact' || keyTarget() !== 'battle') return;
+  Timer.stop(); MP.submit(v === 1 ? 1 : 0); Sfx.init(); Sfx.land(400); buzz(10); render(false);
 }
 function mpJoin(){
   const code = App.joinEntry;
@@ -5447,7 +5807,7 @@ function viewSettings(){
 function openPay(){
   const live = CONFIG.STRIPE_PAYMENT_LINK && Backend.on;
   $('#pay-body').innerHTML = `
-    <ul class="perks"><li><b>Every past puzzle.</b> Missed a day? Catch up on all ${archDates().length} so far, plus each new one</li><li><b>Unlimited runs</b> every day, from all ${fmtNum(BANK.length)} questions</li><li>A <b>SUPPORTER</b> badge on the leaderboards</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
+    <ul class="perks"><li><b>Every past puzzle.</b> Missed a day? Catch up on all ${archDates().length} so far, plus each new one</li><li><b>Unlimited runs</b> every day, from all ${fmtNum(BANK.length)} questions</li>${factOn() ? '<li><b>Unlimited Fact Check</b>: keep spotting fakes until you’ve made 3 mistakes</li>' : ''}<li>A <b>SUPPORTER</b> badge on the leaderboards</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
     ${live && !Backend.email ? `<p class="banner">Add your email first, so your purchase is linked to you and works on every device.</p>
         <button class="btn btn-mint btn-block btn-xl" data-act="payemail">Add my email</button>`
       : live ? `<button class="btn btn-mint btn-block btn-xl" data-act="buy">Pay ${CONFIG.PRICE_LABEL} securely</button>
@@ -5490,8 +5850,9 @@ async function confirmPurchase(manual){
 function render(focus = true){
   Meter.stop(); MultiMeter.stop(); Timer.stop(); Hype.clear(); Pinball.stop();
   if (App.view === 'play') expireDaily();
+  if (['factplay','facthome','factres'].includes(App.view) && factOn()) expireFacts();
   if (App.view === 'endless') expireRun();
-  const views = { dev:viewDev, home:viewHome, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
+  const views = { dev:viewDev, home:viewHome, facthome:viewFactHub, factplay:viewFactPlay, factres:viewFactRes, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
   const about = $('#about'); if (about) about.hidden = App.view !== 'home';
@@ -5499,7 +5860,7 @@ function render(focus = true){
   document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
   const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
   if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN' }[App.view] || 'DIAL IN – Daily Number Trivia Game | Guess the Number';
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Daily Number Trivia Game | Guess the Number';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
@@ -5515,6 +5876,10 @@ function postRender(){
     const day = S.days[App.today], i = App.cur, a = day.answers[i];
     if (!a) { if (T) Timer.start(day.st[i] + T, T, () => submitDaily(true)); }
     else { const q = BY_ID.get(day.ids[i]), fresh = App.fresh === i && !reducedMotion(); startReveal(q, a, fresh, fresh ? [dayTotal(day) - a.s, dayTotal(day)] : null, () => { const pip = document.querySelector(`.pip[data-i="${i}"]`); if (pip) pip.classList.add('popin'); bankBalls(day, a); }, hotRun(day.answers.slice(0, i + 1).map(x => x ? x.s : 0))); }
+  }
+  if (App.view === 'factplay') {
+    const cur = factCurrent();
+    if (cur && cur.f && !cur.a) Timer.start(cur.st + FACT_SECONDS * 1000, FACT_SECONDS * 1000, () => submitFact(null));
   }
   if (App.view === 'arch') {
     const A = getArch(App.archDate, false), i = App.cur, a = A && A.answers[i];
@@ -5546,7 +5911,7 @@ function postRender(){
   if (App.view === 'board') loadBoard();
   if (App.view === 'home') refreshHomeLeagues();
   if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
-  if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || (App.view === 'battle' && $('.play'))) {
+  if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || App.view === 'factplay' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
     if (over > 0) window.scrollTo(0, over);
   }
@@ -5738,6 +6103,14 @@ function onClick(e){
     }
     case 'next': Meter.stop(); nextDaily(); break;
     case 'archive': go('archive'); break;
+    case 'facthome': if (factOn()) go('facthome'); break;
+    case 'factdaily': if (factOn()) openFactDaily(); break;
+    case 'factrun': if (factOn()) startFactRun(); break;
+    case 'factans': submitFact(el.dataset.v === '1' ? 1 : 0); break;
+    case 'factnext': nextFact(); break;
+    case 'factshare': { const t = shareFactText(); if (t) share(t); break; }
+    case 'factq': { if (App.fmode !== 'daily') break; const d = getFactDay(App.fdate, false); if (!d) break; const i = Math.max(0, Math.min(6, +el.dataset.i || 0));
+      if (!d.ans[i] && i !== factFirstOpen(d)) break; App.fcur = i; App.ffresh = -1; go('factplay'); break; }
     case 'install': Habit.install(); break;
     case 'pushon': Habit.subscribe(); break;
     case 'pushoff': Habit.unsubscribe(); break;
@@ -5765,6 +6138,8 @@ function onClick(e){
       if (still && !confirm(MP.host ? 'Leave the battle? You’ll be out, and someone else will take over as host.' : 'Leave the battle? You’ll be out of this game.')) break;
       if (DEV.on) Bots.clear(); Timer.stop(); MP.leave().then(() => render(false)); App.joinEntry = ''; render(false); break; }
     case 'mpset': MP.setSetting(el.dataset.k, Number(el.dataset.v)); break;
+    case 'mpmode': MP.setMode(el.dataset.mode); break;
+    case 'mpfact': mpFact(el.dataset.v === '1' ? 1 : 0); break;
     case 'mpstart': MP.start(); break;
     case 'mprematch': MP.rematch(); break;
     case 'mpinvite': share(inviteText()); break;
@@ -5809,6 +6184,11 @@ function onKeyDown(e){
     if (Meter.running) { e.preventDefault(); Meter.skip(); return; }
     const nb = $('#nextbtn');
     if (e.key === 'Enter' && nb && document.activeElement !== nb && !keyTarget()) { e.preventDefault(); nb.click(); return; }
+  }
+  if (!e.repeat) {
+    const isT = e.key === 'ArrowRight' || e.key === 't' || e.key === 'T', isF = e.key === 'ArrowLeft' || e.key === 'f' || e.key === 'F';
+    if ((isT || isF) && App.view === 'factplay') { const cur = factCurrent(); if (cur && cur.f && !cur.a) { e.preventDefault(); submitFact(isT ? 1 : 0); return; } }
+    if ((isT || isF) && App.view === 'battle' && MP.room && MP.room.q && MP.room.q.kind === 'fact' && keyTarget() === 'battle') { e.preventDefault(); mpFact(isT ? 1 : 0); return; }
   }
   const tgt = keyTarget(); if (!tgt) return;
   let k = null;
@@ -5951,7 +6331,7 @@ async function boot(){
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if ($('#meter') && !Meter.running && Meter.st) { const s = Meter.st; Meter.start($('#meter'), App.view === 'endless' ? S.run.q : BY_ID.get(S.days[App.today].ids[App.cur]), s.a, false); } }, 150); });
   window.addEventListener('storage', e => { if (e.key === CONFIG.STORAGE_KEY) { S = sanitize(Store.read()); render(false); } });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Backend.on && !Backend.email && App.acct.step === 'code') Backend.loadUser().then(e => e && finishSignIn()).catch(() => {}); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (['play','endless','arch','battle'].includes(App.view) && !keyTarget()) render(false); else if (['play','endless','arch'].includes(App.view)) { expireDaily(); render(false); } } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (['play','endless','arch','battle','factplay'].includes(App.view) && !keyTarget()) render(false); else if (['play','endless','arch'].includes(App.view)) { expireDaily(); render(false); } } });
   save();
   render(false);
   if (App.pendingChal) showChallenge();
