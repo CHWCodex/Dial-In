@@ -2,8 +2,8 @@
    The page itself is network-first (so players always get the latest version when online)
    with the cached copy as a fallback; icons and fonts are cache-first.
    Supabase and Stripe requests are never touched. Bump VERSION to clear old caches. */
-const VERSION = 'dialin-v28';
-const CORE = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
+const VERSION = 'dialin-v29';
+const CORE = ['./', 'index.html', 'config.js', 'facts.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
   'fonts/rubik-latin.woff2', 'fonts/bungee-latin.woff2'];
 
 self.addEventListener('install', e => {
@@ -17,7 +17,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (url.origin !== location.origin && !fonts) return;
-  const page = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('config.js');
+  const page = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('config.js') || url.pathname.endsWith('facts.js');
   if (page) {
     e.respondWith(fetch(req).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
