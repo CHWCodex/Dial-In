@@ -209,6 +209,10 @@ h1,h2,h3{margin:0;font-weight:normal}
 .chalcard{border:2px solid var(--m-battle)}
 .sharebox{display:grid;gap:12px;margin:6px 0 10px}
 .sharebox .btnrow .btn{white-space:nowrap}
+.lgpromo{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:calc(100% - 2 * var(--px));border:0;text-align:left;cursor:pointer;padding:12px 14px;font:inherit;color:var(--text)}
+.lgpromo b{display:block;font:var(--fw-d) 17px/1.2 var(--font-display)}
+.lgpromo small{display:block;color:var(--text-2);font-size:13px;margin-top:2px}
+.lgpromo .go{font:var(--fw-d) 13px var(--font-display);color:var(--gold);text-transform:uppercase}
 .habit{border:2px solid var(--m-past)}
 .habit .hi{display:flex;gap:12px;align-items:center;text-align:left}
 .habit .hi svg{flex:none}
@@ -2420,6 +2424,7 @@ function sanitize(raw){
       });
       const st = v.ids.map((_, i) => { const x = Array.isArray(v.st) ? Number(v.st[i]) : 0; return x > 0 ? x : null; });
       out.days[d] = { ids:v.ids.slice(), answers, st, done:answers.every(Boolean), synced:v.synced === true, doneAt:Number(v.doneAt) || 0 };
+      if (typeof v.syncedBy === 'string' && /^[0-9a-f-]{36}$/.test(v.syncedBy)) out.days[d].syncedBy = v.syncedBy;
       if (out.days[d].done && v.pin && typeof v.pin === 'object') {
         const balls = ballsFor(out.days[d]), hits = (Array.isArray(v.pin.hits) ? v.pin.hits : []).slice(0, balls).map(h => Math.max(0, Math.min(PIN_MAX_PER_BALL, Math.round(Number(h) || 0))));
         out.days[d].pin = { balls, used:Math.max(hits.length, Math.min(balls, Math.round(Number(v.pin.used) || 0))), hits, bonus:hits.reduce((a, b) => a + b, 0), done:v.pin.done === true || balls === 0 };
@@ -2643,12 +2648,15 @@ const Backend = {
       this.nameSent = name;
     }
     // today's result, plus yesterday's if it was finished just before midnight and never got posted
-    if (!this.email) return;   // guests don't post scores
+    // Everyone posts (guests appear only in their leagues; public boards are email-only on the server).
+    await this.auth(); const uid = this.sess && this.sess.user_id; if (!uid) return;
     for (const d of [DateUK.add(App.today, -1), App.today]) {
       const day = S.days[d];
-      if (!day || !day.done || day.synced || !pinDone(day)) continue;
-      try { await this.rpc('submit_result', { p_date: d, p_question_ids: day.ids, p_guesses: day.answers.map(a => a.g), p_bonus: dayBonus(day) }); day.synced = true; save(); }
-      catch(e) { if (/already submitted/i.test(e.message)) { day.synced = true; save(); } else if (d === App.today) throw e; }
+      if (!day || !day.done || !pinDone(day)) continue;
+      if (day.syncedBy === uid || (day.synced && !day.syncedBy && this.email)) continue;   // already posted for this account
+      const done = () => { day.synced = true; day.syncedBy = uid; save(); };
+      try { await this.rpc('submit_result', { p_date: d, p_question_ids: day.ids, p_guesses: day.answers.map(a => a.g), p_bonus: dayBonus(day) }); done(); }
+      catch(e) { if (/already submitted/i.test(e.message)) done(); else if (d === App.today) throw e; }
     }
   },
   async checkPremium(){
@@ -3872,6 +3880,8 @@ function viewHome(){
       <button class="px mode m-battle" data-act="battle"><span class="mi">${icon('swords', 30)}</span>
         <span class="mt"><b>Battle</b><span>${bStatus}</span></span><span class="go">${MP.code ? 'Return' : 'Play'}</span></button>
     </div>
+    ${Backend.on && !DEV.on ? `<button class="px card lgpromo" data-act="leagues"><span class="mi">${icon('board', 26, 'var(--gold)')}</span>
+      <span><b>Leagues</b><small id="home-leagues">${homeLeagueLine()}</small></span><span class="go">${App.leagues && App.leagues.length ? 'Open' : 'Start'}</span></button>` : ''}
     ${done ? `<p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>` : ''}
     <div class="minis">
       <div class="px mini"><span class="label">Streak</span><b>${st.current}</b></div>
@@ -4102,7 +4112,7 @@ function h2hHTML(d){
     <p class="chal-verdict">${verdict}</p>
     <p class="small">${fmtNum(you)} vs ${fmtNum(them)}${mine.daily ? '' : ' (questions only: no Dial Ball in past puzzles)'}</p>
     <ol class="h2h"><li class="head"><span></span><span>You</span><span>${esc(c.name)}</span></li>${rows}${bonusRow}</ol>
-    <div class="btnrow"><button class="btn btn-mint" data-act="chalback" data-d="${d}">${diff >= 0 ? 'Tell them' : 'Challenge them back'}</button></div>
+    <div class="btnrow"><button class="btn btn-mint" data-act="chalback" data-d="${d}">${diff >= 0 ? 'Tell them' : 'Challenge them back'}</button>${Backend.on && !DEV.on ? `<button class="btn btn-ghost" data-act="lgstart">Start a league together</button>` : ''}</div>
   </div>`;
 }
 function chalBackText(d){
@@ -5137,16 +5147,7 @@ const BOARDS = {
 };
 const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
 function viewBoard(){
-  if (Backend.on && !DEV.on && !Backend.email) return `<section class="stack">
-    <h1 class="label" tabindex="-1">Leaderboards</h1>
-    <div class="px card stack">
-      <p class="label">Join the leaderboards</p>
-      ${pendingLeague() ? `<p class="banner">You’re invited to the <b>${esc(pendingLeague().name || 'DIAL IN')}</b> league. Add your email below and you’ll join it straight away.</p>` : ''}
-      <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
-      <p class="small">Add your email to post your daily scores and see the Daily, All-time, Friends and Leagues boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
-      ${accountHTML()}
-    </div>
-  </section>`;
+  const guest = Backend.on && !DEV.on && !Backend.email;
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
   const tabs = Object.keys(BOARDS).map(k =>
     `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
@@ -5155,6 +5156,18 @@ function viewBoard(){
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
     <div id="board-body" aria-live="polite">${App.league ? leagueBoardShell() : leagueListShell()}</div>
+  </section>`;
+  if (guest) return `<section class="stack">
+    <h1 class="label" tabindex="-1">Leaderboards</h1>
+    <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
+    <div class="px card stack">
+      <p class="label">Join the leaderboards</p>
+      <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
+      <p class="small">Add your email to post your daily scores and see the Daily, All-time and Friends boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
+      ${accountHTML()}
+    </div>
+    <div class="px card stack center"><p class="small"><b>No email needed for Leagues.</b> Make a private leaderboard for your group chat and share the link.</p>
+      <button class="btn btn-sky" data-act="tab" data-tab="leagues">Go to Leagues</button></div>
   </section>`;
   const playNudge = !B.total && (!day || !day.done) && Backend.on && !DEV.on
     ? `<p class="banner">You haven’t finished today’s puzzle yet. Play it to get on this board.<br><button class="btn btn-mint" data-act="play" style="margin-top:8px">Play today</button></p>` : '';
@@ -5191,7 +5204,7 @@ function demoBoard(){
   return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
 async function loadBoard(){
-  if (App.boardTab === 'leagues' && Backend.on && !DEV.on && Backend.email) return App.league ? loadLeagueBoard() : loadLeagueList();
+  if (App.boardTab === 'leagues' && Backend.on && !DEV.on) return App.league ? loadLeagueBoard() : loadLeagueList();
   if (Backend.on && !DEV.on && App.view === 'board' && !Backend.email) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
   if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.email) return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
@@ -5228,6 +5241,7 @@ const leagueInviteText = (name, code) => `Join my DIAL IN league “${name}”! 
 
 function leagueListShell(){
   return `<p class="small muted">Private leaderboards for your group chat, office or family. Make one, share the link, and see who’s best every day.</p>
+    ${Backend.email ? '' : '<p class="small muted">No email needed. Tip: add one in Settings to keep your leagues if you change phone.</p>'}
     <div id="league-list"><p class="empty">Loading…</p></div>
     <form id="leaguecreate" class="px card stack" novalidate>
       <label class="label" for="lgname">Start a league</label>
@@ -5236,7 +5250,7 @@ function leagueListShell(){
     </form>
     <form id="leaguejoin" class="px card stack" novalidate>
       <label class="label" for="lgcode">Got a league code?</label>
-      <div class="formrow"><input id="lgcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters" autocomplete="off"><button class="btn btn-sky" type="submit">Join</button></div>
+      <div class="formrow"><input id="lgcode" maxlength="12" placeholder="A1B2C3" autocapitalize="characters" autocomplete="off" spellcheck="false"><button class="btn btn-sky" type="submit">Join</button></div>
     </form>`;
 }
 function leagueItems(list){
@@ -5244,7 +5258,19 @@ function leagueItems(list){
     return `<li><button data-act="lgopen" data-code="${esc(l.code)}"><b>${esc(l.name)}</b><span class="rk">${l.my_rank ? '#' + l.my_rank : '—'}</span>
       <small>${n} ${n === 1 ? 'player' : 'players'} · ${p} played today${l.my_rank ? '' : ' · you haven’t yet'}</small></button></li>`; }).join('')}</ul>`;
 }
-async function fetchLeagues(){ const r = await Backend.rpc('my_leagues', { p_date: App.today }); App.leagues = Array.isArray(r) ? r : []; return App.leagues; }
+// Home card line: your best league position today, or what leagues are
+function homeLeagueLine(){
+  const L = App.leagues || [];
+  if (!L.length) return 'Private leaderboards for your group chat. No email needed.';
+  const ranked = L.filter(l => l.my_rank).sort((a, b) => a.my_rank - b.my_rank)[0];
+  return ranked ? `${esc(ranked.name)}: you’re #${ranked.my_rank} of ${Number(ranked.played_today)} today` : `${L.length} ${L.length === 1 ? 'league' : 'leagues'} · play today to get on the board`;
+}
+async function refreshHomeLeagues(){
+  if (!Backend.on || DEV.on || App.view !== 'home' || (App.leaguesAt && Date.now() - App.leaguesAt < 60000)) return;
+  App.leaguesAt = Date.now();
+  try { await fetchLeagues(); if (App.view === 'home') { const el = $('#home-leagues'); if (el) el.innerHTML = homeLeagueLine(); const go = el && el.closest('button').querySelector('.go'); if (go) go.textContent = App.leagues.length ? 'Open' : 'Start'; } } catch(e){}
+}
+async function fetchLeagues(){ await Backend.auth(); const r = await Backend.rpc('my_leagues', { p_date: App.today }); App.leagues = Array.isArray(r) ? r : []; return App.leagues; }
 async function loadLeagueList(){
   const el = $('#league-list'); if (!el) return; const token = ++App.boardToken;
   try {
@@ -5315,15 +5341,13 @@ async function showLeagueInvite(){
   const n = Number(info.members);
   $('#league-body').innerHTML = `<p class="lgname" style="font:var(--fw-d) 24px/1.2 var(--font-display);color:var(--gold);margin:4px 0">${esc(info.name)}</p>
     <p class="small">${n} ${n === 1 ? 'player is' : 'players are'} comparing scores on today’s puzzle. Join to see the league’s leaderboard and get your name on it.</p>
-    ${Backend.email ? `<button class="btn btn-mint btn-block btn-xl" data-act="lgaccept">Join the league</button>`
-      : `<p class="banner">Leagues are linked to your email, so your scores follow you to any device. It takes one code.</p>
-         <button class="btn btn-mint btn-block btn-xl" data-act="lgemail">Add my email and join</button>
-         <button class="btn btn-ghost btn-block" data-act="lgplayfirst">Play today’s puzzle first</button>`}`;
+    <button class="btn btn-mint btn-block btn-xl" data-act="lgaccept">Join the league</button>
+    <p class="small muted center">No email needed. Your score shows up in the league once you’ve played today’s puzzle.</p>`;
   openDialog('dlg-league');
 }
 // Results screen: where you stand in your leagues today (or an invitation to start one)
 async function loadLeagueCard(){
-  const el = $('#leaguecard'); if (!el || !Backend.on || DEV.on || !Backend.email) return;
+  const el = $('#leaguecard'); if (!el || !Backend.on || DEV.on) return;
   try {
     await Backend.sync().catch(() => {});
     const list = await fetchLeagues(), box = $('#leaguecard'); if (!box) return;
@@ -5520,6 +5544,7 @@ function postRender(){
     }
   }
   if (App.view === 'board') loadBoard();
+  if (App.view === 'home') refreshHomeLeagues();
   if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
   if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
@@ -5751,6 +5776,7 @@ function onClick(e){
     case 'lgopen': openLeague(el.dataset.code); break;
     case 'lgback': App.league = null; render(false); break;
     case 'lgmode': App.leagueMode = el.dataset.mode === 'all' ? 'all' : 'today'; render(false); break;
+    case 'leagues': App.boardTab = 'leagues'; App.league = null; go('board'); break;
     case 'lgstart': App.boardTab = 'leagues'; App.league = null; go('board'); setTimeout(() => { const i = $('#lgname'); if (i) { i.scrollIntoView({ block:'center' }); i.focus({ preventScroll:true }); } }, 80); break;
     case 'lginvite': case 'lgnudge': { const L = (App.leagues || []).find(l => l.code === App.league); if (L) share(act === 'lgnudge' ? `Today’s DIAL IN is waiting! You haven’t played yet in “${L.name}”.\n${leagueLink(L.code)}` : leagueInviteText(L.name, L.code)); break; }
     case 'lgleave': { const L = (App.leagues || []).find(l => l.code === App.league); if (!L) break;
@@ -5929,7 +5955,6 @@ async function boot(){
   save();
   render(false);
   if (App.pendingChal) showChallenge();
-  else if (!S.introSeen && !App.showInvite && !App.pendingRoom && !S.mp && !hasPlayed()) openDialog('dlg-intro');
   if (!S.introSeen && hasPlayed()) { S.introSeen = true; save(); }   // already playing: never pop the intro over a game
   // Arrived by a battle link (or are mid-battle): never cover the game with the intro later; it's in Help any time
   if ((App.pendingRoom || S.mp) && !S.introSeen) { S.introSeen = true; save(); }
@@ -5954,7 +5979,7 @@ async function boot(){
   if (App.view === 'battle' || App.view === 'home') render(false);
   if (Backend.on) { Backend.sync().catch(() => {}); confirmPurchase(false); }
   if (Backend.on && App.showInvite) { App.showInvite = false; showLeagueInvite(); }
-  else if (Backend.on && Backend.email && pendingLeague()) joinLeague(pendingLeague().code, true);   // came back through the email sign-in link
+  else if (Backend.on && Backend.email && pendingLeague()) joinLeague(pendingLeague().code, true);   // an older invite still waiting (from before leagues needed no email)
   // installable + offline play on a hosted site
   if ('serviceWorker' in navigator && location.protocol === 'https:' && window.top === window) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
