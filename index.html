@@ -414,6 +414,7 @@ canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620
 .acctalt{line-height:1.9}
 .lb .stk{margin-left:6px;font-size:.85em;white-space:nowrap}
 .boardnote{margin:0}
+.boardmore{margin-top:10px}
 .vtick{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;margin-left:5px;border-radius:50%;background:var(--info);color:var(--on-info);font-size:.72em;font-weight:900;line-height:1;vertical-align:.1em}
 .verifynudge .vtick{margin-left:0}
 .acctnudge{display:block;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}
@@ -5606,7 +5607,7 @@ function focusEmailBox(){
 
 /* ---- Leaderboards ----
    Four boards: everyone or just you and your friends, for today's puzzle or added up over every day played. */
-const BOARD_LIMIT = 50;
+const BOARD_LIMIT = 100;   // places per page on the global boards (the server's maximum); Show more loads the next 100
 const BOARDS = {
   daily:  { label:'Daily',               total:false, friends:false, note: () => `Everyone’s score for today’s puzzle (#${DateUK.puzzleNo(App.today)}). A new board starts at midnight UK time.` },
   all:    { label:'All-time',            total:true,  friends:false, note: () => 'Everyone’s points added up over every daily puzzle they’ve played.' },
@@ -5648,16 +5649,16 @@ function viewBoard(){
     <div id="board-body" aria-live="polite">${Backend.on && !DEV.on ? '<p class="empty">Loading…</p>' : demoBoard()}</div>
   </section>`;
 }
-function lbRows(rows, meId, kind){
-  if (!rows.length) return '';
-  const B = BOARDS[kind];
-  return `<ol class="lb">${rows.map((r, i) => { const me = r.player_id === meId;
+function lbRows(rows, meId, kind, extra){
+  if (!rows.length && !extra) return '';
+  const B = BOARDS[kind], list = extra ? rows.concat([Object.assign({ extra:true }, extra)]) : rows;
+  return `<ol class="lb">${list.map((r, i) => { const me = r.player_id === meId;
     const sc = B.streak ? `🔥 ${Number(r.streak)}` : B.total ? fmtNum(Number(r.total_score)) : fmtNum(Number(r.score));
     const days = Number(r.days_played), stk = Number(r.streak) || 0;
     const sub = B.streak ? `${days} ${days === 1 ? 'day' : 'days'} played` : B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
     const flame = !B.streak && stk >= 2 ? `<span class="stk" title="${stk}-day streak">🔥${stk}</span>` : '';
-    // the global boards list the top 50 plus your own row: mark the jump when you're further down
-    const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
+    // your own row comes with the first page even when you're further down: mark the jump
+    const gap = r.extra && i > 0 ? '<li class="gap" aria-hidden="true">…</li>' : '';
     return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.verified === true ? '<span class="vtick" role="img" aria-label="Verified account" title="Verified: saved account">✓</span>' : ''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
@@ -5672,6 +5673,31 @@ function demoBoard(){
   if (!st.played) return emptyState('No completed puzzles yet on this device.');
   return lbRows([{ rank:1, player_id:'me', display_name:displayName(), total_score:st.total, days_played:st.played, exact_total:st.exacts }], 'me', kind);
 }
+// The global boards, a page at a time (Daily, All-time, Streaks)
+function boardPage(kind, offset){
+  return kind === 'daily' ? Backend.rpc('get_daily_leaderboard', { p_date: App.today, p_limit: BOARD_LIMIT, p_offset: offset })
+    : kind === 'all' ? Backend.rpc('get_alltime_leaderboard', { p_limit: BOARD_LIMIT, p_offset: offset })
+    : Backend.rpc('get_streak_leaderboard', { p_limit: BOARD_LIMIT, p_offset: offset });
+}
+function paintBoard(){
+  const b = App.board, el = $('#board-body'); if (!b || !el || boardKind() !== b.kind) return;
+  const me = Backend.sess && Backend.sess.user_id;
+  el.innerHTML = lbRows(b.rows, me, b.kind, b.extra)
+    + (b.more ? `<button class="btn btn-ghost btn-block boardmore" data-act="boardmore" ${b.busy ? 'disabled' : ''}>${b.busy ? 'Loading…' : `Show more (places ${fmtNum(b.upTo + 1)}–${fmtNum(b.upTo + BOARD_LIMIT)})`}</button>` : '');
+}
+async function boardMore(){
+  const b = App.board; if (!b || b.busy || !b.more) return;
+  b.busy = true; paintBoard();
+  try {
+    const page = await boardPage(b.kind, b.upTo) || [];
+    if (App.board !== b) return;
+    const seen = new Set(b.rows.map(r => r.player_id));
+    b.rows = b.rows.concat(page.filter(r => !seen.has(r.player_id)));
+    if (b.extra && b.rows.some(r => r.player_id === b.extra.player_id)) b.extra = null;   // you're now in the list itself
+    b.upTo += BOARD_LIMIT; b.more = page.length >= BOARD_LIMIT;
+  } catch(e){ toast('Couldn’t load more: ' + e.message, 4000); }
+  b.busy = false; paintBoard();
+}
 async function loadBoard(){
   if (App.boardTab === 'leagues' && Backend.on && !DEV.on) return App.league ? loadLeagueBoard() : loadLeagueList();
   if (!Backend.on || DEV.on || App.view !== 'board') return;
@@ -5682,9 +5708,7 @@ async function loadBoard(){
     try { const st = await Backend.rpc('my_board_status', { p_date: App.today }); const row = Array.isArray(st) ? st[0] : st; if (row) { const was = JSON.stringify(Backend.status); Backend.status = row; if (was !== JSON.stringify(row) && App.view === 'board') { const n = document.querySelector('.boardnote'), h = boardStatusHTML(kind); if (n) n.outerHTML = h || ''; else if (h) el.insertAdjacentHTML('beforebegin', h); } } } catch(e){}
     if (token !== App.boardToken || App.view !== 'board') return;
     if (BOARDS[kind].friends && !S.friends.length) { el.innerHTML = noFriendsState(); return; }
-    const rows = kind === 'daily' ? await Backend.rpc('get_daily_leaderboard', { p_date: App.today, p_limit: BOARD_LIMIT })
-      : kind === 'all' ? await Backend.rpc('get_alltime_leaderboard', { p_limit: BOARD_LIMIT })
-      : kind === 'streak' ? await Backend.rpc('get_streak_leaderboard', { p_limit: BOARD_LIMIT })
+    const rows = !BOARDS[kind].friends ? await boardPage(kind, 0)
       : kind === 'fdaily' ? await Backend.rpc('get_friends_leaderboard', { p_date: App.today, p_codes: S.friends })
       : await Backend.rpc('get_friends_alltime_leaderboard', { p_codes: S.friends });
     if (token !== App.boardToken || App.view !== 'board') return;
@@ -5694,7 +5718,13 @@ async function loadBoard(){
       : kind === 'streak' ? 'No streaks yet. Play two days in a row to start one.'
       : kind === 'fdaily' ? 'Nobody in your friends list has finished today’s puzzle yet.'
       : 'No finished daily puzzles yet. Scores appear here once a daily puzzle is complete.', 'happy');
-    else { el.innerHTML = lbRows(rows, me, kind); const m = el.querySelector('.me'); if (m) m.scrollIntoView({ block:'nearest' }); }
+    else if (BOARDS[kind].friends) { App.board = null; el.innerHTML = lbRows(rows, me, kind); const m = el.querySelector('.me'); if (m) m.scrollIntoView({ block:'nearest' }); }
+    else {
+      // a full page plus one more row means the extra row is you, from further down
+      const extra = rows.length > BOARD_LIMIT ? rows[rows.length - 1] : null, page = extra ? rows.slice(0, BOARD_LIMIT) : rows;
+      App.board = { kind, token, rows: page, extra, upTo: BOARD_LIMIT, more: page.length >= BOARD_LIMIT, busy: false };
+      paintBoard(); const m = el.querySelector('.me'); if (m) m.scrollIntoView({ block:'nearest' });
+    }
   } catch(e) {
     if (token !== App.boardToken) return;
     el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
@@ -6321,6 +6351,7 @@ function onClick(e){
     case 'pinlaunch': fireAllPin(); break;
     case 'acctstep': App.acct = { step:el.dataset.s, email:App.acct.email || '', user:($('#acctuser') && $('#acctuser').value.trim()) || App.acct.user || '', type:'', busy:false }; render(false); focusEmailBox(); break;
     case 'acctpanel': App.acct = Object.assign({}, App.acct, { panel:el.dataset.p, busy:false }); render(false); { const f = $('#pinold') || $('#pincheck'); if (f) f.focus(); } break;
+    case 'boardmore': boardMore(); break;
     case 'acctgo': { const was = Store.get(CONFIG.STORAGE_KEY + ':was'); App.acct = { step: !Backend.email && was && was !== 'email' ? 'login' : 'create', user: was && !['email','lost'].includes(was) ? was : '', busy:false }; App.afterEmail = 'acct'; go('settings'); loadFriendNames(); break; }
     case 'acctdevice': acctDeviceCode(); break;
     case 'acctsignout': acctSignOut(); break;
