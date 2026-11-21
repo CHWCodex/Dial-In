@@ -4040,14 +4040,14 @@ function bankBalls(day, a){
 }
 function startReveal(q, a, animate, totals, onLand, combo){
   const cv = $('#meter'), rv = $('#reveal'); if (!cv || !rv) return;
-  if (!animate) { rv.classList.add('stamped','settled'); Meter.start(cv, q, a, false); return; }
+  if (!animate) { rv.classList.add('stamped','settled'); Meter.start(cv, q, a, false); setTimeout(keepNextInView, 60); return; }
   rv.classList.add('anim');
   Meter.start(cv, q, a, true, live => {
     rv.classList.add('stamped');
     countTo($('#pts'), 0, a.s, live ? 480 : 0, live && a.s > 0);
     if (totals) countTo($('#runscore'), totals[0], totals[1], live ? 600 : 0, false);
     if (onLand) onLand(live);
-  }, () => rv.classList.add('settled'));
+  }, () => { rv.classList.add('settled'); setTimeout(keepNextInView, 260); });
   if (Meter.st) Meter.st.combo = combo || 0;
 }
 /* Answers of 750+ in a row, counting back from the newest */
@@ -6118,6 +6118,12 @@ function postRender(){
     const over = document.documentElement.scrollHeight - window.innerHeight;
     if (over > 0) window.scrollTo(0, over);
   }
+}
+// A reveal grows a little as it lands (ball line, celebration), so keep Next on screen once it has settled
+function keepNextInView(){
+  const n = $('#nextbtn'); if (!n) return;
+  const gap = n.getBoundingClientRect().bottom - window.innerHeight + 12;
+  if (gap > 0) window.scrollBy({ top: gap, behavior: reducedMotion() ? 'auto' : 'smooth' });
 }
 function go(view, opts = {}){ App.view = view; render(opts.focus !== false); }
 
