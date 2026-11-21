@@ -5633,11 +5633,10 @@ const BOARDS = {
   fall:   { label:'Friends · All-time',  total:true,  friends:true,  note: () => 'You and your friends, points added up over every daily puzzle played.' }
 };
 const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
-// Why your own score isn't on the public boards yet (new accounts, or a guest played first on this connection)
+// Why your own score isn't on the public Daily board today (a guest played first on this connection)
 function boardStatusHTML(kind){
   const st = Backend.status; if (!st || !Backend.member || BOARDS[kind].friends) return '';
-  const day = S.days[App.today], need = Math.max(0, 3 - (st.days_played || 0));
-  if (!st.listed) return `<p class="banner boardnote">Your scores go on the public boards once you’ve played on 3 days (${need} more to go). Friends and leagues can see them already.</p>`;
+  const day = S.days[App.today];
   if (kind === 'daily' && st.off_board && day && day.done) return `<p class="banner boardnote">Today’s puzzle was already played on this connection by someone without an account, so today’s score stays off the public Daily board. It still counts for your stats, streak, friends and leagues.</p>`;
   return '';
 }

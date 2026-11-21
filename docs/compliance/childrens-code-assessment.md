@@ -10,7 +10,7 @@ DIAL IN is a general-audience trivia game that children are likely to play, so t
 | 4. Transparency | Plain-English privacy notice, a short summary at the top, and in-game explanations where data is used (account card, board notes). |
 | 5. Detrimental use of data | No profiling or recommendations. Streaks and reminders are mild and reminders are opt-in. **Watch:** keep streak and reminder wording gentle; no guilt messages. |
 | 6. Policies and community standards | Display names are cleaned of symbols. **Gap to consider:** a simple way to report an offensive display name (privacy@ address for now). |
-| 7. Default settings | High privacy by default: guests share nothing; reminders off; public boards only for saved accounts with 3+ days played. |
+| 7. Default settings | High privacy by default: guests share nothing; reminders off; public boards only for players who choose to save an account. |
 | 8. Data minimisation | No email, real name, age, location, contacts or photos. Username and PIN only, and the PIN is hashed. |
 | 9. Data sharing | No selling or sharing. Processors only (Supabase, Cloudflare, Stripe, Resend until 5 Dec 2026). |
 | 10. Geolocation | None collected. The fair-play tag is a scrambled IP hash, not a location, and is deleted after 48 hours. |
