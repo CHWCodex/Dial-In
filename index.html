@@ -200,18 +200,42 @@ h1,h2,h3{margin:0;font-weight:normal}
 .fc-stamp.t{color:var(--fc-t)} .fc-stamp.f{color:var(--fc-f)}
 .fc-stamp.slam{animation:fcStamp .45s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes fcStamp{0%{transform:rotate(-30deg) scale(3);opacity:0}60%{opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
-.fc-meter{display:flex;justify-content:center;margin:2px 0 -4px}
-.fc-meter svg{max-width:220px;width:62vw;height:auto;overflow:visible}
-.fc-meter .arc-f,.fc-meter .arc-t{fill:none;stroke-width:14;stroke-linecap:round}
-.fc-meter .arc-f{stroke:var(--fc-f)} .fc-meter .arc-t{stroke:var(--fc-t)}
-.fc-meter .ticks line{stroke:var(--text);stroke-width:2.5;opacity:.6}
-.fc-meter text{font:400 14px var(--font-logo);fill:var(--text-2)}
+.fc-meter{display:flex;justify-content:center;margin:4px 0 0}
+.fc-meter svg{width:min(80vw,290px);height:auto;overflow:visible}
+.fc-meter.done svg{width:min(64vw,236px)}
+.fc-meter .bezel{fill:none;stroke:#0a0520;stroke-width:34;stroke-linecap:round}
+.fc-meter .seg{fill:none;stroke-width:22;transition:opacity .35s,filter .35s}
+.fc-meter .seg.f{stroke:var(--fc-f)} .fc-meter .seg.t{stroke:var(--fc-t)}
+.fc-meter .ticks line{stroke:var(--text);stroke-width:2;opacity:.45} .fc-meter .ticks line.maj{stroke-width:3;opacity:.8}
+.fc-meter .top{fill:var(--gold)}
+.fc-meter .readout{font:400 30px var(--font-logo);fill:var(--text);letter-spacing:.04em}
+.fc-meter.live .readout{fill:var(--gold);animation:fcPulse 1.1s ease-in-out infinite;transform-origin:120px 94px;transform-box:view-box}
+.fc-meter.true .readout{fill:var(--fc-t)} .fc-meter.false .readout{fill:var(--fc-f)}
+.fc-meter .lbl{font:400 14px var(--font-logo);fill:var(--text-2);letter-spacing:.04em}
 .fc-meter.true .lbl-t{fill:var(--fc-t)} .fc-meter.false .lbl-f{fill:var(--fc-f)}
-.fc-meter .needle{transform-origin:110px 112px;transform-box:view-box;transition:transform .9s cubic-bezier(.3,1.7,.45,1)}
-.fc-meter .needle path{fill:var(--gold);stroke:#0a0520;stroke-width:2}
-.fc-meter .hub{fill:#0a0520;stroke:var(--gold);stroke-width:3}
-.fc-meter.live .needle{animation:fcWobble 1.6s ease-in-out infinite}
-@keyframes fcWobble{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+.fc-meter.true .seg.f,.fc-meter.false .seg.t{opacity:.16!important}
+.fc-meter.true .seg.t{opacity:1!important;filter:drop-shadow(0 0 5px var(--fc-t))} .fc-meter.false .seg.f{opacity:1!important;filter:drop-shadow(0 0 5px var(--fc-f))}
+.fc-meter .needle{transform-origin:120px 132px;transform-box:view-box;filter:drop-shadow(0 0 4px rgba(255,210,63,.7))}
+.fc-meter .needle path{fill:var(--gold);stroke:#0a0520;stroke-width:2;stroke-linejoin:round}
+.fc-meter .hub{fill:#0a0520;stroke:var(--gold);stroke-width:3} .fc-meter .hub-in{fill:var(--gold)}
+.fc-meter.live .needle{animation:fcScan 2.2s ease-in-out infinite}
+.fc-meter.true .needle{transform:rotate(66deg)} .fc-meter.false .needle{transform:rotate(-66deg)}
+.fc-meter.fresh.true .needle{animation:fcSwingT .95s cubic-bezier(.25,.9,.3,1) both}
+.fc-meter.fresh.false .needle{animation:fcSwingF .95s cubic-bezier(.25,.9,.3,1) both}
+.fc-meter.fresh .readout{animation:fcReadout .5s var(--e-pop) .45s both;transform-origin:120px 94px;transform-box:view-box}
+@keyframes fcScan{0%,100%{transform:rotate(-58deg)}50%{transform:rotate(58deg)}}
+@keyframes fcSwingT{0%{transform:rotate(0)}55%{transform:rotate(82deg)}78%{transform:rotate(60deg)}100%{transform:rotate(66deg)}}
+@keyframes fcSwingF{0%{transform:rotate(0)}55%{transform:rotate(-82deg)}78%{transform:rotate(-60deg)}100%{transform:rotate(-66deg)}}
+@keyframes fcPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.75}}
+@keyframes fcReadout{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.fc-meter .needle,.fc-meter .readout{animation:none!important}.fc-meter.live .needle{transform:rotate(0)}}
+.fc-truth{margin:8px 0 0;padding:10px 14px 12px;border-radius:var(--r-sm);background:var(--trio-bg);border:2px solid var(--fx);box-shadow:0 0 20px color-mix(in srgb,var(--fx) 22%,transparent);text-align:center}
+.fc-truth.t{--fx:var(--fc-t)} .fc-truth.f{--fx:var(--fc-f)}
+.ft-label{display:block;font:var(--fw-d) var(--fs-micro) var(--font-display);letter-spacing:.08em;color:var(--text-2);text-transform:uppercase}
+.ft-word{display:block;font:400 clamp(32px,10vw,42px)/1.05 var(--font-logo);color:var(--fx);letter-spacing:.03em;text-shadow:0 3px 0 #0a0520;margin:2px 0 4px}
+.ft-why{margin:0;font-size:17px;line-height:1.4;color:var(--text)}
+.fc-truth.pop{animation:var(--k-pop) .4s var(--e-pop) .35s both}
+@media (max-height:740px){.fc-meter svg{width:min(62vw,230px)}.fc-meter.done svg{width:min(52vw,200px)}.fc-card{min-height:112px}.fc-btn{min-height:78px}.fc-q{font-size:clamp(19px,5.2vw,23px)}}
 .fc-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 .fc-btn{border:0;border-radius:16px;min-height:96px;font:400 22px/1 var(--font-logo);color:#1a0833;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 0 #0a0520;touch-action:manipulation;transition:transform .08s}
 .fc-btn span{font:900 30px/1 var(--font-ui)}
@@ -327,7 +351,7 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 /* ---------- 9. Reveal + scoring animation ---------- */
 .reveal{border-left:8px solid var(--tc);background:var(--rv-bg);padding:12px 14px 14px;position:relative;cursor:pointer;border-radius:var(--r);overflow:hidden}
 .rv-head{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:22px}
-.meter{display:block;width:100%;height:clamp(176px,27dvh,214px);margin:8px 0 4px;touch-action:manipulation}
+.meter{display:block;width:100%;height:clamp(150px,25dvh,214px);margin:6px 0 2px;touch-action:manipulation}
 .meter.mm{height:clamp(200px,30dvh,236px)}
 .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .trio div{background:var(--trio-bg);padding:8px 6px;min-width:0;border-radius:var(--r-sm)}
@@ -349,6 +373,21 @@ main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .anim.stamped .verdict{visibility:visible;animation:var(--k-stamp) .42s var(--e-pop)}
 .anim.stamped .pts{visibility:visible;animation:var(--k-pop) .35s var(--e-pop)}
 .anim .trio,.anim .why,.anim .src{opacity:0;transform:translateY(8px)}
+.ans-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin:8px 0 2px;padding:10px 12px 12px;border-radius:var(--r-sm);background:var(--trio-bg);border:2px solid var(--gold);box-shadow:0 0 22px rgba(255,210,63,.16)}
+.ah-label{font:var(--fw-d) var(--fs-micro) var(--font-display);letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.ah-val{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:0 8px;margin:2px 0 4px;max-width:100%}
+.ah-num{font:400 clamp(40px,12.5vw,58px)/1.05 var(--font-logo);color:var(--gold);letter-spacing:.01em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-shadow:0 3px 0 #0a0520}
+.ah-unit{font:var(--fw-d) clamp(16px,4.6vw,20px)/1.2 var(--font-display);color:var(--text)}
+.ah-you{font-size:15px;color:var(--text-2)} .ah-you b{color:var(--text);font-variant-numeric:tabular-nums}
+.anim .ans-hero{visibility:hidden}
+.anim.stamped .ans-hero{visibility:visible;animation:var(--k-pop) .4s var(--e-pop)}
+.battle-ans{margin:0 0 10px}
+.mp-reveal{gap:10px}
+.mp-reveal .qcard .hint,.mp-reveal .qcard .qmeta{display:none}
+.mp-reveal .qcard .qtext{font-size:clamp(16px,4.4vw,19px)}
+.mp-reveal .fc-card{min-height:0;padding-bottom:58px}
+.mp-reveal .fc-truth{margin:0}
+.mp-reveal .meter.mm{height:clamp(150px,24dvh,236px)}
 .anim.settled .trio,.anim.settled .why,.anim.settled .src{opacity:1;transform:none;transition:opacity .24s var(--e-fade),transform .24s var(--e-fade)}
 .skip{font:var(--fw-d) var(--fs-micro) var(--font-display);color:var(--text-3);text-align:right;margin:0;min-height:10px;text-transform:var(--tt)}
 .settled .skip{visibility:hidden}
@@ -3964,12 +4003,23 @@ function offText(q, a){
   if (err < 1e-9 || a.s === 1000) return 'Spot on';
   return fmtNum(+err.toFixed(3)) + (q.scoring === 'pct' && pct !== null ? ` (${pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)}%)` : q.scoring === 'year' ? (err === 1 ? ' yr' : ' yrs') : '');
 }
+// The unit shown after an answer: nothing for years, "%" and "°C" stuck to the number, words after a space
+function ansUnit(q){ const u = String(q.unit || ''); return !u || u === 'year' ? '' : /^[%°]/.test(u) ? u : ' ' + u; }
+// The answer, big and clear, straight after each question (lands with the dial)
+function answerHeroHTML(q, a){
+  const u = ansUnit(q), none = !a || a.g === null || a.g === undefined;
+  const you = none ? (a && a.to ? '⏱ Time ran out' : 'No answer')
+    : `You said <b>${fmtAns(q, a.g)}${esc(u)}</b>${a.s === 1000 || Math.abs(a.g - q.answer) < 1e-9 ? ' · spot on!' : ` · ${offText(q, a)} too ${a.g > q.answer ? 'high' : 'low'}`}`;
+  return `<div class="ans-hero"><span class="ah-label">The answer</span>
+    <span class="ah-val"><b class="ah-num">${fmtAns(q, q.answer)}</b>${u ? `<span class="ah-unit">${esc(u.trim())}</span>` : ''}</span>
+    <span class="ah-you">${you}</span></div>`;
+}
 function revealHTML(q, a, fresh, extra){
   return `<div class="reveal t${a.s}" id="reveal" data-act="skip">
       <div class="rv-head"><div class="verdict">${verdictText(a.s, a.to)}</div><div class="pts" id="pts" data-prefix="+">+${fresh ? 0 : a.s}</div></div>
+      ${answerHeroHTML(q, a)}
       <canvas class="meter" id="meter" aria-hidden="true"></canvas>
       <p class="skip">${fresh ? 'Tap to skip' : ''}</p>
-      <div class="trio"><div><span class="label">You said</span><b>${a.g === null || a.g === undefined ? '—' : fmtAns(q, a.g)}</b></div><div><span class="label">Answer</span><b>${fmtAns(q, q.answer)}</b></div><div><span class="label">Off by</span><b>${offText(q, a)}</b></div></div>
       ${extra || ''}
       <p class="why">${esc(q.explanation)}</p><p class="src">Source: ${esc(q.source)}</p></div>
       <p class="sr-only" role="status">${verdictText(a.s, a.to)} ${a.s} points. The answer is ${fmtAns(q, q.answer)} ${esc(q.unit === 'year' ? '' : q.unit)}.</p>`;
@@ -4178,16 +4228,24 @@ function nextFact(){
 
 /* ---- Fact Check screens ---- */
 // The fact meter: a little dial that hovers in the middle, then swings to FAKE (left) or FACT (right)
-function factMeterHTML(state){   // state: 'live' | 'true' | 'false'
-  const ang = state === 'true' ? 62 : state === 'false' ? -62 : 0;
-  const ticks = Array.from({ length:13 }, (_, i) => { const a = (-90 + i * 15) * Math.PI / 180, r1 = i % 3 ? 86 : 80;
-    return `<line x1="${(110 + Math.sin(a) * r1).toFixed(1)}" y1="${(112 - Math.cos(a) * r1).toFixed(1)}" x2="${(110 + Math.sin(a) * 94).toFixed(1)}" y2="${(112 - Math.cos(a) * 94).toFixed(1)}"/>`; }).join('');
-  return `<div class="fc-meter ${state}" aria-hidden="true"><svg viewBox="0 0 220 124" width="220" height="124">
-    <path d="M14 112 A96 96 0 0 1 110 16" class="arc-f"/><path d="M110 16 A96 96 0 0 1 206 112" class="arc-t"/>
-    <g class="ticks">${ticks}</g>
-    <text x="34" y="104" class="lbl-f">FAKE</text><text x="186" y="104" class="lbl-t" text-anchor="end">FACT</text>
-    <g class="needle" style="transform:rotate(${ang}deg)"><path d="M110 112 L106 40 L110 26 L114 40 Z"/></g>
-    <circle cx="110" cy="112" r="11" class="hub"/></svg></div>`;
+// The Fact Check dial: a FAKE half and a FACT half. While you think, the needle scans; when you answer it
+// swings to the truth (with a little overshoot when fresh), that half lights up and the window reads FACT or FAKE.
+function factMeterHTML(state, fresh){   // state: 'live' | 'true' | 'false'
+  const cx = 120, cy = 132, R = 100, pt = (a, r) => [(cx + Math.sin(a * Math.PI / 180) * r).toFixed(1), (cy - Math.cos(a * Math.PI / 180) * r).toFixed(1)];
+  const segs = Array.from({ length:12 }, (_, i) => { const a1 = -90 + i * 15 + 1.2, a2 = a1 + 12.6, [x1, y1] = pt(a1, R), [x2, y2] = pt(a2, R), side = i < 6 ? 'f' : 't';
+    const strength = side === 'f' ? 1 - i * 0.11 : 0.45 + (i - 6) * 0.11;
+    return `<path class="seg ${side}" style="opacity:${strength.toFixed(2)}" d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}"/>`; }).join('');
+  const ticks = Array.from({ length:13 }, (_, i) => { const a = -90 + i * 15, [x1, y1] = pt(a, i % 6 ? 80 : 74), [x2, y2] = pt(a, 86);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${i % 6 ? '' : 'maj'}"/>`; }).join('');
+  const word = state === 'true' ? 'FACT' : state === 'false' ? 'FAKE' : '?';
+  return `<div class="fc-meter ${state} ${state !== 'live' ? 'done' : ''} ${fresh ? 'fresh' : ''}" aria-hidden="true"><svg viewBox="0 0 240 156" width="240" height="156">
+    <path class="bezel" d="M${pt(-90, R).join(' ')} A${R} ${R} 0 0 1 ${pt(90, R).join(' ')}"/>
+    ${segs}<g class="ticks">${ticks}</g>
+    <path class="top" d="M120 20 L113 8 L127 8 Z"/>
+    <text x="120" y="104" class="readout" text-anchor="middle">${word}</text>
+    <text x="22" y="152" class="lbl lbl-f">FAKE</text><text x="218" y="152" class="lbl lbl-t" text-anchor="end">FACT</text>
+    <g class="needle"><path d="M120 132 L114.5 123 L120 42 L125.5 123 Z"/></g>
+    <circle cx="120" cy="132" r="13" class="hub"/><circle cx="120" cy="132" r="4.5" class="hub-in"/></svg></div>`;
 }
 function factCardHTML(f, answered, fresh){
   const stamp = answered ? `<span class="fc-stamp ${f.truth ? 't' : 'f'} ${fresh ? 'slam' : ''}">${f.truth ? 'FACT!' : 'FAKE!'}</span>` : '';
@@ -4236,13 +4294,13 @@ function viewFactPlay(){
        <div class="fc-btns"><button class="fc-btn f" data-act="factans" data-v="0" aria-label="False (left arrow)"><span>✗</span>FALSE</button>
        <button class="fc-btn t" data-act="factans" data-v="1" aria-label="True (right arrow)"><span>✓</span>TRUE</button></div>`
     : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
-       <p class="why fc-why">It’s ${f.truth ? '<b class="t">TRUE</b>' : '<b class="f">FALSE</b>'}. ${esc(f.explanation)}</p>
+       <div class="fc-truth ${f.truth ? 't' : 'f'} ${fresh ? 'pop' : ''}"><span class="ft-label">The truth</span><b class="ft-word">${f.truth ? 'TRUE' : 'FALSE'}</b><p class="ft-why">${esc(f.explanation)}</p></div>
        <button class="btn btn-mint btn-block btn-xl next" data-act="factnext" id="nextbtn">${run ? (run.lives <= 0 ? 'See my run' : 'Next claim →') : cur.day.done ? 'See my results' : 'Next claim →'}</button>`;
   return `<section class="play fc">
     <p class="small muted center fc-title">${run ? 'Unlimited Fact Check' : `Fact Check #${factNo(App.fdate)} · claim ${App.fcur + 1} of 7`}</p>
     ${head}
     ${factCardHTML(f, !!a, fresh)}
-    ${factMeterHTML(a ? (f.truth ? 'true' : 'false') : 'live')}
+    ${factMeterHTML(a ? (f.truth ? 'true' : 'false') : 'live', fresh)}
     ${body}
   </section>`;
 }
@@ -5426,11 +5484,11 @@ function viewBattle(){
     const list = rows.map(r => `<li class="${r.lost ? 'lost' : ''}" style="--pc:${PCOL[r.col % 4]}"><span class="dot"></span><span class="nm">${esc(r.name)}${r.id === Net.me ? ' (you)' : ''}<small>${r.g === null ? 'No answer' : (r.g === 1 ? 'TRUE' : 'FALSE') + (r.ms != null ? ` · ${(r.ms / 1000).toFixed(1)}s` : '')} · ${r.ok ? '✓ right' : '✗ wrong'}</small></span>
         <span class="hl">${r.lost ? `<b class="minus">−1</b>` : ''}${hearts(r.lives, R.settings.lives, 10)}</span></li>`).join('');
     const lost = rows.some(r => r.lost);
-    return `<section class="stack">
+    return `<section class="stack mp-reveal">
       ${factCardHTML(q, true, true)}
-      ${factMeterHTML(q.truth ? 'true' : 'false')}
+      ${factMeterHTML(q.truth ? 'true' : 'false', true)}
+      <div class="fc-truth ${q.truth ? 't' : 'f'} pop"><span class="ft-label">The truth</span><b class="ft-word">${q.truth ? 'TRUE' : 'FALSE'}</b><p class="ft-why">${esc(q.explanation)}</p></div>
       <div class="px card"><ul class="mprows">${list}</ul>
-        <p class="why fc-why">It’s ${q.truth ? '<b class="t">TRUE</b>' : '<b class="f">FALSE</b>'}. ${esc(q.explanation)}</p>
         <p class="small muted center">${R.last.speed ? 'Everyone was right, so the slowest answer loses a life.' : lost ? 'Wrong answers lose a life.' : rows.every(r => r.ok) ? 'Everyone got it! Nobody loses a life.' : 'Everyone was fooled: nobody loses a life.'} Next round coming up…</p></div>
       <p class="center"><button class="link quiet" data-act="mpquit">Leave battle</button></p>
     </section>`;
@@ -5441,9 +5499,9 @@ function viewBattle(){
       `<li class="${r.lost ? 'lost' : ''}" style="--pc:${PCOL[r.col % 4]}"><span class="dot"></span><span class="nm">${esc(r.name)}${r.id === Net.me ? ' (you)' : ''}<small>${r.g === null ? 'No answer' : fmtAns(q, r.g)} · ${r.pts} pts</small></span>
         <span class="hl">${r.lost ? `<b class="minus">−1</b>` : ''}${hearts(r.lives, R.settings.lives, 10)}</span></li>`).join('');
     const tagged = rows.map(r => Object.assign(r, { tag: r.name.slice(0, 3).toUpperCase() }));
-    return `<section class="stack">
+    return `<section class="stack mp-reveal">
       ${qcardHTML(q, `Round <b>${R.round}</b>`, `Answer <b>${fmtAns(q, q.answer)}</b>`, false)}
-      <div class="px card"><canvas class="meter mm" id="mmeter" aria-hidden="true"></canvas>
+      <div class="px card">${(() => { const mine = rows.find(r => r.id === Net.me); return `<div class="battle-ans">${answerHeroHTML(q, mine ? { g: mine.g, s: mine.pts } : null)}</div>`; })()}<canvas class="meter mm" id="mmeter" aria-hidden="true"></canvas>
         <ul class="mprows">${list}</ul>
         <p class="why">${esc(q.explanation)}</p>
         <p class="small muted center">${rows.some(r => r.lost) ? 'Worst answer loses a life.' : 'Dead heat: nobody loses a life.'} Next round coming up…</p></div>
