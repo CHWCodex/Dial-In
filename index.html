@@ -414,6 +414,8 @@ canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620
 .acctalt{line-height:1.9}
 .lb .stk{margin-left:6px;font-size:.85em;white-space:nowrap}
 .boardnote{margin:0}
+.vtick{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;margin-left:5px;border-radius:50%;background:var(--info);color:var(--on-info);font-size:.72em;font-weight:900;line-height:1;vertical-align:.1em}
+.verifynudge .vtick{margin-left:0}
 .acctnudge{display:block;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}
 .tab.wide{grid-column:1/-1}
 .lglist{list-style:none;padding:0;margin:0;display:grid;gap:8px}
@@ -728,7 +730,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 <dialog id="dlg-name" aria-labelledby="name-h">
   <form class="px dlg" id="pnameform" novalidate>
     <h2 id="name-h">What shall we call you?</h2>
-    <p class="small muted">Your name appears on leaderboards and in battles. You can change it any time in Settings.</p>
+    <p class="small muted">Your name appears on the leaderboards for everyone to see, and in battles. Use a nickname rather than your full name. You can change it any time in Settings.</p>
     <div class="formrow"><input id="pname" maxlength="16" autocomplete="nickname" aria-label="Display name">
       <button class="btn btn-ghost" type="button" data-act="dice" aria-label="Suggest a random name">🎲</button></div>
     <div class="btnrow" style="margin-top:12px"><button class="btn btn-mint" type="submit">Save name</button><button class="btn btn-ghost" type="button" data-close>Not now</button></div>
@@ -5185,12 +5187,6 @@ function rankCardHTML(){
   const r = rankFor(App.today);
   if (DEV.on) return `<p class="label">Today’s ranking</p><p class="rk-sub">Rankings are off in the developer sandbox.</p>`;
   if (!Backend.on) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Global rankings appear when the game is online.</p>`;
-  if (!Backend.member) {
-    const k = peekFor(App.today);
-    return `<p class="label">Today’s ranking</p>
-      ${k ? `<p class="rk-big">${k.players ? `You’d be #${fmtNum(k.rank)} today` : 'You’d be first today!'}</p><p class="rk-line">${k.players ? `out of ${fmtNum(k.players + 1)} players, with ${fmtNum(k.score)} points` : 'Nobody has posted a score yet'}</p>` : `<p class="rk-line">See how many players you beat</p>`}
-      <p class="rk-sub">Save your account to ${k ? 'claim your spot on' : 'post your score and join'} the leaderboards. No email needed.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">${k ? 'Claim my spot' : 'Join the leaderboards'}</button>`;
-  }
   if (!r) return `<p class="label">Today’s ranking</p><p class="rk-sub">${App.rankBusy ? 'Counting everyone’s scores…' : 'Couldn’t load today’s ranking.'}</p>${App.rankBusy ? '' : '<button class="link" data-act="rank">Try again</button>'}`;
   if (r.rank === null) return `<p class="label">Today’s ranking</p><p class="rk-sub">Posting your score… <button class="link" data-act="rank">Refresh</button></p>`;
   const w = rankWords(r), max = Math.max(1, ...r.buckets), mine = Math.min(14, Math.floor(r.score / 500));
@@ -5201,22 +5197,8 @@ function rankCardHTML(){
       : `<p class="rk-big">First in!</p><p class="rk-line">You’re the first to finish today</p><p class="rk-sub">Check back later to see how many people you beat.</p>`}
     ${dist}`;
 }
-// Where today's score would sit, for a player who hasn't joined the leaderboards yet
-const peekFor = date => App.peek && App.peek.date === date ? App.peek : null;
-async function loadPeek(){
-  if (!Backend.on || DEV.on || Backend.member) return;
-  const day = S.days[App.today]; if (!day || !day.done || !pinDone(day)) return;
-  const score = dayTotal(day), have = peekFor(App.today);
-  if (have && have.score === score && Date.now() - have.at < 60000) return;
-  try {
-    const r = await Backend.rpc('peek_daily_rank', { p_date: App.today, p_score: score }), row = Array.isArray(r) ? r[0] : r;
-    if (row) { App.peek = { date:App.today, score, players:Number(row.players) || 0, rank:Number(row.would_rank) || 1, at:Date.now() }; paintRank(); const pl = $('#peekline'); if (pl) pl.innerHTML = peekLineHTML(); }
-  } catch(e){}
-}
-const peekLineHTML = () => { const k = peekFor(App.today); return k ? `<b>${k.players ? `You’d be #${fmtNum(k.rank)} of ${fmtNum(k.players + 1)} today` : 'You’d be first on today’s board'}</b> with ${fmtNum(k.score)} points. Save your account to claim your spot.` : ''; };
 async function loadRank(force){
-  if (Backend.on && !DEV.on && !Backend.member) return loadPeek();
-  if (!Backend.on || DEV.on || App.rankBusy || !Backend.member) return;
+  if (!Backend.on || DEV.on || App.rankBusy) return;
   const day = S.days[App.today]; if (!day || !day.done) return;
   const have = rankFor(App.today);
   if (have && !force && Date.now() - have.at < 30000) return;
@@ -5634,14 +5616,18 @@ const BOARDS = {
 };
 const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
 // Why your own score isn't on the public Daily board today (a guest played first on this connection)
+// Guests are on the boards too; a saved account adds the verified tick
+function verifyNudgeHTML(){
+  if (!Backend.on || DEV.on || Backend.acct || Backend.email) return '';
+  return `<div class="px card stack verifynudge"><p class="small"><span class="vtick" aria-hidden="true">✓</span> <b>Get verified.</b> Save your account (a username and PIN, no email) to get a verified tick next to your name and keep your progress on any device.</p><button class="btn btn-mint" data-act="acctgo">Save my account</button></div>`;
+}
 function boardStatusHTML(kind){
-  const st = Backend.status; if (!st || !Backend.member || BOARDS[kind].friends) return '';
+  const st = Backend.status; if (!st || BOARDS[kind].friends) return '';
   const day = S.days[App.today];
-  if (kind === 'daily' && st.off_board && day && day.done) return `<p class="banner boardnote">Today’s puzzle was already played on this connection by someone without an account, so today’s score stays off the public Daily board. It still counts for your stats, streak, friends and leagues.</p>`;
+  if (kind === 'daily' && st.off_board && day && day.done) return `<p class="banner boardnote">Another player without a saved account had already started today’s puzzle on this connection, so today’s score stays off the public Daily board (it stops people posting several scores). It still counts for your stats, streak, friends and leagues.</p>`;
   return '';
 }
 function viewBoard(){
-  const guest = Backend.on && !DEV.on && !Backend.member;
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
   const tabs = Object.keys(BOARDS).map(k =>
     `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
@@ -5651,18 +5637,6 @@ function viewBoard(){
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
     <div id="board-body" aria-live="polite">${App.league ? leagueBoardShell() : leagueListShell()}</div>
   </section>`;
-  if (guest) return `<section class="stack">
-    <h1 class="label" tabindex="-1">Leaderboards</h1>
-    <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
-    <div class="px card stack">
-      <p class="label">Join the leaderboards</p>
-      <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
-      <p class="small">Save your account to post your daily scores and see the Daily, All-time, Streaks and Friends boards. No email needed: pick a username and a PIN, and your progress follows you to any device.</p>
-      ${accountHTML()}
-    </div>
-    <div class="px card stack center"><p class="small"><b>No account needed for Leagues.</b> Make a private leaderboard for your group chat and share the link.</p>
-      <button class="btn btn-sky" data-act="tab" data-tab="leagues">Go to Leagues</button></div>
-  </section>`;
   const playNudge = !B.total && !B.streak && (!day || !day.done) && Backend.on && !DEV.on
     ? `<p class="banner">You haven’t finished today’s puzzle yet. Play it to get on this board.<br><button class="btn btn-mint" data-act="play" style="margin-top:8px">Play today</button></p>` : '';
   return `<section class="stack">
@@ -5670,7 +5644,7 @@ function viewBoard(){
     ${DEV.on ? '<p class="banner"><b>DEV SANDBOX</b><br>Leaderboards are switched off here so tests never post real scores.</p>' : Backend.on ? '' : '<p class="banner"><b>DEMO MODE</b><br>Online leaderboards aren’t switched on, so only results from <b>this device</b> are shown. Nobody else is on these boards.</p>'}
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
     <p class="small muted">${B.note()}</p>
-    ${playNudge}${boardStatusHTML(kind)}
+    ${playNudge}${boardStatusHTML(kind)}${verifyNudgeHTML()}
     <div id="board-body" aria-live="polite">${Backend.on && !DEV.on ? '<p class="empty">Loading…</p>' : demoBoard()}</div>
   </section>`;
 }
@@ -5684,7 +5658,7 @@ function lbRows(rows, meId, kind){
     const flame = !B.streak && stk >= 2 ? `<span class="stk" title="${stk}-day streak">🔥${stk}</span>` : '';
     // the global boards list the top 50 plus your own row: mark the jump when you're further down
     const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
-    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
+    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.verified === true ? '<span class="vtick" role="img" aria-label="Verified account" title="Verified: saved account">✓</span>' : ''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
 const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
@@ -5700,8 +5674,7 @@ function demoBoard(){
 }
 async function loadBoard(){
   if (App.boardTab === 'leagues' && Backend.on && !DEV.on) return App.league ? loadLeagueBoard() : loadLeagueList();
-  if (Backend.on && !DEV.on && App.view === 'board' && !Backend.member) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
-  if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.member) return;
+  if (!Backend.on || DEV.on || App.view !== 'board') return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
   try {
@@ -5927,7 +5900,7 @@ function viewSettings(){
       </div>
       <div class="px card stack" id="acctcard">
         <p class="label">Your account</p>
-        ${Backend.member ? '' : '<p class="small">Save your account to get on the leaderboards and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
+        ${Backend.member ? '' : '<p class="small">You’re on the leaderboards already. Save your account to get a verified tick next to your name and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
         ${accountHTML()}
       </div>` : ''}
     <div class="px card stack">

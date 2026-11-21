@@ -1,10 +1,10 @@
 # Legitimate interests assessment: fair-play connection tags
 
-**Processing:** when a player starts or finishes the daily puzzle, saves an account or signs in, the server stores a tag: a SHA-256 hash of their IP address combined with a random secret that changes every day. It's stored with the player ID, the date and what happened. Tags are deleted after 48 hours.
+**Processing:** when a player starts or finishes the daily puzzle, saves an account or signs in, the server stores a tag: a SHA-256 hash of their IP address (plus the browser's user-agent, for daily plays) combined with a random secret that changes every day. A score is only kept off the public Daily board when a different guest started on the same tag within the hour before, so strangers sharing a mobile network or school wifi are almost never affected. It's stored with the player ID, the date and what happened. Tags are deleted after 48 hours.
 
 ## 1. Purpose test: is there a legitimate interest?
 Yes. Two interests:
-- **Fair leaderboards.** Without it, a player can play the daily in a private window as a guest (each answer is shown after each question) and then post a perfect score on their real account. Fair competition is the core of the game, and other players expect it. UK GDPR Recital 47 recognises preventing fraud as a legitimate interest.
+- **Fair leaderboards.** Everyone is on the public boards, guests included. Without this, one person could post several scores from different browsers, or play the daily in a private window first (each answer is shown after each question) and then post a perfect score from their main profile. Fair competition is the core of the game, and other players expect it. UK GDPR Recital 47 recognises preventing fraud as a legitimate interest.
 - **Account security.** Limiting sign-in attempts and new accounts from one connection stops PIN guessing and mass fake accounts.
 
 ## 2. Necessity test: is this the least intrusive way?
