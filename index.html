@@ -405,6 +405,16 @@ canvas.pinball{display:block;width:100%;max-width:min(100%,calc(62vh * 400 / 620
 .stat b{display:block;font:var(--fw-d) var(--fs-stat)/1.3 var(--font-num);margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .up{color:var(--up)} .down{color:var(--down)}
 .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.fieldrow{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.fieldrow .label{display:block}
+.pinbox{letter-spacing:.5em;font-size:1.25rem;max-width:12ch}
+.reccode,.devcode{font-size:1.6rem;font-weight:700;letter-spacing:.12em;text-align:center;padding:14px 12px;border-radius:var(--r-sm);background:var(--pip-bg);color:inherit;user-select:all;word-break:break-all}
+.devcode{font-size:2rem;letter-spacing:.3em}
+.acctname{word-break:break-all}
+.acctalt{line-height:1.9}
+.lb .stk{margin-left:6px;font-size:.85em;white-space:nowrap}
+.boardnote{margin:0}
+.acctnudge{display:block;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}
 .tab.wide{grid-column:1/-1}
 .lglist{list-style:none;padding:0;margin:0;display:grid;gap:8px}
 .lglist button{width:100%;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;text-align:left;padding:12px 14px;border:0;border-radius:var(--r-sm);background:var(--inset);color:var(--text);font:inherit;cursor:pointer}
@@ -769,6 +779,16 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
     <textarea id="restore-text" aria-label="Save code" placeholder="PP1.…"></textarea>
     <div class="btnrow"><button class="btn btn-mint" type="submit">Restore</button><button class="btn btn-ghost" type="button" data-close>Cancel</button></div>
   </form>
+</dialog>
+
+<dialog id="dlg-rec" aria-labelledby="rec-h">
+  <div class="px dlg stack">
+    <h2 id="rec-h">Save your recovery code</h2>
+    <p class="small" id="rec-first">Your account is saved. There’s no email to reset a forgotten PIN, so this code is your way back in.</p>
+    <p class="reccode mono" id="rec-code" aria-label="Recovery code"></p>
+    <p class="small">Screenshot it, or keep it in your notes or password manager. You’ll only see it this once (you can make a new one in Settings).</p>
+    <div class="btnrow"><button class="btn btn-sky" data-act="reccopy">Copy code</button><button class="btn btn-mint" data-close>I’ve saved it</button></div>
+  </div>
 </dialog>
 
 <dialog id="dlg-copy" aria-labelledby="copy-h">
@@ -2401,6 +2421,11 @@ const Store = {
     clearTimeout(this.idbTimer); this.idbTimer = setTimeout(() => this.idbPut(json), 300);
   },
   get(k){ if (!this.ok) return null; try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  // Sign out / delete: remove this game's save, session and settings from the device (the IndexedDB copy too)
+  async wipe(){
+    try { Object.keys(localStorage).filter(k => k === CONFIG.STORAGE_KEY || k.startsWith(CONFIG.STORAGE_KEY + ':')).forEach(k => localStorage.removeItem(k)); } catch(e){}
+    this.mem = null; clearTimeout(this.idbTimer); await this.idbPut('null');
+  },
   set(k,v){ if (!this.ok) return; try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
   idbOpen(){
     if (this.idb) return Promise.resolve(this.idb);
@@ -2627,8 +2652,12 @@ function getStats(today){
    ArtNet   = claude.ai artifact storage (when the game runs as a claude.ai page).
    LocalNet = same-device tabs (developer testing: add ?mp=local to the URL).
    Battles talk to whichever is available through the small Net interface. */
+const ACCT_DOMAIN = '@accounts.playdialin.com', EMAIL_CUTOFF = '2026-12-05';
 const Backend = {
-  sess: null, profile: null, nameSent: '', email: '',
+  sess: null, profile: null, nameSent: '', email: '', acct: '', status: null,
+  // A member has a saved account (username and PIN) or, until the cut-off, a verified email
+  get member(){ return !!(this.acct || (this.email && (App.today || '') < this.emailEnds)); },
+  get emailEnds(){ return (this.status && this.status.email_until) || EMAIL_CUTOFF; },
   get on(){ return /^https:\/\//.test(CONFIG.SUPABASE_URL) && CONFIG.SUPABASE_ANON_KEY.length > 20; },
   async rest(method, path, body, extra = {}, auth = true){
     if (auth) await this.auth();
@@ -2658,7 +2687,20 @@ const Backend = {
       try { this.keep(await this.rest('POST', '/auth/v1/token?grant_type=refresh_token', { refresh_token:this.sess.refresh_token }, {}, false)); return; }
       catch(e) { this.sess = null; }
     }
+    // this device's sign-in has ended (e.g. the account's PIN was set on another device): carry on as a guest,
+    // keeping everything on this device, and ask the player to sign back in
+    // ':was' is the username, or 'email' for an email profile (older versions only kept ':email'); 'lost' = signed out, name unknown
+    const prev = Store.get(CONFIG.STORAGE_KEY + ':was') || (Store.get(CONFIG.STORAGE_KEY + ':email') ? 'email' : '');
+    const was = prev === 'email' ? 'lost' : prev;
     this.keep(await this.rest('POST', '/auth/v1/signup', { data:{} }, {}, false));   // anonymous sign-in
+    if (was) { App.signedOutAs = was; this.acct = ''; this.email = ''; Store.set(CONFIG.STORAGE_KEY + ':was', was); Store.set(CONFIG.STORAGE_KEY + ':acct', ''); Store.set(CONFIG.STORAGE_KEY + ':email', ''); }
+  },
+  // The account function (username + PIN, recovery and device codes). Errors carry the server's plain-English message.
+  account(action, body, auth){ return this.rest('POST', '/functions/v1/account', Object.assign({ action }, body || {}), {}, !!auth); },
+  // Sign in with a session the account function handed back, then load this account's profile and save
+  async adopt(session){
+    this.keep(session); this.profile = null; this.nameSent = ''; App.signedOutAs = '';
+    await this.loadUser(); return this.acct;
   },
   // Email-link redirect: #access_token=...&refresh_token=... on sign-in, #message=... or #error_description=... otherwise.
   // Returns a line to show the player, or ''.
@@ -2681,27 +2723,35 @@ const Backend = {
   async linkEmail(email){ return this.rest('PUT', '/auth/v1/user?redirect_to=' + encodeURIComponent(this.home), { email }); },
   async magicLink(email){
     try { return await this.rest('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(this.home), { email, create_user:false }, {}, false); }
-    catch(e){ throw /signups not allowed/i.test(e.message) ? new Error('that email isn’t linked to a DIAL IN profile yet. On the phone you usually play on, open Settings and tap Link email first.') : e; }
+    catch(e){ throw /signups not allowed/i.test(e.message) ? new Error('there’s no DIAL IN profile with that email. Email sign-in is only for moving an existing profile across.') : e; }
   },
-  // The verified email on this profile ('' while playing as a guest). Posting and seeing scores needs one.
+  // Who this device is signed in as: a saved account (username), an old email profile, or a guest.
   async loadUser(){
-    const u = await this.rest('GET', '/auth/v1/user');
-    this.email = u && !u.is_anonymous && u.email && (u.email_confirmed_at || u.confirmed_at) ? u.email : '';
+    let u;
+    try { u = await this.rest('GET', '/auth/v1/user'); }
+    catch(e) {
+      // the sign-in was ended elsewhere (e.g. the PIN was set on another phone) while this device's pass was still valid:
+      // refresh now, which falls back to a guest and asks the player to sign back in
+      if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message) || !this.sess) throw e;
+      this.sess.expires_at = 0; await this.auth();
+      u = await this.rest('GET', '/auth/v1/user');
+    }
+    this.email = u && !u.is_anonymous && u.email && !u.email.endsWith(ACCT_DOMAIN) && (u.email_confirmed_at || u.confirmed_at) ? u.email : '';
     Store.set(CONFIG.STORAGE_KEY + ':email', this.email);
-    return this.email;
+    try { const r = await this.rpc('my_board_status', { p_date: App.today || DateUK.today() }); this.status = (Array.isArray(r) ? r[0] : r) || null; } catch(e){}
+    this.acct = (this.status && this.status.username) || '';
+    Store.set(CONFIG.STORAGE_KEY + ':acct', this.acct);
+    if (this.acct || this.email) Store.set(CONFIG.STORAGE_KEY + ':was', this.acct || 'email');
+    return this.acct || this.email;
   },
   // One box for everyone: link the email to this guest profile, or, when that email already has a
   // profile (made on another device), sign in to it. Returns the code type to verify with.
-  async sendCode(email){
-    try { await this.linkEmail(email); return 'email_change'; }
-    catch(e){ if (!/already (been )?registered|already exists|email_exists/i.test(e.message)) throw e; }
-    await this.magicLink(email); return 'email';
-  },
+  async sendCode(email){ await this.magicLink(email); return 'email'; },
   async verifyCode(email, type, token){
     const d = await this.rest('POST', '/auth/v1/verify', { email, type, token }, {}, false);
     if (d && d.access_token) this.keep(d);
     this.profile = null; this.nameSent = '';
-    return this.loadUser();
+    await this.loadUser(); return this.email || this.acct;
   },
   async sync(){
     if (!this.on || DEV.on) return;
@@ -2713,7 +2763,7 @@ const Backend = {
       this.nameSent = name;
     }
     // today's result, plus yesterday's if it was finished just before midnight and never got posted
-    // Everyone posts (guests appear only in their leagues; public boards are email-only on the server).
+    // Everyone posts (guests appear only in their leagues; public boards are for saved accounts, on the server).
     await this.auth(); const uid = this.sess && this.sess.user_id; if (!uid) return;
     for (const d of [DateUK.add(App.today, -1), App.today]) {
       const day = S.days[d];
@@ -3844,7 +3894,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'email', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'create', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -3948,6 +3998,20 @@ function startReveal(q, a, animate, totals, onLand, combo){
 const hotRun = list => { let n = 0; for (let k = list.length - 1; k >= 0 && list[k] >= 750; k--) n++; return n; };
 
 /* ---- Home ---- */
+// What to tell a device whose account isn't signed in any more
+function acctWasText(was, cta){
+  if (was === 'email') return `<b>Email sign-in has ended.</b><br>Save your account with a username and PIN to get back on the leaderboards. Everything on this device comes with you.${cta ? ' <u>Save it now</u>' : ''}`;
+  if (was === 'lost') return `<b>You’ve been signed out on this device.</b><br>Sign in with your username and PIN to keep your progress together, or save a new account.${cta ? ' <u>Sign in</u>' : ''}`;
+  return `<b>You’ve been signed out on this device.</b><br>Sign in as @${esc(was)} to keep your progress together.${cta ? ' <u>Sign in</u>' : ''}`;
+}
+// Email profiles that haven't moved across yet, and devices that were signed out, get a nudge on the home screen
+function acctBannerHTML(){
+  if (!Backend.on || DEV.on || Backend.acct) return '';
+  const was = Store.get(CONFIG.STORAGE_KEY + ':was');
+  if (Backend.email) return `<button class="px banner acctnudge" data-act="acctgo"><b>Email sign-in ends on ${ukDateLong(Backend.emailEnds)}</b><br>Pick a username and PIN to keep your account. Everything comes with you. <u>Do it now</u></button>`;
+  if (was) return `<button class="px banner acctnudge" data-act="acctgo">${acctWasText(was, true)}</button>`;
+  return '';
+}
 function viewHome(){
   const day = S.days[App.today], st = getStats(App.today);
   const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
@@ -3961,6 +4025,7 @@ function viewHome(){
     <div class="hero">${mascot(done ? moodFor(dayTotal(day)) : 'happy', 84, 'bob')}
       <h1 class="logo" tabindex="-1">Dial <span>In</span></h1>
       <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p></div>
+    ${acctBannerHTML()}
     <div class="modes">
       <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
         <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
@@ -4475,7 +4540,9 @@ function showChallenge(){
 }
 
 /* ---- Daily ---- */
-function startDaily(){ requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); go('play'); }); }
+function startDaily(){ requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); notePlay(); go('play'); }); }
+// Tells the server this connection started today's daily (a short-lived, scrambled tag: see the privacy notice)
+function notePlay(){ if (!Backend.on || DEV.on || App.noted === App.today) return; App.noted = App.today; Backend.rpc('note_play', { p_date: App.today }).catch(() => { App.noted = ''; }); }
 function firstOpen(day){ const i = day.answers.findIndex(a => !a); return i < 0 ? 0 : i; }
 function expireDaily(){
   const day = S.days[App.today]; if (!day) return false;
@@ -5083,12 +5150,12 @@ function viewResults(){
     <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
 }
-// Guests' streaks live only on this device: offer to protect them with an email once there's something to lose
+// Guests' streaks live only on this device: offer to protect them with an account once there's something to lose
 function streakNudgeHTML(st){
-  if (!Backend.on || DEV.on || Backend.email || st.current < 2) return '';
+  if (!Backend.on || DEV.on || Backend.acct || st.current < 2) return '';
   return `<div class="px card stack center nudge-streak">
     <p class="label">🔥 ${st.current}-day streak</p>
-    <p class="small">Your streak is only saved on this device. Add your email so you never lose it, even on a new phone.</p>
+    <p class="small">Your streak is only saved on this device. Save your account (just a username and PIN) so you never lose it, even on a new phone.</p>
     <button class="btn btn-coral" data-act="protect">Protect my streak</button></div>`;
 }
 // The moment straight after Dial Ball is when players want more: offer Unlimited (or the tip jar to people who own it)
@@ -5118,11 +5185,11 @@ function rankCardHTML(){
   const r = rankFor(App.today);
   if (DEV.on) return `<p class="label">Today’s ranking</p><p class="rk-sub">Rankings are off in the developer sandbox.</p>`;
   if (!Backend.on) return `<p class="label">Today’s ranking</p><p class="rk-line">See how many players you beat</p><p class="rk-sub">Global rankings appear when the game is online.</p>`;
-  if (!Backend.email) {
+  if (!Backend.member) {
     const k = peekFor(App.today);
     return `<p class="label">Today’s ranking</p>
       ${k ? `<p class="rk-big">${k.players ? `You’d be #${fmtNum(k.rank)} today` : 'You’d be first today!'}</p><p class="rk-line">${k.players ? `out of ${fmtNum(k.players + 1)} players, with ${fmtNum(k.score)} points` : 'Nobody has posted a score yet'}</p>` : `<p class="rk-line">See how many players you beat</p>`}
-      <p class="rk-sub">Add your email to ${k ? 'claim your spot on' : 'post your score and join'} the leaderboards.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">${k ? 'Claim my spot' : 'Join the leaderboards'}</button>`;
+      <p class="rk-sub">Save your account to ${k ? 'claim your spot on' : 'post your score and join'} the leaderboards. No email needed.</p><button class="btn btn-mint" data-act="board" style="margin-top:8px">${k ? 'Claim my spot' : 'Join the leaderboards'}</button>`;
   }
   if (!r) return `<p class="label">Today’s ranking</p><p class="rk-sub">${App.rankBusy ? 'Counting everyone’s scores…' : 'Couldn’t load today’s ranking.'}</p>${App.rankBusy ? '' : '<button class="link" data-act="rank">Try again</button>'}`;
   if (r.rank === null) return `<p class="label">Today’s ranking</p><p class="rk-sub">Posting your score… <button class="link" data-act="rank">Refresh</button></p>`;
@@ -5137,7 +5204,7 @@ function rankCardHTML(){
 // Where today's score would sit, for a player who hasn't joined the leaderboards yet
 const peekFor = date => App.peek && App.peek.date === date ? App.peek : null;
 async function loadPeek(){
-  if (!Backend.on || DEV.on || Backend.email) return;
+  if (!Backend.on || DEV.on || Backend.member) return;
   const day = S.days[App.today]; if (!day || !day.done || !pinDone(day)) return;
   const score = dayTotal(day), have = peekFor(App.today);
   if (have && have.score === score && Date.now() - have.at < 60000) return;
@@ -5146,10 +5213,10 @@ async function loadPeek(){
     if (row) { App.peek = { date:App.today, score, players:Number(row.players) || 0, rank:Number(row.would_rank) || 1, at:Date.now() }; paintRank(); const pl = $('#peekline'); if (pl) pl.innerHTML = peekLineHTML(); }
   } catch(e){}
 }
-const peekLineHTML = () => { const k = peekFor(App.today); return k ? `<b>${k.players ? `You’d be #${fmtNum(k.rank)} of ${fmtNum(k.players + 1)} today` : 'You’d be first on today’s board'}</b> with ${fmtNum(k.score)} points. Add your email to claim your spot.` : ''; };
+const peekLineHTML = () => { const k = peekFor(App.today); return k ? `<b>${k.players ? `You’d be #${fmtNum(k.rank)} of ${fmtNum(k.players + 1)} today` : 'You’d be first on today’s board'}</b> with ${fmtNum(k.score)} points. Save your account to claim your spot.` : ''; };
 async function loadRank(force){
-  if (Backend.on && !DEV.on && !Backend.email) return loadPeek();
-  if (!Backend.on || DEV.on || App.rankBusy || !Backend.email) return;
+  if (Backend.on && !DEV.on && !Backend.member) return loadPeek();
+  if (!Backend.on || DEV.on || App.rankBusy || !Backend.member) return;
   const day = S.days[App.today]; if (!day || !day.done) return;
   const have = rankFor(App.today);
   if (have && !force && Date.now() - have.at < 30000) return;
@@ -5459,28 +5526,87 @@ async function loadFriendNames(){
   } catch(e){}
 }
 
-/* ---- Account: verified email ---- */
+/* ---- Account: a username and a 6-digit PIN (no email) ----
+   App.acct.step: 'create' (default), 'login', 'recover', 'device' (type a code from another device),
+   'email' / 'code' (moving an old email profile across, until the cut-off). */
+const emailOpen = () => (App.today || DateUK.today()) < Backend.emailEnds;
+const ukDateLong = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { day:'numeric', month:'long', timeZone:'Europe/London' });
+const pinInput = (id, label, auto) => `<div class="fieldrow"><label class="label" for="${id}">${label}</label><input id="${id}" class="pinbox" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="${auto}" placeholder="••••••"></div>`;
 function accountHTML(){
-  if (Backend.email) return `<p class="small">Signed in as <b>${esc(Backend.email)}</b>. Your scores and progress follow this email to any device: just enter it there too.</p>`;
   const A = App.acct;
+  if (Backend.acct) {
+    const panel = A.panel === 'pin' ? `<form id="pinform" class="stack" novalidate>
+          ${pinInput('pinold', 'Current PIN', 'current-password')}${pinInput('pinnew', 'New PIN', 'new-password')}${pinInput('pinnew2', 'New PIN again', 'new-password')}
+          <div class="btnrow"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Change PIN</button><button class="btn btn-ghost" type="button" data-act="acctpanel" data-p="">Cancel</button></div></form>`
+      : A.panel === 'code' ? `<form id="newcodeform" class="stack" novalidate>
+          <p class="small">Your old recovery code stops working once you make a new one.</p>
+          ${pinInput('pincheck', 'Your PIN', 'current-password')}
+          <div class="btnrow"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Make a new code</button><button class="btn btn-ghost" type="button" data-act="acctpanel" data-p="">Cancel</button></div></form>`
+      : A.panel === 'device' ? `<div class="stack center"><p class="small">On your other phone or computer, open DIAL IN, go to Settings, tap <b>Sign in</b>, then <b>Use a code from another device</b>, and type:</p>
+          <p class="devcode mono" aria-label="Device code">${esc(A.devCode || '······')}</p><p class="small muted">Works once, for 10 minutes.</p>
+          <button class="btn btn-ghost" data-act="acctpanel" data-p="">Done</button></div>`
+      : A.panel === 'out' ? `<div class="stack"><p class="small">This removes your game from this device. Your account keeps everything: sign back in any time with <b>@${esc(Backend.acct)}</b> and your PIN.</p>
+          <div class="btnrow"><button class="btn btn-coral" data-act="acctsignout">Sign out of this device</button><button class="btn btn-ghost" data-act="acctpanel" data-p="">Cancel</button></div></div>`
+      : `<div class="btnrow"><button class="btn btn-sky" data-act="acctdevice" ${A.busy ? 'disabled' : ''}>Add a device</button><button class="btn btn-ghost" data-act="acctpanel" data-p="pin">Change PIN</button><button class="btn btn-ghost" data-act="acctpanel" data-p="code">New recovery code</button><button class="btn btn-ghost" data-act="acctpanel" data-p="out">Sign out</button></div>`;
+    return `<p class="small">Signed in as <b class="acctname">@${esc(Backend.acct)}</b>. Your scores, streak, leagues and ${PLUS} follow this account to any device.</p>${panel}`;
+  }
+  const moving = !!Backend.email, open = emailOpen();
+  const alt = `<p class="small muted acctalt">${A.step === 'create' ? '<button class="link" data-act="acctstep" data-s="login">I already have an account: sign in</button>' : '<button class="link" data-act="acctstep" data-s="create">New here? Save your account</button>'}
+      ${A.step !== 'device' ? ' · <button class="link" data-act="acctstep" data-s="device">Use a code from another device</button>' : ''}
+      ${!moving && open && !['email','code'].includes(A.step) ? ` · <button class="link" data-act="acctstep" data-s="email">Signed up with email before? Move it across</button>` : ''}</p>`;
+  const lost = !Backend.member && Store.get(CONFIG.STORAGE_KEY + ':was');
+  const lostNote = lost && !moving ? `<p class="banner">${acctWasText(lost, false)}</p>` : '';
+  if (A.step === 'login') return `${lostNote}<form id="loginform" class="stack" novalidate>
+      <label class="label" for="acctuser">Username</label><input id="acctuser" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="16" value="${esc(A.user || (lost && !['email','lost'].includes(lost) ? lost : ''))}">
+      ${pinInput('acctpin', 'PIN', 'current-password')}
+      <button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Sign in</button>
+      <p class="small muted"><button class="link" data-act="acctstep" data-s="recover" type="button">Forgot your PIN?</button></p></form>${alt}`;
+  if (A.step === 'recover') return `<form id="recoverform" class="stack" novalidate>
+      <p class="small">Use the recovery code you saved when you made your account, and pick a new PIN.</p>
+      <label class="label" for="acctuser">Username</label><input id="acctuser" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="16" value="${esc(A.user || '')}">
+      <label class="label" for="acctcode">Recovery code</label><input id="acctcode" class="mono" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX">
+      ${pinInput('acctpin', 'New PIN', 'new-password')}${pinInput('acctpin2', 'New PIN again', 'new-password')}
+      <button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Reset PIN and sign in</button></form>${alt}`;
+  if (A.step === 'device') return `<form id="deviceform" class="stack" novalidate>
+      <p class="small">On a phone or computer where you’re already signed in, open Settings and tap <b>Add a device</b>. Type the 6-character code it shows.</p>
+      <div class="formrow"><input id="devcodein" class="mono" autocapitalize="characters" autocomplete="one-time-code" spellcheck="false" maxlength="7" placeholder="ABC123" aria-label="Code from your other device"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Sign in</button></div></form>${alt}`;
   if (A.step === 'code') return `<form id="codeform" class="stack" novalidate>
       <p class="small">We’ve emailed <b>${esc(A.email)}</b>. Type the code from the email here, or tap the link in it on this device. Check your spam folder if it isn’t there in a minute.</p>
       <div class="formrow"><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code from the email" aria-label="Code from the email"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Verify</button></div>
-      <div class="btnrow"><button class="btn btn-ghost" type="button" data-act="acctcheck">I tapped the link</button><button class="btn btn-ghost" type="button" data-act="acctback">Use a different email</button></div>
+      <div class="btnrow"><button class="btn btn-ghost" type="button" data-act="acctcheck">I tapped the link</button><button class="btn btn-ghost" type="button" data-act="acctstep" data-s="email">Use a different email</button></div>
     </form>`;
-  return `<form id="acctform" class="stack" novalidate>
+  if (A.step === 'email' && open) return `<form id="acctform" class="stack" novalidate>
+      <p class="small">Joined with your email on another device? Sign in with it here <b>until ${ukDateLong(Backend.emailEnds)}</b>, then save a username and PIN. After that date, DIAL IN won’t use email at all.</p>
       <label class="label" for="acctemail">Your email</label>
       <div class="formrow"><input id="acctemail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(A.email)}"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Send code</button></div>
-      <p class="small muted">New, or already joined on another device? Use the same box. We only use your email to sign you in.</p>
-    </form>`;
+    </form>${alt}`;
+  return `${moving ? `<p class="banner"><b>Email sign-in ends on ${ukDateLong(Backend.emailEnds)}.</b> Pick a username and PIN to keep your account. Everything comes with you: scores, streak, leagues and ${PLUS}. We’ll then delete your email.</p>` : lostNote}
+    <form id="createform" class="stack" novalidate>
+      <label class="label" for="acctuser">Pick a username</label><input id="acctuser" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="16" placeholder="e.g. quizwhiz_42" value="${esc(A.user || '')}">
+      <p class="small muted">3 to 16 letters, numbers or underscores. Only you see it: it’s how you sign in. Your display name is what others see.</p>
+      ${pinInput('acctpin', 'Pick a 6-digit PIN', 'new-password')}${pinInput('acctpin2', 'PIN again', 'new-password')}
+      <button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>${moving ? 'Move my account across' : 'Save my account'}</button>
+      <p class="small muted">No email needed. Your phone can save the PIN for you.</p>
+    </form>${alt}`;
+}
+// After creating an account or resetting a PIN: show the recovery code once
+function showRecovery(code, first){
+  const c = String(code || '').replace(/(.{4})(?=.)/g, '$1-');
+  $('#rec-code').textContent = c; $('#rec-first').hidden = !first;
+  openDialog('dlg-rec');
+}
+// Signing in (or creating the account) worked: bring in this account's cloud save and carry on where the player was
+async function acctDone(session, msg){
+  await Backend.adopt(session);
+  return finishSignIn(msg);
 }
 // After verifying: bring in this profile's cloud save (it may have been made on another device) and post today's score
-async function finishSignIn(){
-  App.acct = { step:'email', email:'', type:'', busy:false };
-  try { const remote = await Cloud.load(); if (remote) { S = sanitize(mergeStates(S, remote)); Store.write(S); } } catch(e){}
+async function finishSignIn(msg){
+  App.acct = { step:'create', email:'', type:'', busy:false };
+  try { const remote = await Cloud.load(); if (remote) { S = sanitize(mergeStates(S, remote)); if (remote.player && remote.player.name) S.player.name = remote.player.name; Store.write(S); } } catch(e){}   // the account's own display name wins
   save(); App.rank = null;
   try { await Backend.sync(); } catch(e){}
-  toast(`You’re in as ${Backend.email}.`, 3500);
+  toast(msg || (Backend.acct ? `You’re signed in as @${Backend.acct}.` : `You’re in as ${Backend.email}.`), 3500);
   render(false);
   if (App.view === 'settings') loadFriendNames();
   if (S.badge === false) Backend.rpc('set_show_badge', { p_show: false }).catch(() => {});
@@ -5491,7 +5617,7 @@ async function finishSignIn(){
 }
 // Bring the email box into view and put the cursor in it
 function focusEmailBox(){
-  setTimeout(() => { const el = $('#acctemail') || $('#otp'); if (!el) return;
+  setTimeout(() => { const el = $('#acctuser') || $('#acctemail') || $('#otp'); if (!el) return;
     el.scrollIntoView({ block:'center', behavior:reducedMotion() ? 'auto' : 'smooth' }); el.focus({ preventScroll:true });
     const card = el.closest('.card'); if (card) card.classList.add('nudge'); }, 60);
 }
@@ -5502,16 +5628,25 @@ const BOARD_LIMIT = 50;
 const BOARDS = {
   daily:  { label:'Daily',               total:false, friends:false, note: () => `Everyone’s score for today’s puzzle (#${DateUK.puzzleNo(App.today)}). A new board starts at midnight UK time.` },
   all:    { label:'All-time',            total:true,  friends:false, note: () => 'Everyone’s points added up over every daily puzzle they’ve played.' },
+  streak: { label:'Streaks',             total:false, friends:false, streak:true, note: () => 'The longest current daily streaks. Play every day to climb (miss a day and it starts again).' },
   fdaily: { label:'Friends · Daily',     total:false, friends:true,  note: () => 'You and your friends on today’s puzzle.' },
   fall:   { label:'Friends · All-time',  total:true,  friends:true,  note: () => 'You and your friends, points added up over every daily puzzle played.' }
 };
 const boardKind = () => BOARDS[App.boardTab] ? App.boardTab : 'daily';
+// Why your own score isn't on the public boards yet (new accounts, or a guest played first on this connection)
+function boardStatusHTML(kind){
+  const st = Backend.status; if (!st || !Backend.member || BOARDS[kind].friends) return '';
+  const day = S.days[App.today], need = Math.max(0, 3 - (st.days_played || 0));
+  if (!st.listed) return `<p class="banner boardnote">Your scores go on the public boards once you’ve played on 3 days (${need} more to go). Friends and leagues can see them already.</p>`;
+  if (kind === 'daily' && st.off_board && day && day.done) return `<p class="banner boardnote">Today’s puzzle was already played on this connection by someone without an account, so today’s score stays off the public Daily board. It still counts for your stats, streak, friends and leagues.</p>`;
+  return '';
+}
 function viewBoard(){
-  const guest = Backend.on && !DEV.on && !Backend.email;
+  const guest = Backend.on && !DEV.on && !Backend.member;
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
   const tabs = Object.keys(BOARDS).map(k =>
     `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
-    + (Backend.on && !DEV.on ? `<button class="tab wide" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '');
+    + (Backend.on && !DEV.on ? `<button class="tab" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '');
   if (lg) return `<section class="stack">
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
@@ -5523,20 +5658,20 @@ function viewBoard(){
     <div class="px card stack">
       <p class="label">Join the leaderboards</p>
       <p class="banner" id="peekline" ${peekFor(App.today) ? '' : 'hidden'}>${peekLineHTML()}</p>
-      <p class="small">Add your email to post your daily scores and see the Daily, All-time and Friends boards. It’s one profile per email, so you appear once however many devices you play on, and your progress follows you.</p>
+      <p class="small">Save your account to post your daily scores and see the Daily, All-time, Streaks and Friends boards. No email needed: pick a username and a PIN, and your progress follows you to any device.</p>
       ${accountHTML()}
     </div>
-    <div class="px card stack center"><p class="small"><b>No email needed for Leagues.</b> Make a private leaderboard for your group chat and share the link.</p>
+    <div class="px card stack center"><p class="small"><b>No account needed for Leagues.</b> Make a private leaderboard for your group chat and share the link.</p>
       <button class="btn btn-sky" data-act="tab" data-tab="leagues">Go to Leagues</button></div>
   </section>`;
-  const playNudge = !B.total && (!day || !day.done) && Backend.on && !DEV.on
+  const playNudge = !B.total && !B.streak && (!day || !day.done) && Backend.on && !DEV.on
     ? `<p class="banner">You haven’t finished today’s puzzle yet. Play it to get on this board.<br><button class="btn btn-mint" data-act="play" style="margin-top:8px">Play today</button></p>` : '';
   return `<section class="stack">
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     ${DEV.on ? '<p class="banner"><b>DEV SANDBOX</b><br>Leaderboards are switched off here so tests never post real scores.</p>' : Backend.on ? '' : '<p class="banner"><b>DEMO MODE</b><br>Online leaderboards aren’t switched on, so only results from <b>this device</b> are shown. Nobody else is on these boards.</p>'}
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
     <p class="small muted">${B.note()}</p>
-    ${playNudge}
+    ${playNudge}${boardStatusHTML(kind)}
     <div id="board-body" aria-live="polite">${Backend.on && !DEV.on ? '<p class="empty">Loading…</p>' : demoBoard()}</div>
   </section>`;
 }
@@ -5544,12 +5679,13 @@ function lbRows(rows, meId, kind){
   if (!rows.length) return '';
   const B = BOARDS[kind];
   return `<ol class="lb">${rows.map((r, i) => { const me = r.player_id === meId;
-    const sc = B.total ? fmtNum(Number(r.total_score)) : fmtNum(Number(r.score));
-    const days = Number(r.days_played);
-    const sub = B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
+    const sc = B.streak ? `🔥 ${Number(r.streak)}` : B.total ? fmtNum(Number(r.total_score)) : fmtNum(Number(r.score));
+    const days = Number(r.days_played), stk = Number(r.streak) || 0;
+    const sub = B.streak ? `${days} ${days === 1 ? 'day' : 'days'} played` : B.total ? `${days} ${days === 1 ? 'day' : 'days'} played · ${r.exact_total} dialed in` : `${r.exact_count} dialed in`;
+    const flame = !B.streak && stk >= 2 ? `<span class="stk" title="${stk}-day streak">🔥${stk}</span>` : '';
     // the global boards list the top 50 plus your own row: mark the jump when you're further down
     const gap = me && i > 0 && !B.friends && Number(r.rank) > BOARD_LIMIT ? '<li class="gap" aria-hidden="true">…</li>' : '';
-    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
+    return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
 const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
@@ -5565,22 +5701,25 @@ function demoBoard(){
 }
 async function loadBoard(){
   if (App.boardTab === 'leagues' && Backend.on && !DEV.on) return App.league ? loadLeagueBoard() : loadLeagueList();
-  if (Backend.on && !DEV.on && App.view === 'board' && !Backend.email) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
-  if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.email) return;
+  if (Backend.on && !DEV.on && App.view === 'board' && !Backend.member) { loadPeek().then(() => { const pl = $('#peekline'); if (pl && peekFor(App.today)) pl.hidden = false; }); return; }
+  if (!Backend.on || DEV.on || App.view !== 'board' || !Backend.member) return;
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
   try {
     await Backend.sync();
+    try { const st = await Backend.rpc('my_board_status', { p_date: App.today }); const row = Array.isArray(st) ? st[0] : st; if (row) { const was = JSON.stringify(Backend.status); Backend.status = row; if (was !== JSON.stringify(row) && App.view === 'board') { const n = document.querySelector('.boardnote'), h = boardStatusHTML(kind); if (n) n.outerHTML = h || ''; else if (h) el.insertAdjacentHTML('beforebegin', h); } } } catch(e){}
     if (token !== App.boardToken || App.view !== 'board') return;
     if (BOARDS[kind].friends && !S.friends.length) { el.innerHTML = noFriendsState(); return; }
     const rows = kind === 'daily' ? await Backend.rpc('get_daily_leaderboard', { p_date: App.today, p_limit: BOARD_LIMIT })
       : kind === 'all' ? await Backend.rpc('get_alltime_leaderboard', { p_limit: BOARD_LIMIT })
+      : kind === 'streak' ? await Backend.rpc('get_streak_leaderboard', { p_limit: BOARD_LIMIT })
       : kind === 'fdaily' ? await Backend.rpc('get_friends_leaderboard', { p_date: App.today, p_codes: S.friends })
       : await Backend.rpc('get_friends_alltime_leaderboard', { p_codes: S.friends });
     if (token !== App.boardToken || App.view !== 'board') return;
     const me = Backend.sess && Backend.sess.user_id;
     if (!rows || !rows.length) el.innerHTML = emptyState(
       kind === 'daily' ? 'No scores yet today. Be the first!'
+      : kind === 'streak' ? 'No streaks yet. Play two days in a row to start one.'
       : kind === 'fdaily' ? 'Nobody in your friends list has finished today’s puzzle yet.'
       : 'No finished daily puzzles yet. Scores appear here once a daily puzzle is complete.', 'happy');
     else { el.innerHTML = lbRows(rows, me, kind); const m = el.querySelector('.me'); if (m) m.scrollIntoView({ block:'nearest' }); }
@@ -5592,7 +5731,7 @@ async function loadBoard(){
 
 /* ---- Leagues ----
    Private leaderboards for a group chat, office or family. Shared as playdialin.com/l/CODE.
-   Joining needs an email, like every board, so the invite doubles as the best reason to add one. */
+   Anyone can join, guests included; saving an account keeps your leagues if you change phone. */
 const LEAGUE_KEY = () => CONFIG.STORAGE_KEY + ':league';
 const pendingLeague = () => { const v = Store.get(LEAGUE_KEY()); return v && /^[A-Z2-9]{6}$/.test(v.code || '') ? v : null; };
 const setPendingLeague = v => { try { if (v) Store.set(LEAGUE_KEY(), v); else localStorage.removeItem(LEAGUE_KEY()); } catch(e){} };
@@ -5601,7 +5740,7 @@ const leagueInviteText = (name, code) => `Join my DIAL IN league “${name}”! 
 
 function leagueListShell(){
   return `<p class="small muted">Private leaderboards for your group chat, office or family. Make one, share the link, and see who’s best every day.</p>
-    ${Backend.email ? '' : '<p class="small muted">No email needed. Tip: add one in Settings to keep your leagues if you change phone.</p>'}
+    ${Backend.acct ? '' : '<p class="small muted">No account needed. Tip: save one in Settings to keep your leagues if you change phone.</p>'}
     <div id="league-list"><p class="empty">Loading…</p></div>
     <form id="leaguecreate" class="px card stack" novalidate>
       <label class="label" for="lgname">Start a league</label>
@@ -5621,7 +5760,7 @@ function leagueItems(list){
 // Home card line: your best league position today, or what leagues are
 function homeLeagueLine(){
   const L = App.leagues || [];
-  if (!L.length) return 'Private leaderboards for your group chat. No email needed.';
+  if (!L.length) return 'Private leaderboards for your group chat. No account needed.';
   const ranked = L.filter(l => l.my_rank).sort((a, b) => a.my_rank - b.my_rank)[0];
   return ranked ? `${esc(ranked.name)}: you’re #${ranked.my_rank} of ${Number(ranked.played_today)} today` : `${L.length} ${L.length === 1 ? 'league' : 'leagues'} · play today to get on the board`;
 }
@@ -5688,7 +5827,7 @@ async function joinLeague(code, quiet){
   try { const r = await Backend.rpc('join_league', { p_code: code }); const row = Array.isArray(r) ? r[0] : r;
     setPendingLeague(null); App.leagues = null; await fetchLeagues().catch(() => {});
     Sfx.init(); Sfx.land(900); toast(`You’re in “${row.name}”!`, 3500); openLeague(row.code); return true;
-  } catch(e) { if (/doesn.t work/.test(e.message)) setPendingLeague(null); if (!quiet || !/email/i.test(e.message)) toast(e.message, 4500); return false; }
+  } catch(e) { if (/doesn.t work/.test(e.message)) setPendingLeague(null); if (!quiet || !/email|save your account/i.test(e.message)) toast(e.message, 4500); return false; }
 }
 // Opened from an invite link: say what it is, then join (or collect the email first)
 async function showLeagueInvite(){
@@ -5702,7 +5841,7 @@ async function showLeagueInvite(){
   $('#league-body').innerHTML = `<p class="lgname" style="font:var(--fw-d) 24px/1.2 var(--font-display);color:var(--gold);margin:4px 0">${esc(info.name)}</p>
     <p class="small">${n} ${n === 1 ? 'player is' : 'players are'} comparing scores on today’s puzzle. Join to see the league’s leaderboard and get your name on it.</p>
     <button class="btn btn-mint btn-block btn-xl" data-act="lgaccept">Join the league</button>
-    <p class="small muted center">No email needed. Your score shows up in the league once you’ve played today’s puzzle.</p>`;
+    <p class="small muted center">No account needed. Your score shows up in the league once you’ve played today’s puzzle.</p>`;
   openDialog('dlg-league');
 }
 // Results screen: where you stand in your leagues today (or an invitation to start one)
@@ -5745,7 +5884,7 @@ function viewSettings(){
   const friends = S.friends.map(c => { const n = App.friendNames[c];
     return `<li>${n ? `${esc(n)} <small class="muted">${c}</small>` : c}<button data-act="rmfriend" data-code="${c}" aria-label="Remove friend ${n ? esc(n) : c}">×</button></li>`; }).join('');
   const cloud = Cloud.kind === 'claude' ? 'Saved on this device and to your Claude account, so it follows you to any device where you open this page.'
-    : Cloud.kind === 'online' ? 'Saved on this device and to your online profile. Link an email below to use it on other devices.'
+    : Cloud.kind === 'online' ? 'Saved on this device and to your online profile. Save your account below to use it on other devices.'
     : 'Saved on this device. To move to another phone, copy your save code and restore it there.';
   return `<section class="stack">
     <h1 class="label" tabindex="-1">Settings &amp; profile</h1>
@@ -5787,15 +5926,17 @@ function viewSettings(){
           <div class="formrow" style="margin-top:8px"><input id="fcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters"><button class="btn btn-sky" type="submit">Add</button></div></form>
         ${friends ? `<ul class="friends">${friends}</ul>` : '<p class="small muted">No friends added yet.</p>'}
       </div>
-      <div class="px card stack">
-        <p class="label">Your email</p>
-        ${Backend.email ? '' : '<p class="small">Needed for the leaderboards. One profile per email, and your progress follows you to any device.</p>'}
+      <div class="px card stack" id="acctcard">
+        <p class="label">Your account</p>
+        ${Backend.member ? '' : '<p class="small">Save your account to get on the leaderboards and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
         ${accountHTML()}
       </div>` : ''}
     <div class="px card stack">
       <p class="label">Your data</p>
-      <p class="small">We only keep what the game needs: your email if you add one (just for signing in), your display name, scores and progress. No ads, no tracking cookies. Shared results show your score pattern, never your name or email. <a href="privacy">Privacy notice</a> · <a href="terms">Terms</a></p>
+      <p class="small">We only keep what the game needs: your username and PIN (stored scrambled) if you save an account, your display name, scores and progress. No email, no ads, no tracking cookies. Shared results show your score pattern, never your name. <a href="privacy">Privacy notice</a> · <a href="terms">Terms</a></p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
+      <button class="btn ${App.delArm ? 'btn-coral' : 'btn-ghost'}" data-act="acctdelete" style="margin-top:10px">${App.delArm ? 'Tap again to delete everything for good' : 'Delete my account and data'}</button>
+      ${App.delArm ? `<p class="small">This deletes your ${Backend.on && !DEV.on ? 'account, scores, streak, saved progress and leagues from our servers and this device' : 'progress on this device'}. It can’t be undone.${isPremium() ? ` ${PLUS} goes too.` : ''}</p>` : ''}
     </div>
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
     ${DEV.askPass ? `<form class="px card stack" id="devpassform" novalidate><label class="label" for="devpass">Developer passcode</label><div class="formrow"><input id="devpass" type="password" autocomplete="off"><button class="btn btn-coral" type="submit">Unlock</button></div></form>` : ''}
@@ -5808,8 +5949,8 @@ function openPay(){
   const live = CONFIG.STRIPE_PAYMENT_LINK && Backend.on;
   $('#pay-body').innerHTML = `
     <ul class="perks"><li><b>Every past puzzle.</b> Missed a day? Catch up on all ${archDates().length} so far, plus each new one</li><li><b>Unlimited runs</b> every day, from all ${fmtNum(BANK.length)} questions</li>${factOn() ? '<li><b>Unlimited Fact Check</b>: keep spotting fakes until you’ve made 3 mistakes</li>' : ''}<li>A <b>SUPPORTER</b> badge on the leaderboards</li><li>One payment of ${CONFIG.PRICE_LABEL}. No subscription.</li></ul>
-    ${live && !Backend.email ? `<p class="banner">Add your email first, so your purchase is linked to you and works on every device.</p>
-        <button class="btn btn-mint btn-block btn-xl" data-act="payemail">Add my email</button>`
+    ${live && !Backend.acct ? `<p class="banner">Save your account first (a username and PIN, no email), so your purchase is linked to you and works on every device.</p>
+        <button class="btn btn-mint btn-block btn-xl" data-act="payemail">Save my account</button>`
       : live ? `<button class="btn btn-mint btn-block btn-xl" data-act="buy">Pay ${CONFIG.PRICE_LABEL} securely</button>
         <p class="small muted center">Payment is handled by Stripe. You’ll come straight back here afterwards.</p>
         <p class="small muted center">By paying you agree to the <a href="terms">terms</a>. DIAL IN+ unlocks straight away, so the 14-day right to cancel ends once it’s unlocked. Bought by mistake? Email us within 14 days for a refund.</p>`
@@ -5823,10 +5964,9 @@ function tip(){ if (tipOn()) window.open(CONFIG.TIP_LINK, '_blank', 'noopener');
 async function buy(){
   try {
     await Backend.auth();
-    if (!Backend.email) { openPay(); return; }   // purchases belong to an email-linked profile
+    if (!Backend.acct) { openPay(); return; }   // purchases belong to a saved account, so they work on every device
     const u = new URL(CONFIG.STRIPE_PAYMENT_LINK);
     u.searchParams.set('client_reference_id', Backend.sess.user_id);
-    u.searchParams.set('prefilled_email', Backend.email);
     S.premium.pendingAt = Date.now(); save();
     location.href = u.toString();
   } catch(e){ toast('Couldn’t start the payment: ' + e.message, 4000); }
@@ -5868,7 +6008,7 @@ function render(focus = true){
 }
 function postRender(){
   const T = qSeconds() * 1000;
-  if (App.view === 'settings' && App.afterEmail && !Backend.email) focusEmailBox();
+  if (App.view === 'settings' && App.afterEmail && !Backend.acct) focusEmailBox();
   if (App.view !== 'settings') App.afterEmail = null;
   if (App.view === 'pinball') startPinball();
   if (App.view === 'results') App.bonusFresh = false;
@@ -6082,6 +6222,88 @@ async function share(text){
   if (navigator.clipboard) { try { await navigator.clipboard.writeText(text); toast('Copied! Paste it in the group chat.'); return; } catch(e){} }
   showCopy('COPY THIS', text);
 }
+/* ---- Account actions ---- */
+const pinOK = v => /^\d{6}$/.test(v);
+async function acctForm(id){
+  const A = App.acct, val = sel => ($(sel) && $(sel).value || '').trim();
+  const user = val('#acctuser').toLowerCase().replace(/^@/, ''), pin = val('#acctpin'), pin2 = val('#acctpin2');
+  if (['createform','loginform','recoverform'].includes(id) && !/^[a-z0-9_]{3,16}$/.test(user)) return toast('Usernames are 3 to 16 letters, numbers or underscores.', 3500);
+  if (['createform','loginform','recoverform'].includes(id) && !pinOK(pin)) return toast('Your PIN is 6 digits.');
+  if (['createform','recoverform'].includes(id) && pin !== pin2) return toast('The two PINs don’t match. Type them again.');
+  if (id === 'pinform' && (!pinOK(val('#pinold')) || !pinOK(val('#pinnew')))) return toast('PINs are 6 digits.');
+  if (id === 'pinform' && val('#pinnew') !== val('#pinnew2')) return toast('The two new PINs don’t match.');
+  if (id === 'newcodeform' && !pinOK(val('#pincheck'))) return toast('Type your 6-digit PIN.');
+  const code = id === 'deviceform' ? val('#devcodein').toUpperCase().replace(/[^A-Z0-9]/g, '') : val('#acctcode');
+  if (id === 'deviceform' && code.length !== 6) return toast('The code from your other device has 6 characters.');
+  App.acct = Object.assign({}, A, { user, busy:true }); render(false);
+  try {
+    if (id === 'createform') {
+      await Cloud.flush().catch(() => {});   // this device's progress is in the cloud save before the account is made
+      const r = await Backend.account('create', { username:user, pin }, true);
+      await acctDone(r.session, `Account saved. You’re @${r.username}.`);
+      showRecovery(r.code, true);
+    } else if (id === 'loginform') {
+      const r = await Backend.account('login', { username:user, pin });
+      await acctDone(r.session);
+    } else if (id === 'recoverform') {
+      const r = await Backend.account('recover', { username:user, code, pin });
+      await acctDone(r.session, 'PIN reset. You’re signed in.');
+      showRecovery(r.code, false);
+    } else if (id === 'deviceform') {
+      const r = await Backend.account('device_use', { code });
+      await acctDone(r.session);
+    } else if (id === 'pinform') {
+      await Backend.account('change_pin', { pin_old:val('#pinold'), pin_new:val('#pinnew') }, true);
+      App.acct = { step:'create', panel:'', busy:false }; toast('PIN changed.'); render(false);
+    } else if (id === 'newcodeform') {
+      const r = await Backend.account('new_code', { pin:val('#pincheck') }, true);
+      App.acct = { step:'create', panel:'', busy:false }; render(false); showRecovery(r.code, false);
+    }
+  } catch(e) {
+    App.acct = Object.assign({}, App.acct, { busy:false }); render(false);
+    toast(e.message || 'Something went wrong. Try again.', 4500);
+    const el = $('#acctpin') || $('#pinold') || $('#pincheck') || $('#devcodein'); if (el) { el.value = ''; el.focus(); }
+  }
+}
+async function acctDeviceCode(){
+  App.acct = Object.assign({}, App.acct, { busy:true }); render(false);
+  try { const r = await Backend.account('device_code', {}, true); App.acct = { step:'create', panel:'device', devCode:r.code, busy:false }; }
+  catch(e){ App.acct = Object.assign({}, App.acct, { busy:false }); toast(e.message, 4000); }
+  render(false);
+}
+// Sign out of this device: the account keeps everything; this device starts again as a new guest
+async function acctSignOut(){
+  try { await Cloud.flush(); } catch(e){}
+  try { await Backend.rest('POST', '/auth/v1/logout?scope=local', {}); } catch(e){}
+  if (Habit.pushSub) { try { await Habit.pushSub.unsubscribe(); } catch(e){} }
+  await Store.wipe(); location.replace(location.pathname);
+}
+// Delete everything: tap once to arm, again to confirm
+async function acctDelete(el){
+  if (!App.delArm) { App.delArm = true; render(false); setTimeout(() => { App.delArm = false; if (App.view === 'settings') render(false); }, 8000); return; }
+  App.delArm = false; el.disabled = true;
+  try {
+    if (Backend.on && !DEV.on) {
+      if (Habit.pushSub) { try { await Backend.rpc('delete_push', { p_endpoint: Habit.pushSub.endpoint }); await Habit.pushSub.unsubscribe(); } catch(e){} }
+      await Backend.rpc('delete_my_account', {});
+    }
+  } catch(e) { el.disabled = false; return toast('Couldn’t delete your account: ' + e.message, 5000); }
+  await Store.wipe();
+  toast('Your account and data have been deleted.', 4000);
+  setTimeout(() => location.replace(location.pathname), 1200);
+}
+// Everything we hold: the server copy (account, results, leagues, purchases) plus what's on this device
+async function exportData(){
+  let server = null;
+  if (Backend.on && !DEV.on) { try { server = await Backend.rpc('export_my_data', {}); } catch(e){ toast('Couldn’t reach the server, so this export only has what’s on this device.', 4500); } }
+  const out = JSON.stringify({ exported_at: new Date().toISOString(), about: 'Your DIAL IN data. "server" is what we hold; "this_device" is what this browser stores.', server, this_device: S }, null, 2);
+  try {
+    const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(out);
+    a.download = 'dial-in-my-data.json'; document.body.appendChild(a); a.click(); a.remove();
+    toast('Your data has been downloaded.');
+  } catch(e){ showCopy('YOUR DATA', out); }
+}
+async function copyText(t){ try { await navigator.clipboard.writeText(t); return true; } catch(e){ return false; } }
 function showCopy(title, text){ $('#copy-h').textContent = title; $('#copy-text').value = text; openDialog('dlg-copy'); $('#copy-text').select(); }
 
 /* ---- Events ---- */
@@ -6125,7 +6347,13 @@ function onClick(e){
     case 'rank': loadRank(true); break;
     case 'pinstart': App.pinGo = true; render(); break;
     case 'pinlaunch': fireAllPin(); break;
-    case 'acctback': App.acct = { step:'email', email:App.acct.email, type:'', busy:false }; render(false); break;
+    case 'acctstep': App.acct = { step:el.dataset.s, email:App.acct.email || '', user:($('#acctuser') && $('#acctuser').value.trim()) || App.acct.user || '', type:'', busy:false }; render(false); focusEmailBox(); break;
+    case 'acctpanel': App.acct = Object.assign({}, App.acct, { panel:el.dataset.p, busy:false }); render(false); { const f = $('#pinold') || $('#pincheck'); if (f) f.focus(); } break;
+    case 'acctgo': { const was = Store.get(CONFIG.STORAGE_KEY + ':was'); App.acct = { step: !Backend.email && was && was !== 'email' ? 'login' : 'create', user: was && !['email','lost'].includes(was) ? was : '', busy:false }; App.afterEmail = 'acct'; go('settings'); loadFriendNames(); break; }
+    case 'acctdevice': acctDeviceCode(); break;
+    case 'acctsignout': acctSignOut(); break;
+    case 'acctdelete': acctDelete(el); break;
+    case 'reccopy': copyText($('#rec-code').textContent).then(ok => toast(ok ? 'Recovery code copied.' : 'Couldn’t copy. Write it down or take a screenshot.')); break;
     case 'acctcheck': Backend.loadUser().then(e => e ? finishSignIn() : toast('Not confirmed on this device yet. Type the code from the email instead.', 4500)).catch(err => toast('Couldn’t check: ' + err.message)); break;
     case 'shareRun': share(shareRunText()); break;
     case 'endless': App.endFresh = false; if (S.run && S.run.over) S.run = null; go('endless'); break;
@@ -6161,7 +6389,7 @@ function onClick(e){
     case 'lgemail': closeDialog('dlg-league'); App.afterEmail = 'league'; go('settings'); loadFriendNames(); break;
     case 'lgplayfirst': closeDialog('dlg-league'); go('home'); break;
     case 'rmfriend': S.friends = S.friends.filter(c => c !== el.dataset.code); save(); render(false); break;
-    case 'export': showCopy('YOUR DATA', JSON.stringify(S, null, 2)); break;
+    case 'export': exportData(); break;
     case 'copysave': showCopy('YOUR SAVE CODE', saveCode()); break;
     case 'restore': $('#restore-text').value = ''; openDialog('dlg-restore'); break;
     case 'sound': S.sound = S.sound === false; save(); if (S.sound) { Sfx.init(); Sfx.land(750); } render(false); break;
@@ -6254,10 +6482,11 @@ async function onSubmit(e){
     S.friends.push(c);
     save(); toast(name ? `${name} added as a friend.` : 'Friend added.'); render(false); return;
   }
+  if (['createform','loginform','recoverform','deviceform','pinform','newcodeform'].includes(f.id)) return acctForm(f.id);
   if (f.id === 'acctform') {
     const email = $('#acctemail').value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast('Enter a valid email address.');
-    App.acct = { step:'email', email, type:'', busy:true }; render(false);
+    App.acct = { step:'email', email, type:'', busy:true }; render(false);   // moving an old email profile across
     try { const type = await Backend.sendCode(email); App.acct = { step:'code', email, type, busy:false }; }
     catch(err) { App.acct.busy = false; toast(/rate limit|security purposes|seconds/i.test(err.message) ? 'Too many emails just now. Wait a minute, then try again.' : /is invalid/i.test(err.message) ? 'That email address doesn’t look right. Check it and try again.' : 'Couldn’t send the email: ' + err.message, 4500); }
     render(false); if ($('#otp')) $('#otp').focus();
@@ -6312,7 +6541,7 @@ async function boot(){
   { const m = /[?&]c=([^&#]+)/.exec(location.search);
     if (m) { let t = m[1]; try { t = decodeURIComponent(t.replace(/\+/g, ' ')); } catch(e){} App.pendingChal = parseChallenge(t); try { history.replaceState(null, '', location.pathname); } catch(e){} } }
   const hashNote = Backend.on ? Backend.takeHash() : '';
-  if (Backend.on) Backend.email = Store.get(CONFIG.STORAGE_KEY + ':email') || '';
+  if (Backend.on) { Backend.email = Store.get(CONFIG.STORAGE_KEY + ':email') || ''; Backend.acct = Store.get(CONFIG.STORAGE_KEY + ':acct') || ''; }
   if (hashNote) setTimeout(() => toast(hashNote, 5000), 600);
   Theme.apply();
   document.addEventListener('click', onClick);
@@ -6341,7 +6570,7 @@ async function boot(){
   setInterval(tick, 1000);
   // Online and claude.ai features light up once they connect
   await Cloud.init();
-  if (Backend.on) { const had = Backend.email; await Backend.loadUser().catch(() => {}); if (had !== Backend.email) render(false); }
+  if (Backend.on) { const had = Backend.email + '|' + Backend.acct; await Backend.loadUser().catch(() => {}); if (had !== Backend.email + '|' + Backend.acct || App.signedOutAs) render(false); }
   if (Cloud.kind) {
     const remote = await Cloud.load();
     if (remote) { const before = JSON.stringify(S); S = sanitize(mergeStates(S, remote)); if (JSON.stringify(S) !== before) { Store.write(S); if (!['play','endless'].includes(App.view) || !keyTarget()) render(false); } }
@@ -6359,7 +6588,7 @@ async function boot(){
   if (App.view === 'battle' || App.view === 'home') render(false);
   if (Backend.on) { Backend.sync().catch(() => {}); confirmPurchase(false); }
   if (Backend.on && App.showInvite) { App.showInvite = false; showLeagueInvite(); }
-  else if (Backend.on && Backend.email && pendingLeague()) joinLeague(pendingLeague().code, true);   // an older invite still waiting (from before leagues needed no email)
+  else if (Backend.on && Backend.member && pendingLeague()) joinLeague(pendingLeague().code, true);   // an older invite still waiting (from before leagues needed no email)
   // installable + offline play on a hosted site
   if ('serviceWorker' in navigator && location.protocol === 'https:' && window.top === window) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
