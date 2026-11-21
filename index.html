@@ -181,6 +181,9 @@ h1,h2,h3{margin:0;font-weight:normal}
 .logo{font:var(--fw-d) var(--fs-logo)/1.1 var(--font-display);letter-spacing:2px;text-shadow:var(--logo-ts);text-wrap:balance;text-transform:var(--tt)}
 .logo span{color:var(--brand-2)}
 .tagline{margin:12px auto 0;color:var(--text-2);max-width:32ch}
+/* short phones (iPhone SE and similar): a smaller welcome so the game list starts higher */
+@media (max-height:700px){.hero{padding:0}.hero .mascot{width:60px;height:60px;margin-bottom:4px}.hero .mascot svg{width:60px;height:60px}.hero .logo{font-size:clamp(34px,11vw,44px)}.hero .tagline{margin-top:6px;font-size:15px}}
+@media (max-height:700px){.dlg{padding:14px}.dlg .perks li{margin:3px 0}}
 .minis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .mini{padding:12px 6px;text-align:center}
 .mini b{display:block;font:var(--fw-d) var(--fs-num)/1.2 var(--font-num);margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
@@ -295,8 +298,8 @@ h1,h2,h3{margin:0;font-weight:normal}
 main.playing{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
 .hud{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .hud .label b{color:var(--text)}
-.pips{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.pip{width:100%;height:38px;border:0;cursor:pointer;background:var(--pip-bg);font:var(--fw-d) var(--fs-pip) var(--font-num);color:var(--pip-text);border-radius:var(--r-sm);box-shadow:var(--sh-pip);touch-action:manipulation;transition:background var(--dur-2)}
+.pips{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(4px,1.4vw,6px)}
+.pip{width:100%;height:44px;border:0;cursor:pointer;background:var(--pip-bg);font:var(--fw-d) var(--fs-pip) var(--font-num);color:var(--pip-text);border-radius:var(--r-sm);box-shadow:var(--sh-pip);touch-action:manipulation;transition:background var(--dur-2)}
 .pip[aria-current="step"]{outline:3px solid var(--text);outline-offset:2px;color:var(--text)}
 /* pips draw at 38px but take taps across a 44px band */
 .pip,.tab{position:relative}
@@ -517,7 +520,7 @@ dialog::backdrop{background:var(--scrim)}
 .scoretable{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 12px}
 .scoretable td{padding:6px 8px;background:var(--inset);border-bottom:2px solid var(--surface)}
 .scoretable td:last-child{text-align:right;font:var(--fw-d) var(--fs-label) var(--font-num)}
-.dlg textarea{width:100%;min-height:150px;background:var(--inset);border:0;padding:10px;font:14px ui-monospace,Menlo,monospace;border-radius:var(--r-sm)}
+.dlg textarea{width:100%;min-height:150px;background:var(--inset);border:0;padding:10px;font:16px ui-monospace,Menlo,monospace;border-radius:var(--r-sm)}   /* 16px: smaller makes iPhones zoom in */
 .perks{margin:0 0 14px;padding-left:20px}
 .perks li+li{margin-top:6px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;max-width:calc(100vw - 32px);
@@ -711,7 +714,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 
 /* ---------- 17. Responsive + motion preferences ---------- */
 @media (min-width:600px){ main{padding-block-start:24px} .statgrid{grid-template-columns:repeat(3,1fr)} }
-@media (max-height:640px){ .qtext{font-size:16px} .pip{height:32px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
+@media (max-height:640px){ .qtext{font-size:16px} .pip{height:40px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
 </style>
