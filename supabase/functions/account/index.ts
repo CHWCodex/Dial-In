@@ -9,7 +9,9 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" };
 const DOMAIN = "accounts.playdialin.com";
-const ORIGINS = [/^https:\/\/(www\.)?playdialin\.com$/, /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/];
+// Every address the game is reachable at: the site (with or without www, http or https), Cloudflare's own
+// workers.dev address, and local testing. A page at any other address can't use the account function.
+const ORIGINS = [/^https?:\/\/(www\.)?playdialin\.com$/, /^https:\/\/dial-in\.charliehiltonwest\.workers\.dev$/, /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/];
 const RESERVED = new Set(["admin", "administrator", "dialin", "dial_in", "support", "help", "moderator", "mod", "staff", "official", "system", "root", "null", "undefined", "player", "guest", "playdialin"]);
 const enc = new TextEncoder();
 
