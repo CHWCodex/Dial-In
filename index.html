@@ -2721,9 +2721,14 @@ const Backend = {
     this.sess = { access_token:d.access_token, refresh_token:d.refresh_token, expires_at: Math.floor(Date.now()/1000) + (Number(d.expires_in) || 3600), user_id: d.user && d.user.id };
     Store.set(CONFIG.STORAGE_KEY + ':auth', this.sess);
   },
-  async auth(){
+  // Several calls can need the session at once: only one of them renews it (a refresh token used twice can sign the device out)
+  auth(){
     if (!this.sess) { const s = Store.get(CONFIG.STORAGE_KEY + ':auth'); if (s && s.access_token) this.sess = s; }
-    if (this.sess && this.sess.expires_at - 60 > Date.now()/1000) return;
+    if (this.sess && this.sess.expires_at - 60 > Date.now()/1000) return Promise.resolve();
+    if (!this._authing) this._authing = this.renew().finally(() => { this._authing = null; });
+    return this._authing;
+  },
+  async renew(){
     if (this.sess && this.sess.refresh_token) {
       try { this.keep(await this.rest('POST', '/auth/v1/token?grant_type=refresh_token', { refresh_token:this.sess.refresh_token }, {}, false)); return; }
       catch(e) { this.sess = null; }
@@ -2768,18 +2773,19 @@ const Backend = {
   },
   // Who this device is signed in as: a saved account (username), an old email profile, or a guest.
   async loadUser(){
-    let u;
+    const status = () => this.rpc('my_board_status', { p_date: App.today || DateUK.today() }).then(r => (Array.isArray(r) ? r[0] : r) || null).catch(() => null);
+    let u, st = status();   // asked at the same time as "who am I"
     try { u = await this.rest('GET', '/auth/v1/user'); }
     catch(e) {
       // the sign-in was ended elsewhere (e.g. the PIN was set on another phone) while this device's pass was still valid:
       // refresh now, which falls back to a guest and asks the player to sign back in
       if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message) || !this.sess) throw e;
       this.sess.expires_at = 0; await this.auth();
-      u = await this.rest('GET', '/auth/v1/user');
+      u = await this.rest('GET', '/auth/v1/user'); st = status();   // the earlier answer was for the old sign-in
     }
     this.email = u && !u.is_anonymous && u.email && !u.email.endsWith(ACCT_DOMAIN) && (u.email_confirmed_at || u.confirmed_at) ? u.email : '';
     Store.set(CONFIG.STORAGE_KEY + ':email', this.email);
-    try { const r = await this.rpc('my_board_status', { p_date: App.today || DateUK.today() }); this.status = (Array.isArray(r) ? r[0] : r) || null; } catch(e){}
+    const row = await st; if (row) this.status = row;
     this.acct = (this.status && this.status.username) || '';
     Store.set(CONFIG.STORAGE_KEY + ':acct', this.acct);
     if (this.acct || this.email) Store.set(CONFIG.STORAGE_KEY + ':was', this.acct || 'email');
@@ -2794,13 +2800,23 @@ const Backend = {
     this.profile = null; this.nameSent = '';
     await this.loadUser(); return this.email || this.acct;
   },
+  // A finished daily (today or yesterday) this account hasn't posted yet
+  needsPost(){
+    const uid = this.sess && this.sess.user_id;
+    return [DateUK.add(App.today, -1), App.today].some(d => { const day = S.days[d]; return day && day.done && pinDone(day) && !(day.syncedBy === uid || (day.synced && !day.syncedBy && this.email)); });
+  },
   async sync(){
     if (!this.on || DEV.on) return;
     const name = displayName();
     if (this.nameSent !== name) {
-      const r = await this.rpc('set_display_name', { p_name: name });
-      const row = Array.isArray(r) ? r[0] : r;
-      if (row) this.profile = { name: row.out_name, code: row.out_code };
+      // the server already has this name for this player (from an earlier visit): no need to send it again
+      await this.auth(); const who = (this.sess && this.sess.user_id) + '|' + name, known = Store.get(CONFIG.STORAGE_KEY + ':named');
+      if (known && known.who === who && known.code) { if (!this.profile) this.profile = { name, code: known.code }; }
+      else {
+        const r = await this.rpc('set_display_name', { p_name: name });
+        const row = Array.isArray(r) ? r[0] : r;
+        if (row) { this.profile = { name: row.out_name, code: row.out_code }; Store.set(CONFIG.STORAGE_KEY + ':named', { who, code: row.out_code }); }
+      }
       this.nameSent = name;
     }
     // today's result, plus yesterday's if it was finished just before midnight and never got posted
@@ -5761,13 +5777,15 @@ async function loadBoard(){
   const token = ++App.boardToken, el = $('#board-body'), kind = boardKind();
   el.innerHTML = '<p class="empty">Loading…</p>';
   try {
-    await Backend.sync();
-    try { const st = await Backend.rpc('my_board_status', { p_date: App.today }); const row = Array.isArray(st) ? st[0] : st; if (row) { const was = JSON.stringify(Backend.status); Backend.status = row; if (was !== JSON.stringify(row) && App.view === 'board') { const n = document.querySelector('.boardnote'), h = boardStatusHTML(kind); if (n) n.outerHTML = h || ''; else if (h) el.insertAdjacentHTML('beforebegin', h); } } } catch(e){}
+    if (Backend.needsPost()) await Backend.sync(); else Backend.sync().catch(() => {});   // nothing new to post: don't wait for it
     if (token !== App.boardToken || App.view !== 'board') return;
     if (BOARDS[kind].friends && !S.friends.length) { el.innerHTML = noFriendsState(); return; }
+    const statusP = Backend.rpc('my_board_status', { p_date: App.today }).catch(() => null);
     const rows = !BOARDS[kind].friends ? await boardPage(kind, 0)
       : kind === 'fdaily' ? await Backend.rpc('get_friends_leaderboard', { p_date: App.today, p_codes: S.friends })
       : await Backend.rpc('get_friends_alltime_leaderboard', { p_codes: S.friends });
+    statusP.then(st => { const row = Array.isArray(st) ? st[0] : st; if (!row || App.view !== 'board') return; const was = JSON.stringify(Backend.status); Backend.status = row;
+      if (was !== JSON.stringify(row)) { const n = document.querySelector('.boardnote'), h = boardStatusHTML(kind); if (n) n.outerHTML = h || ''; else if (h) el.insertAdjacentHTML('beforebegin', h); } });
     if (token !== App.boardToken || App.view !== 'board') return;
     const me = Backend.sess && Backend.sess.user_id;
     if (!rows || !rows.length) el.innerHTML = emptyState(
