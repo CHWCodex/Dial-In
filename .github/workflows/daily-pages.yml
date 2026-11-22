@@ -1,4 +1,4 @@
-# Every night just after midnight UK time, adds yesterday's puzzle to /past-puzzles and refreshes the sitemap.
+# Every night just after midnight UK time, adds yesterday's puzzle to /past-puzzles and its own /dial-in-answers-N page and refreshes the sitemap.
 # Cloudflare Pages redeploys automatically when this pushes to main.
 name: Daily search pages
 on:
@@ -20,8 +20,9 @@ jobs:
       - run: node scripts/build-seo-pages.mjs
       - name: Commit if anything changed
         run: |
-          if git diff --quiet; then echo "No changes"; exit 0; fi
+          if [ -z "$(git status --porcelain)" ]; then echo "No changes"; exit 0; fi
           git config user.name "dialin-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Daily: update past puzzles and sitemap"
+          git add -A
+          git commit -m "Daily: update past puzzles, answer pages and sitemap"
           git push

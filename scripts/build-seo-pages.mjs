@@ -69,6 +69,7 @@ summary{cursor:pointer;color:var(--link);font-weight:700}
 .a b{color:var(--gold)}
 .pz{background:var(--surface);border-radius:14px;padding:14px 16px;margin:16px 0}
 .pz h2{margin:0 0 4px;font-size:19px}
+.pz h2 a{color:inherit}
 .nav{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:32px}
 </style>
 </head>
@@ -96,22 +97,43 @@ const qaLD = (qs, name) => ({ '@context':'https://schema.org', '@type':'Quiz', n
   hasPart: qs.map(q => ({ '@type':'Question', name:q.question, eduQuestionType:'Flashcard', acceptedAnswer:{ '@type':'Answer', text:`${ans(q)}. ${q.explanation}` } })) });
 
 // ---- Past puzzles: every finished daily puzzle, newest first
+const answersPath = no => `/dial-in-answers-${no}`;
 const past = [];
 for (let no = todayNo - 1; no >= 1; no--) past.push(no);
 const pastBody = past.length ? past.map(no => `  <section class="pz" id="puzzle-${no}">
-    <h2>DIAL IN #${no} · ${esc(pretty(dateOf(no)))}</h2>
+    <h2><a href="${answersPath(no).slice(1)}">DIAL IN #${no}</a> · ${esc(pretty(dateOf(no)))}</h2>
     <ol class="qs">
 ${puzzle(no).map(q => qItem(q)).join('\n')}
     </ol>
   </section>`).join('\n') : '  <p>The first puzzle is still running. Check back tomorrow.</p>';
+const latest = past[0];
 writeFileSync('past-puzzles.html', page({
   path:'/past-puzzles',
-  title:'DIAL IN Answers – Past Daily Puzzles and Solutions',
-  description:`Answers to every past DIAL IN daily puzzle${past.length ? `, up to #${past[0]}` : ''}: all seven number trivia questions with the right answers and explanations.`,
-  h1:'Past puzzles and answers',
-  lede:`Missed a day, or want to check an answer? Here’s every finished DIAL IN puzzle with the answers. Today’s puzzle (#${todayNo}) stays hidden until it ends at midnight UK time, so go and play it first.`,
+  title:'Dial In Answers – Yesterday’s DIAL IN Answers and Every Past Puzzle',
+  description:`Dial In answers for every finished DIAL IN daily puzzle${latest ? `, including yesterday’s #${latest}` : ''}: all seven number trivia questions with the right answers and explanations.`,
+  h1:'Dial In answers: every past puzzle',
+  lede:`Missed a day, or want to check an answer? Here’s every finished DIAL IN puzzle with the answers${latest ? `, newest first. <a href="${answersPath(latest).slice(1)}">Yesterday’s answers (#${latest})</a> are at the top` : ''}. Today’s puzzle (#${todayNo}) stays hidden until it ends at midnight UK time, so go and play it first.`,
   body: cta('Today’s seven questions are waiting. Can you dial in?') + pastBody + '\n' + cta()
 }));
+
+// ---- One answers page per finished puzzle (/dial-in-answers-27): what people search for after playing
+for (const no of past) {
+  const qs = puzzle(no), when = pretty(dateOf(no));
+  const near = [no + 1, no - 1].filter(n => n >= 1 && n < todayNo);
+  writeFileSync(`dial-in-answers-${no}.html`, page({
+    path: answersPath(no),
+    title:`Dial In #${no} Answers – ${when} | DIAL IN`,
+    description:`All seven answers to DIAL IN #${no} (${when}), the daily number trivia game, with explanations: ${qs.slice(0, 2).map(q => q.question).join(' ')}`,
+    h1:`Dial In #${no} answers`,
+    lede:`The answers to DIAL IN daily puzzle #${no}, played on ${esc(when)}. Tap a question to reveal its answer. Today’s puzzle is #${todayNo}: its answers appear here after midnight UK time.`,
+    ld:[qaLD(qs, `DIAL IN #${no} answers`)],
+    body: cta('Play today’s DIAL IN before you look at any more answers.') + `  <ol class="qs">
+${qs.map(q => qItem(q)).join('\n')}
+  </ol>
+  <p class="muted">${near.map(n => `<a href="${answersPath(n).slice(1)}">Dial In #${n} answers</a>`).join(' · ')}${near.length ? ' · ' : ''}<a href="past-puzzles">All past answers</a></p>
+` + cta()
+  }));
+}
 
 // ---- Number trivia questions: a fixed set from the earliest puzzles, grouped by category
 const pool = []; for (let no = 1; no <= Math.min(10, todayNo - 1); no++) pool.push(...puzzle(no));
@@ -178,7 +200,7 @@ ${sampleQs.map(q => qItem(q)).join('\n')}
 const urls = [['/', 'daily'], ['/how-to-play', 'monthly'], ['/past-puzzles', 'daily'], ['/number-trivia-questions', 'monthly'], ['/estimation-game', 'monthly'], ['/terms', 'yearly'], ['/privacy', 'yearly']];
 writeFileSync('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(([u, f]) => `  <url><loc>${SITE}${u}</loc>${u === '/past-puzzles' || u === '/' ? `<lastmod>${today}</lastmod>` : ''}<changefreq>${f}</changefreq></url>`).join('\n')}
+${[...urls, ...past.map(no => [answersPath(no), 'yearly'])].map(([u, f]) => `  <url><loc>${SITE}${u}</loc>${u === '/past-puzzles' || u === '/' ? `<lastmod>${today}</lastmod>` : ''}<changefreq>${f}</changefreq></url>`).join('\n')}
 </urlset>
 `);
 console.log(`Built pages for ${today} (puzzle #${todayNo}): ${past.length} past puzzles, ${triviaQs.length} trivia questions, ${sampleQs.length} estimation samples.`);
