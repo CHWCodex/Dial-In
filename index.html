@@ -244,6 +244,8 @@ button.fct-half:focus-visible{outline:3px solid var(--gold);outline-offset:-7px}
 .fc-tbar{margin-top:6px} .fc-tsec{margin:4px 0 0}
 .fc-verdict{text-align:center;font:400 26px/1.1 var(--font-logo);margin:6px 0 2px}
 .fc-verdict.ok{color:var(--fc-t)} .fc-verdict.no{color:var(--fc-f)} .fc-verdict b{color:var(--gold)}
+/* the verdict takes the answer's colour (green TRUE, pink FALSE) so it matches the dial and "The truth" below */
+.fc-verdict.ans-t{color:var(--fc-t)} .fc-verdict.ans-f{color:var(--fc-f)}
 .fc-verdict.pop{animation:ptsBoom .6s var(--e-pop) both}
 .fc-why b.t{color:var(--fc-t)} .fc-why b.f{color:var(--fc-f)}
 .pip.done.fc-ok{--tc:var(--fc-t);--tco:#1a0833;background:var(--fc-t);color:#1a0833} .pip.done.fc-no{--tc:var(--fc-f);--tco:#1a0833;background:var(--fc-f);color:#1a0833}
@@ -4307,7 +4309,7 @@ function viewFactPlay(){
       return `<li><button class="pip ${x ? 'done ' + (x.ok ? 'fc-ok' : 'fc-no') : ''}" data-act="factq" data-i="${k}" ${k === App.fcur ? 'aria-current="step"' : ''} ${can ? '' : 'disabled'} aria-label="Claim ${k + 1}${x ? (x.ok ? ', right' : ', wrong') : ''}">${x ? (x.ok ? '✓' : '✗') : k + 1}</button></li>`; }).join('')}</ol>`; }
   const body = !a
     ? `<div class="tbar fc-tbar" aria-hidden="true"><i id="tfill"></i></div><p class="center small muted fc-tsec"><span id="tsec"></span></p>${factTapHint}`
-    : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
+    : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${f.truth ? 'ans-t' : 'ans-f'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
        <div class="fc-truth ${f.truth ? 't' : 'f'} ${fresh ? 'pop' : ''}"><span class="ft-label">The truth</span><b class="ft-word">${f.truth ? 'TRUE' : 'FALSE'}</b><p class="ft-why">${esc(f.explanation)}</p></div>
        <button class="btn btn-mint btn-block btn-xl next" data-act="factnext" id="nextbtn">${run ? (run.lives <= 0 ? 'See my run' : 'Next claim →') : cur.day.done ? 'See my results' : 'Next claim →'}</button>`;
   return `<section class="play fc">
