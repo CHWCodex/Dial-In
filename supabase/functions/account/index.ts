@@ -126,6 +126,7 @@ Deno.serve(async (req: Request) => {
         const m = String((e as Error).message);
         if (/pin_accounts_username|duplicate key.*username/i.test(m)) throw new Fail("taken", "That username is taken. Try another.");
         if (/pin_accounts_pkey/i.test(m)) throw new Fail("exists", "This profile already has an account.");
+        if (/name_not_allowed/i.test(m)) throw new Fail("username", "That username isn't allowed. Try another.");
         throw e;
       }
       try { await setLogin(u.id); }
