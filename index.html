@@ -2499,6 +2499,26 @@ function uid(){
   return Array.from(b, x => x.toString(16).padStart(2,'0')).join('').replace(/(.{8})(.{4})(.{4})(.{4})/, '$1-$2-$3-$4-');
 }
 const cleanName = s => String(s || '').replace(/[^A-Za-z0-9 _.\-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 16);
+// Name filter. Same lists and rules as public.name_ok on the server (supabase/migrations/20261123000000_name_filter.sql):
+// keep the two in step. Digits read as letters (0=o 1=i 3=e ...), symbols and spaces ignored, repeated letters collapsed.
+const NAME_BLOCK = {
+  anywhere: ['nigg','niga','nigl','nigr','nigur','niglet','fuck','fuk','fck','cunt','faggot','fagot','fagg','wank','whore','slut',
+    'bitch','shit','bastard','bollock','bolock','twat','cocksuck','dickhead','dickass','dicksuck','pussy','penis','vagina','dildo','porn','jizz','cumshot',
+    'rimjob','blowjob','handjob','boob','asshole','arsehole','piss','retard','spastic','spaz','paedo','pedophile','paedophile','molest',
+    'hitler','jigaboo','wetback','kike','chink','raghead','towelhead','pikey','tranny','golliwog','darkie','beaner','killyourself','lamicstate'],
+  whole: ['ass','arse','cock','dick','dih','tit','tits','cum','sex','anal','anus','prick','rape','nonce','coon','paki',
+    'gook','spic','dyke','wog','sambo','gyppo','gypo','mongo','nazi','nazis','negro','negros','rapist','kys','jew','jews','hoe','hoes','fag','fags','nig','nigs']
+};
+function nameOk(s){
+  const lo = String(s || '').toLowerCase().replace(/[0-9]/g, d => 'oieasgtbg'['013456789'.indexOf(d)] || ''), squash = t => t.replace(/(.)\1+/g, '$1');
+  const j = lo.replace(/[^a-z]/g, ''), c = squash(j);
+  if (!j) return true;
+  if (NAME_BLOCK.anywhere.some(w => j.includes(w) || c.includes(w))) return false;
+  return !lo.replace(/[^a-z]+/g, ' ').trim().split(' ').some(w => NAME_BLOCK.whole.includes(w) || NAME_BLOCK.whole.includes(squash(w)));
+}
+const NAME_NOT_OK = 'That name isn’t allowed on DIAL IN. Please pick another.';
+// Names from other players (battles, challenges): anything blocked shows as a plain fallback
+const shownName = (s, fallback) => { const n = cleanName(s); return n && nameOk(n) ? n : fallback; };
 const NAME_A = ['Lucky','Sneaky','Mighty','Cosmic','Turbo','Sunny','Rapid','Clever','Brave','Jolly','Pixel','Nifty','Wild','Zippy','Quiet','Bold'];
 const NAME_B = ['Pigeon','Otter','Comet','Badger','Falcon','Panda','Rocket','Walrus','Gecko','Moose','Robin','Yeti','Kraken','Wombat','Puffin','Lynx'];
 const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*16)] + ' ' + NAME_B[Math.floor(r()*16)] + ' ' + (10 + Math.floor(r()*90)); };
@@ -2814,15 +2834,21 @@ const Backend = {
     if (!this.on || DEV.on) return;
     const name = displayName();
     if (this.nameSent !== name) {
+      let sent = name;
       // the server already has this name for this player (from an earlier visit): no need to send it again
       await this.auth(); const who = (this.sess && this.sess.user_id) + '|' + name, known = Store.get(CONFIG.STORAGE_KEY + ':named');
-      if (known && known.who === who && known.code) { if (!this.profile) this.profile = { name, code: known.code }; }
+      if (known && known.who === who && known.code && nameOk(name)) { if (!this.profile) this.profile = { name, code: known.code }; }
       else {
         const r = await this.rpc('set_display_name', { p_name: name });
         const row = Array.isArray(r) ? r[0] : r;
-        if (row) { this.profile = { name: row.out_name, code: row.out_code }; Store.set(CONFIG.STORAGE_KEY + ':named', { who, code: row.out_code }); }
+        if (row) {
+          this.profile = { name: row.out_name, code: row.out_code };
+          // the server refused this name (blocked word): use the name it kept, on this device too
+          if (row.out_name && row.out_name !== name && !nameOk(name)) { S.player.name = sent = row.out_name; save(); }
+          Store.set(CONFIG.STORAGE_KEY + ':named', { who: (this.sess && this.sess.user_id) + '|' + sent, code: row.out_code });
+        }
       }
-      this.nameSent = name;
+      this.nameSent = sent;
     }
     // today's result, plus yesterday's if it was finished just before midnight and never got posted
     // Everyone posts (guests appear only in their leagues; public boards are for saved accounts, on the server).
@@ -3007,7 +3033,7 @@ const MP = {
     if (!inRoster && room.status !== 'lobby') {
       // Opened the link in another app or browser? Take back your own seat (same name, and that seat has gone quiet)
       const docs = {}; try { for (const p of room.roster) docs[p.id] = await Net.t.get(`rooms/${code}/players/${p.id}`); } catch(e){}
-      const mineByName = room.roster.filter(p => p.name === cleanName(displayName()));
+      const mineByName = room.roster.filter(p => p.name === shownName(displayName(), 'Player'));
       const seat = mineByName.find(p => !fresh(docs[p.id])) || mineByName[0];   // the room hands it over once the old one goes quiet
       if (!seat) throw new Error('That battle has already started. Ask for a rematch to get in.');
       claim = seat.id;
@@ -3168,9 +3194,9 @@ const MP = {
       Object.values(P).filter(p => p && !seated.has(p.id) && !p.claim && (fresh(p) || !p.at)).sort((a, b) => a.joined - b.joined).forEach(p => {
         if (R.roster.length >= R.settings.max) return;
         const used = new Set(R.roster.map(x => x.col)); let col = 0; while (used.has(col)) col++;
-        R.roster.push({ id:p.id, name:cleanName(p.name) || 'Player', lives:R.settings.lives, col, out:0 });
+        R.roster.push({ id:p.id, name:shownName(p.name, 'Player'), lives:R.settings.lives, col, out:0 });
       });
-      R.roster.forEach(p => { if (P[p.id] && P[p.id].name && cleanName(P[p.id].name) !== p.name) p.name = cleanName(P[p.id].name); });
+      R.roster.forEach(p => { if (P[p.id] && P[p.id].name && shownName(P[p.id].name, 'Player') !== p.name) p.name = shownName(P[p.id].name, 'Player'); });
       changed = changed || JSON.stringify(R.roster) !== before;
     }
     // Mid-game: anyone who has left the room is out (only players we've actually seen connected, so a slow load can't knock people out)
@@ -4551,7 +4577,7 @@ const TIER_COLS = { 1000:'#ffd23f', 900:'#7dff6a', 750:'#2fe0a8', 600:'#4de1ff',
 function cleanChallenge(c){
   if (!c || typeof c !== 'object' || !Array.isArray(c.pts) || c.pts.length !== 7 || !c.pts.every(x => TIERS.includes(x))) return null;
   const balls = c.pts.reduce((t, x) => t + (BALLS_FOR[x] || 0), 0);
-  return { name: cleanName(c.name) || 'A friend', pts: c.pts.slice(), bonus: Math.max(0, Math.min(balls * PIN_MAX_PER_BALL, Math.round(Number(c.bonus) || 0))), at: Number(c.at) || 0 };
+  return { name: shownName(c.name, 'A friend'), pts: c.pts.slice(), bonus: Math.max(0, Math.min(balls * PIN_MAX_PER_BALL, Math.round(Number(c.bonus) || 0))), at: Number(c.at) || 0 };
 }
 function parseChallenge(token){
   const m = /^(\d{1,5})-([0-6]{7})-(\d{1,5})-(.{1,40})$/.exec(String(token || '')); if (!m) return null;
@@ -6316,6 +6342,7 @@ async function acctForm(id){
   const A = App.acct, val = sel => ($(sel) && $(sel).value || '').trim();
   const user = val('#acctuser').toLowerCase().replace(/^@/, ''), pin = val('#acctpin'), pin2 = val('#acctpin2');
   if (['createform','loginform','recoverform'].includes(id) && !/^[a-z0-9_]{3,16}$/.test(user)) return toast('Usernames are 3 to 16 letters, numbers or underscores.', 3500);
+  if (id === 'createform' && !nameOk(user)) return toast('That username isn’t allowed. Try another.', 3500);
   if (['createform','loginform','recoverform'].includes(id) && !pinOK(pin)) return toast('Your PIN is 6 digits.');
   if (['createform','recoverform'].includes(id) && pin !== pin2) return toast('The two PINs don’t match. Type them again.');
   if (id === 'pinform' && (!pinOK(val('#pinold')) || !pinOK(val('#pinnew')))) return toast('PINs are 6 digits.');
@@ -6520,7 +6547,7 @@ function onKeyDown(e){
 async function onSubmit(e){
   e.preventDefault();
   const f = e.target;
-  if (f.id === 'leaguecreate') { const n = $('#lgname').value.trim(); if (!n) { toast('Give your league a name.'); return; } createLeague(n); return; }
+  if (f.id === 'leaguecreate') { const n = $('#lgname').value.trim(); if (!n) { toast('Give your league a name.'); return; } if (!nameOk(n)) { toast('That league name isn’t allowed. Try another.', 3500); return; } createLeague(n); return; }
   if (f.id === 'leaguejoin') { const c = $('#lgcode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{6}$/.test(c)) { toast('League codes are 6 letters and numbers.'); return; } joinLeague(c); return; }
   if (f.id === 'devsearch') {
     const s = $('#devq').value.trim().toLowerCase(); if (!s) return;
@@ -6536,6 +6563,7 @@ async function onSubmit(e){
   if (f.id === 'pnameform') {
     const n = cleanName($('#pname').value) || cleanName($('#pname').placeholder);
     if (!n) return toast('Pick a name with letters or numbers.');
+    if (!nameOk(n)) return toast(NAME_NOT_OK, 3500);
     S.player.name = n; save(); Backend.nameSent = ''; closeDialog('dlg-name');
     const next = App.afterName; App.afterName = null; if (next) next(); else render(false);
     return;
@@ -6548,6 +6576,7 @@ async function onSubmit(e){
   if (f.id === 'nameform') {
     const n = cleanName($('#name').value);
     if (!n) return toast('Your name needs at least one letter or number.');
+    if (!nameOk(n)) return toast(NAME_NOT_OK, 3500);
     S.player.name = n; save(); toast(`Name saved: ${n}`);
     if (Backend.on) Backend.sync().catch(err => toast('Saved here, but couldn’t update online: ' + err.message));
     render(false); return;
