@@ -17,7 +17,7 @@ You joined DIAL IN with this email address. We're making DIAL IN simpler and mor
 
 Everything comes with you: your scores, streak, leagues, friends and DIAL IN+ if you bought it. As soon as you've done it, we delete your email address.
 
-**If you don't do it by 5 December,** we'll delete your email anyway and you'll stay signed in on the device you use. You can save a username and PIN from there whenever you like. Until you do, your scores won't show on the public leaderboards.
+**If you don't do it by 5 December,** we'll delete your email anyway and you'll stay signed in on the device you use. You can save a username and PIN from there whenever you like. Until you do, you won't get the verified tick next to your name on the leaderboards.
 
 Playing on a different device to the one you joined on? Until 5 December you can sign in there with your email one last time (Settings, then "Signed up with email before? Move it across").
 
