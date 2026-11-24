@@ -3279,8 +3279,12 @@ const Season = {
   paint(){
     const el = document.documentElement, on = this.on();
     if (on) el.dataset.season = 'xmas'; else delete el.dataset.season;
+    this.shown = on;
     Snow.sync();
-  }
+  },
+  // called every second: at midnight UK time on 1 December (and on 1 January) the look switches over
+  // straight away for anyone who has the game open, hat in the top bar included
+  check(){ if (this.on() !== this.shown) { this.paint(); paintChrome(); if (App.view === 'home') render(false); } }
 };
 
 /* Gentle snow on the calm screens (never while a question is on screen). Light on purpose: a few dozen
@@ -6755,6 +6759,7 @@ function tick(){
     if (was) { if (App.view === 'home') render(false); toast('A new daily puzzle just dropped!'); }
   }
   document.querySelectorAll('[data-countdown]').forEach(el => el.textContent = countdownText());
+  Season.check();
 }
 
 /* ---- Dev helper: generate Supabase seed SQL from this bank ----
