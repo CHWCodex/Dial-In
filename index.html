@@ -717,8 +717,10 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
 /* ---- Christmas (html[data-season="xmas"], 1–31 December or ?season=xmas): visual only ---- */
-.snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:43;opacity:0;transition:opacity .6s}
-.snow.on{opacity:1}
+.snow{position:fixed;left:0;right:0;top:0;height:100vh;pointer-events:none;z-index:43;overflow:hidden;display:none;contain:strict}
+.snow.on{display:block}
+.snow i{position:absolute;top:-12px;display:block;border-radius:50%;background:#fff;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:transform}
+
 .xmas-count{display:inline-block;margin:12px auto 0;padding:6px 14px;border-radius:999px;font-weight:700;font-size:15px;
   background:linear-gradient(90deg,rgba(232,52,78,.22),rgba(47,191,113,.22));border:2px solid rgba(255,246,229,.25);color:var(--text)}
 .xmas-count b{color:var(--gold)}
@@ -728,12 +730,17 @@ html[data-season="xmas"] .topbar::after{content:"";position:absolute;left:0;righ
   background:radial-gradient(circle at 6px 5px,#ff4d5e 0 3.2px,transparent 4px) 0 0/72px 10px,
              radial-gradient(circle at 30px 5px,#ffd23f 0 3.2px,transparent 4px) 0 0/72px 10px,
              radial-gradient(circle at 54px 5px,#2fbf71 0 3.2px,transparent 4px) 0 0/72px 10px;
-  filter:drop-shadow(0 0 4px rgba(255,210,63,.75));animation:xmasTwinkle 2.4s ease-in-out infinite}
-@keyframes xmasTwinkle{50%{filter:drop-shadow(0 0 1px rgba(255,210,63,.3));opacity:.75}}
+  will-change:opacity;animation:xmasTwinkle 2.4s ease-in-out infinite}
+/* the glow: soft halos behind the bulbs, painted once */
+html[data-season="xmas"] .topbar::before{content:"";position:absolute;left:0;right:0;bottom:-11px;height:18px;pointer-events:none;opacity:.55;
+  background:radial-gradient(circle at 6px 9px,rgba(255,77,94,.9) 0,transparent 8px) 0 0/72px 18px,
+             radial-gradient(circle at 30px 9px,rgba(255,210,63,.9) 0,transparent 8px) 0 0/72px 18px,
+             radial-gradient(circle at 54px 9px,rgba(47,191,113,.9) 0,transparent 8px) 0 0/72px 18px}
+@keyframes xmasTwinkle{50%{opacity:.6}}
 /* festive edging on the mode buttons */
 html[data-season="xmas"] .mode.m-daily{box-shadow:var(--sh-card),inset 0 0 0 2px rgba(232,52,78,.6)}
 html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px rgba(47,191,113,.6)}
-@media (prefers-reduced-motion:reduce){.snow{display:none}}
+@media (prefers-reduced-motion:reduce){.snow,.snow.on{display:none}}
 </style>
 </head>
 <body>
@@ -863,7 +870,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
-<canvas class="snow" id="snow" aria-hidden="true"></canvas>
+<div class="snow" id="snow" aria-hidden="true"></div>
 <canvas class="fx" id="fx" aria-hidden="true"></canvas>
 <div class="hype" id="hype" aria-hidden="true"></div>
 
@@ -3287,48 +3294,32 @@ const Season = {
   check(){ if (this.on() !== this.shown) { this.paint(); paintChrome(); if (App.view === 'home') render(false); } }
 };
 
-/* Gentle snow on the calm screens (never while a question is on screen). Light on purpose: a few dozen
-   flakes, about 30 frames a second, paused when the tab is hidden, off for reduce-motion. */
+/* Gentle snow on the calm screens (never while a question is on screen). Each flake is a small element moved by a
+   CSS animation, which the phone's graphics chip runs by itself: no work on the main thread, no redraws, and
+   nothing resets when the browser's toolbar shrinks or grows while scrolling. Off for reduce-motion. */
 const SNOW_VIEWS = new Set(['home', 'results', 'board', 'stats', 'settings', 'facthome', 'factres', 'archive', 'archres']);
 const Snow = {
-  cv:null, ctx:null, flakes:[], raf:0, last:0, W:0, H:0,
-  want(){ return Season.on() && !reducedMotion() && !document.hidden && SNOW_VIEWS.has(App.view); },
-  sync(){ if (this.want()) this.start(); else this.stop(); },
-  size(){
-    const cv = $('#snow'); if (!cv) return false;
-    const dpr = Math.min(2, window.devicePixelRatio || 1), W = window.innerWidth, H = window.innerHeight;
-    if (cv !== this.cv || W !== this.W || H !== this.H) {
-      this.cv = cv; this.W = W; this.H = H; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      this.ctx = cv.getContext('2d'); this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const n = W < 500 ? 32 : 50;
-      this.flakes = Array.from({ length:n }, () => this.flake(true));
+  built:false, shown:false,
+  want(){ return Season.on() && !reducedMotion() && SNOW_VIEWS.has(App.view); },
+  sync(){ const on = this.want(); if (on === this.shown) return; this.shown = on; const box = $('#snow'); if (!box) return; if (on) this.build(box); box.classList.toggle('on', on); },
+  build(box){
+    if (this.built) return; this.built = true;
+    const n = window.innerWidth < 500 ? 26 : 40; let h = '';
+    for (let i = 0; i < n; i++) {
+      const size = (2.5 + Math.random() * 4).toFixed(1), dur = (9 + Math.random() * 9).toFixed(1);
+      h += `<i style="left:${(Math.random() * 100).toFixed(1)}%;width:${size}px;height:${size}px;opacity:${(.4 + Math.random() * .5).toFixed(2)};animation-name:snowFall${i % 2};animation-duration:${dur}s;animation-delay:-${(Math.random() * dur).toFixed(1)}s"></i>`;
     }
-    return true;
+    // fall distance in plain pixels, worked out once (the tallest the screen gets, toolbar hidden), so
+    // scrolling never makes the browser recalculate the animation
+    const fall = Math.round(Math.max(window.innerHeight, (window.screen && screen.height) || 0)) + 24;
+    box.style.height = fall + 'px';
+    // one element per flake: the drift left and right is built into the fall (two mirror-image paths)
+    const kf = (k, d) => `@keyframes snowFall${k}{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(${d}px,${fall * .25}px,0)}50%{transform:translate3d(${-d}px,${fall * .5}px,0)}75%{transform:translate3d(${d}px,${fall * .75}px,0)}100%{transform:translate3d(0,${fall}px,0)}}`;
+    box.innerHTML = `<style>${kf(0, 12)}${kf(1, -12)}</style>` + h;
   },
-  flake(anywhere){ return { x:Math.random() * this.W, y:anywhere ? Math.random() * this.H : -8, r:1.2 + Math.random() * 2.6, v:18 + Math.random() * 34, sw:Math.random() * 6.3, a:.35 + Math.random() * .5 }; },
-  start(){
-    if (this.raf || !this.size()) return;
-    this.cv.classList.add('on'); this.last = performance.now();
-    const tick = now => {
-      if (!this.want()) { this.stop(); return; }
-      this.raf = requestAnimationFrame(tick);
-      if (now - this.last < 32) return;                    // about 30 frames a second is plenty for snow
-      const dt = Math.min(.08, (now - this.last) / 1000); this.last = now;
-      this.size();
-      const c = this.ctx; c.clearRect(0, 0, this.W, this.H); c.fillStyle = '#fff';
-      for (const f of this.flakes) {
-        f.y += f.v * dt; f.sw += dt * .9; f.x += Math.sin(f.sw) * 14 * dt;
-        if (f.y > this.H + 8) Object.assign(f, this.flake(false));
-        c.globalAlpha = f.a; c.beginPath(); c.arc(f.x, f.y, f.r, 0, 6.29); c.fill();
-      }
-      c.globalAlpha = 1;
-    };
-    this.raf = requestAnimationFrame(tick);
-  },
-  stop(){ if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; if (this.ctx) this.ctx.clearRect(0, 0, this.W, this.H); if (this.cv) this.cv.classList.remove('on'); }
+  stop(){ this.shown = false; const box = $('#snow'); if (box) box.classList.remove('on'); }
 };
-document.addEventListener('visibilitychange', () => Snow.sync());
-window.addEventListener('resize', () => { if (Snow.raf) Snow.size(); });
+
 
 /* Sound: tiny chiptune blips made in code (no audio files). */
 const Sfx = {
@@ -3692,7 +3683,8 @@ const Dial = {
     ctx.fillStyle = P.gold; ctx.fill(); ctx.lineJoin = 'round'; ctx.lineWidth = 2.5; ctx.strokeStyle = P.edge; ctx.stroke();
     return G;
   },
-  needle(ctx, G, p, col, P, alpha){
+  needle(ctx, G, p, col, P, alpha, cane){
+    if (cane && alpha >= 1 && Season.on()) return this.cane(ctx, G, p, P);
     const a = this.ang(p), len = G.R - G.band * .3, dx = Math.cos(a), dy = Math.sin(a), nx = -dy, ny = dx, w = 6.5, tail = 17, { cx, cy } = G;
     ctx.save(); ctx.globalAlpha = alpha;
     ctx.beginPath();
@@ -3703,12 +3695,19 @@ const Dial = {
     ctx.lineTo(cx - nx * w, cy - ny * w);
     ctx.closePath();
     ctx.fillStyle = col; ctx.fill();
-    if (alpha >= 1 && Season.on()) {   // candy-cane stripes over the needle's own colour
-      ctx.save(); ctx.clip(); ctx.translate(cx, cy); ctx.rotate(a); ctx.fillStyle = 'rgba(255,255,255,.55)';
-      for (let x = -tail; x < len + 10; x += 13) { ctx.beginPath(); ctx.moveTo(x, -w - 2); ctx.lineTo(x + 6, -w - 2); ctx.lineTo(x + 2, w + 2); ctx.lineTo(x - 4, w + 2); ctx.closePath(); ctx.fill(); }
-      ctx.restore();
-    }
     if (alpha >= 1) { ctx.lineJoin = 'round'; ctx.lineWidth = 2.5; ctx.strokeStyle = P.edge; ctx.stroke(); }
+    ctx.restore();
+  },
+  // December: the needle is a candy cane. The straight end points at the guess; the crook curls behind the pin.
+  cane(ctx, G, p, P){
+    const len = G.R - G.band * .3, back = 24, hook = 9, w = 8;
+    ctx.save(); ctx.translate(G.cx, G.cy); ctx.rotate(this.ang(p)); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const path = () => { ctx.beginPath(); ctx.moveTo(len - w / 2, 0); ctx.lineTo(-back, 0); ctx.arc(-back, -hook, hook, Math.PI / 2, Math.PI * 1.5, false); ctx.lineTo(-back + 6, -hook * 2); };
+    path(); ctx.lineWidth = w + 5; ctx.strokeStyle = P.edge; ctx.stroke();           // outline
+    path(); ctx.lineWidth = w; ctx.strokeStyle = '#fff6e5'; ctx.stroke();            // white candy
+    path(); ctx.lineWidth = w; ctx.strokeStyle = '#e8344e'; ctx.setLineDash([6, 7]); ctx.lineCap = 'butt'; ctx.stroke();   // red stripes
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(len - w, -w * .18); ctx.lineTo(-back + 4, -w * .18); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.stroke();   // shine
     ctx.restore();
   },
   hub(ctx, G, P, col){
@@ -3818,7 +3817,7 @@ const Meter = {
       s.trail.push(p); if (s.trail.length > 6) s.trail.shift();
       s.trail.forEach((tp, i) => Dial.needle(ctx, G, tp, P.flag, P, .05 + i * .04));
     }
-    Dial.needle(ctx, G, p, landed ? (a.s > 0 ? P.tier[a.s] : '#8a80b8') : P.flag, P, 1);
+    Dial.needle(ctx, G, p, landed ? (a.s > 0 ? P.tier[a.s] : '#8a80b8') : P.flag, P, 1, true);
     Dial.hub(ctx, G, P, landed && a.s > 0 ? P.tier[a.s] : P.pink);
     // centre caption, drawn over the needle
     if (!landed && t >= T.bands) { if (Math.floor(t / 180) % 2) Dial.caption(ctx, G, P, 'TUNING…', P.text, .8); }
