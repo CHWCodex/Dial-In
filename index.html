@@ -600,6 +600,8 @@ body.dev .topbar{border-bottom-color:var(--danger)}
   background-size:100% 100%,100% 100%,100% 100%,22px 22px;background-attachment:fixed}
 [data-theme="dial"] .topbar{background:linear-gradient(#1d1145,#150b33)}
 [data-theme="dial"] .brand b{font-family:var(--font-logo);font-weight:400;letter-spacing:.06em;text-shadow:0 2px 0 #0a0520}
+/* very narrow phones (320–360px): a little more air between the logo and the highlighted buttons; buttons keep 44px */
+@media (max-width:360px){.brand{gap:5px;padding:0 10px}.brand b{font-size:14px;letter-spacing:.03em}#ic-brand svg{width:24px;height:24px}}
 [data-theme="dial"] .brand b span{color:var(--brand-2)}
 [data-theme="dial"] .logo{font-family:var(--font-logo);font-weight:400;letter-spacing:.04em;color:#fff6e5;line-height:1;margin-top:4px;transform:rotate(-4deg);display:inline-block}
 [data-theme="dial"] .logo span{color:var(--brand-2)}
@@ -2857,7 +2859,17 @@ const Backend = {
     const uid = this.sess && this.sess.user_id;
     return [DateUK.add(App.today, -1), App.today].some(d => { const day = S.days[d]; return day && day.done && pinDone(day) && !(day.syncedBy === uid || (day.synced && !day.syncedBy && this.email)); });
   },
-  async sync(){
+  // One save at a time: calls that arrive while a save is running wait for it, then one more save runs to
+  // pick up anything new. (Several screens ask to save at once; this stops duplicate score posts.)
+  sync(){
+    if (this._syncing) { this._again = true; return this._syncing; }
+    this._syncing = (async () => {
+      try { do { this._again = false; await this.syncOnce(); } while (this._again); }
+      finally { this._syncing = null; }
+    })();
+    return this._syncing;
+  },
+  async syncOnce(){
     if (!this.on || DEV.on) return;
     const name = displayName();
     if (this.nameSent !== name) {
