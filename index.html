@@ -716,6 +716,24 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 @media (max-height:640px){ .qtext{font-size:16px} .pip{height:40px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
+/* ---- Christmas (html[data-season="xmas"], 1–31 December or ?season=xmas): visual only ---- */
+.snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:43;opacity:0;transition:opacity .6s}
+.snow.on{opacity:1}
+.xmas-count{display:inline-block;margin:12px auto 0;padding:6px 14px;border-radius:999px;font-weight:700;font-size:15px;
+  background:linear-gradient(90deg,rgba(232,52,78,.22),rgba(47,191,113,.22));border:2px solid rgba(255,246,229,.25);color:var(--text)}
+.xmas-count b{color:var(--gold)}
+html[data-season="xmas"] .logo span{color:#ff4d5e}
+/* fairy lights along the bottom of the top bar */
+html[data-season="xmas"] .topbar::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:10px;pointer-events:none;
+  background:radial-gradient(circle at 6px 5px,#ff4d5e 0 3.2px,transparent 4px) 0 0/72px 10px,
+             radial-gradient(circle at 30px 5px,#ffd23f 0 3.2px,transparent 4px) 0 0/72px 10px,
+             radial-gradient(circle at 54px 5px,#2fbf71 0 3.2px,transparent 4px) 0 0/72px 10px;
+  filter:drop-shadow(0 0 4px rgba(255,210,63,.75));animation:xmasTwinkle 2.4s ease-in-out infinite}
+@keyframes xmasTwinkle{50%{filter:drop-shadow(0 0 1px rgba(255,210,63,.3));opacity:.75}}
+/* festive edging on the mode buttons */
+html[data-season="xmas"] .mode.m-daily{box-shadow:var(--sh-card),inset 0 0 0 2px rgba(232,52,78,.6)}
+html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px rgba(47,191,113,.6)}
+@media (prefers-reduced-motion:reduce){.snow{display:none}}
 </style>
 </head>
 <body>
@@ -845,6 +863,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
+<canvas class="snow" id="snow" aria-hidden="true"></canvas>
 <canvas class="fx" id="fx" aria-hidden="true"></canvas>
 <div class="hype" id="hype" aria-hidden="true"></div>
 
@@ -2524,7 +2543,7 @@ const NAME_B = ['Pigeon','Otter','Comet','Badger','Falcon','Panda','Rocket','Wal
 const randomName = () => { const r = Math.random; return NAME_A[Math.floor(r()*16)] + ' ' + NAME_B[Math.floor(r()*16)] + ' ' + (10 + Math.floor(r()*90)); };
 
 function blankState(){
-  return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, friends:[], days:{},
+  return { v:2, player:{ id:uid(), name:'' }, introSeen:false, sound:true, badge:true, festive:true, friends:[], days:{},
     endless:{ best:0, bestN:0, runs:0, answered:0, freeDay:'', hist:[], recent:[] }, run:null,
     premium:{ active:false, source:'', at:0 }, mp:null, updatedAt:0, archive:{}, archFree:'', challenges:{}, facts:{ days:{}, best:0, bestN:0, runs:0, pos:0, hist:[] }, frun:null };
 }
@@ -2537,6 +2556,7 @@ function sanitize(raw){
   out.player.name = cleanName(p.name);
   out.introSeen = raw.introSeen === true;
   out.sound = raw.sound !== false;
+  out.festive = raw.festive !== false;
   out.badge = raw.badge !== false;
   if (raw.dev && typeof raw.dev === 'object') out.dev = { timer:[20,5,0].includes(raw.dev.timer) ? raw.dev.timer : 20, infHearts:raw.dev.infHearts === true,
     showAns:raw.dev.showAns === true, dayOffset:Number.isInteger(raw.dev.dayOffset) ? raw.dev.dayOffset : 0, bots:[1,2,3].includes(raw.dev.bots) ? raw.dev.bots : 2 };
@@ -3227,8 +3247,84 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>
 /* One look: the DIAL IN arcade theme (html[data-theme="dial"]). */
 const Theme = {
   id: 'dial',
-  apply(){ document.documentElement.dataset.theme = this.id; paintChrome(); }
+  apply(){ document.documentElement.dataset.theme = this.id; Season.paint(); paintChrome(); }
 };
+
+/* Christmas: a purely visual layer from 1 to 31 December (UK dates), back to normal on 1 January by itself.
+   Nothing about questions, scores or saves changes. Players can switch it off in Settings.
+   Preview it any time with ?season=xmas (remembered for this tab only); ?season=off ends the preview. */
+const Season = {
+  preview: '',
+  init(){
+    try {
+      const q = new URLSearchParams(location.search).get('season');
+      if (q === 'xmas' || q === 'off') {
+        if (q === 'xmas') sessionStorage.setItem('dialin:season', 'xmas'); else sessionStorage.removeItem('dialin:season');
+        const u = new URL(location.href); u.searchParams.delete('season');
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      }
+      this.preview = sessionStorage.getItem('dialin:season') || '';
+    } catch(e){}
+  },
+  december(){ return String(App.today || DateUK.today()).slice(5, 7) === '12'; },
+  available(){ return this.preview === 'xmas' || this.december(); },
+  on(){ return this.available() && !(S && S.festive === false); },
+  // days from today to Christmas Day this year (negative once it has passed)
+  daysLeft(){ const t = App.today || DateUK.today(); return DateUK.diff(t, t.slice(0, 4) + '-12-25'); },
+  countdown(){
+    const d = this.daysLeft();
+    return d > 1 ? `🎄 <b>${d}</b> days until Christmas` : d === 1 ? '🎄 Christmas Eve! <b>1</b> day to go' : d === 0 ? '🎄 <b>Merry Christmas!</b>' : '🎄 Happy holidays!';
+  },
+  // the page-wide switch: CSS hooks on html[data-season="xmas"]
+  paint(){
+    const el = document.documentElement, on = this.on();
+    if (on) el.dataset.season = 'xmas'; else delete el.dataset.season;
+    Snow.sync();
+  }
+};
+
+/* Gentle snow on the calm screens (never while a question is on screen). Light on purpose: a few dozen
+   flakes, about 30 frames a second, paused when the tab is hidden, off for reduce-motion. */
+const SNOW_VIEWS = new Set(['home', 'results', 'board', 'stats', 'settings', 'facthome', 'factres', 'archive', 'archres']);
+const Snow = {
+  cv:null, ctx:null, flakes:[], raf:0, last:0, W:0, H:0,
+  want(){ return Season.on() && !reducedMotion() && !document.hidden && SNOW_VIEWS.has(App.view); },
+  sync(){ if (this.want()) this.start(); else this.stop(); },
+  size(){
+    const cv = $('#snow'); if (!cv) return false;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), W = window.innerWidth, H = window.innerHeight;
+    if (cv !== this.cv || W !== this.W || H !== this.H) {
+      this.cv = cv; this.W = W; this.H = H; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      this.ctx = cv.getContext('2d'); this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const n = W < 500 ? 32 : 50;
+      this.flakes = Array.from({ length:n }, () => this.flake(true));
+    }
+    return true;
+  },
+  flake(anywhere){ return { x:Math.random() * this.W, y:anywhere ? Math.random() * this.H : -8, r:1.2 + Math.random() * 2.6, v:18 + Math.random() * 34, sw:Math.random() * 6.3, a:.35 + Math.random() * .5 }; },
+  start(){
+    if (this.raf || !this.size()) return;
+    this.cv.classList.add('on'); this.last = performance.now();
+    const tick = now => {
+      if (!this.want()) { this.stop(); return; }
+      this.raf = requestAnimationFrame(tick);
+      if (now - this.last < 32) return;                    // about 30 frames a second is plenty for snow
+      const dt = Math.min(.08, (now - this.last) / 1000); this.last = now;
+      this.size();
+      const c = this.ctx; c.clearRect(0, 0, this.W, this.H); c.fillStyle = '#fff';
+      for (const f of this.flakes) {
+        f.y += f.v * dt; f.sw += dt * .9; f.x += Math.sin(f.sw) * 14 * dt;
+        if (f.y > this.H + 8) Object.assign(f, this.flake(false));
+        c.globalAlpha = f.a; c.beginPath(); c.arc(f.x, f.y, f.r, 0, 6.29); c.fill();
+      }
+      c.globalAlpha = 1;
+    };
+    this.raf = requestAnimationFrame(tick);
+  },
+  stop(){ if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; if (this.ctx) this.ctx.clearRect(0, 0, this.W, this.H); if (this.cv) this.cv.classList.remove('on'); }
+};
+document.addEventListener('visibilitychange', () => Snow.sync());
+window.addEventListener('resize', () => { if (Snow.raf) Snow.size(); });
 
 /* Sound: tiny chiptune blips made in code (no audio files). */
 const Sfx = {
@@ -3312,8 +3408,9 @@ const Fx = {
   // n pieces from (x, y), aimed at `ang` (radians, -PI/2 is straight up) within `spread`
   emit(x, y, n, o = {}){
     if (reducedMotion() || !this.ensure()) return;
-    const cols = o.colors || ['#ffd23f', '#ff3d7f', '#4de1ff', '#7dff6a', '#a77bff', '#fff6e5'];
-    const shapes = o.shapes || ['rect', 'rect', 'rect', 'circle', 'star', 'strip'];
+    const xmas = Season.on();
+    const cols = o.colors || (xmas ? ['#e8344e', '#2fbf71', '#ffd23f', '#fff6e5', '#e8344e', '#2fbf71'] : ['#ffd23f', '#ff3d7f', '#4de1ff', '#7dff6a', '#a77bff', '#fff6e5']);
+    const shapes = o.shapes || (xmas ? ['flake', 'flake', 'gift', 'gift', 'star', 'circle'] : ['rect', 'rect', 'rect', 'circle', 'star', 'strip']);
     for (let i = 0; i < n && this.parts.length < 700; i++) {
       const a = (o.ang ?? -Math.PI / 2) + (Math.random() - .5) * (o.spread ?? 1.4), v = (o.power ?? 900) * (.45 + Math.random() * .7);
       this.parts.push({ x, y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, c:cols[Math.floor(Math.random() * cols.length)], sh:shapes[Math.floor(Math.random() * shapes.length)],
@@ -3340,6 +3437,16 @@ const Fx = {
       if (p.sh === 'rect') { c.scale(1, sq); c.fillRect(-p.s / 2, -p.s * .35, p.s, p.s * .7); }
       else if (p.sh === 'strip') { c.scale(1, sq); c.fillRect(-p.s * .18, -p.s, p.s * .36, p.s * 2); }
       else if (p.sh === 'circle') { c.beginPath(); c.arc(0, 0, p.s * .42, 0, 6.29); c.fill(); }
+      else if (p.sh === 'flake') {   // six-armed snowflake, always white
+        c.strokeStyle = '#fff'; c.lineWidth = Math.max(1.2, p.s * .16); c.lineCap = 'round'; c.beginPath();
+        for (let i = 0; i < 6; i++) { const an = i * Math.PI / 3, ex = Math.cos(an) * p.s * .9, ey = Math.sin(an) * p.s * .9; c.moveTo(0, 0); c.lineTo(ex, ey);
+          c.moveTo(ex * .55, ey * .55); c.lineTo(ex * .55 + Math.cos(an + .9) * p.s * .3, ey * .55 + Math.sin(an + .9) * p.s * .3); }
+        c.stroke();
+      }
+      else if (p.sh === 'gift') {    // a little present: box in its colour, gold ribbon
+        const z = p.s * .8; c.scale(1, sq); c.fillRect(-z, -z, z * 2, z * 2); c.fillStyle = p.c === '#ffd23f' ? '#e8344e' : '#ffd23f';
+        c.fillRect(-z * .2, -z, z * .4, z * 2); c.fillRect(-z, -z * .2, z * 2, z * .4);
+      }
       else { c.scale(sq, 1); c.beginPath(); for (let i = 0; i < 10; i++) { const rr = i % 2 ? p.s * .3 : p.s * .75, an = i * Math.PI / 5 - Math.PI / 2; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } c.closePath(); c.fill(); }
       c.restore();
     }
@@ -3455,14 +3562,17 @@ function mascot(mood, size, extraCls, col){
     sad:`<path d="M27 48Q32 42.8 37 48" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
   }[mood] || '';
   const cheeks = mood === 'happy' || mood === 'wow' ? `<ellipse cx="19.8" cy="42" rx="2.8" ry="1.7" fill="#fff" opacity=".38"/><ellipse cx="44.2" cy="42" rx="2.8" ry="1.7" fill="#fff" opacity=".38"/>` : '';
-  return `<svg class="mascot ${extraCls || ''}" viewBox="0 0 64 64" width="${size}" height="${size}" role="img" aria-label="Knobby, the DIAL IN mascot">
+  return `<svg class="mascot ${extraCls || ''}" viewBox="0 0 64 64" width="${size}" height="${size}" overflow="visible" role="img" aria-label="Knobby, the DIAL IN mascot">
     <g stroke="${cream}" stroke-width="2.6" stroke-linecap="round" opacity=".9">${ticks}</g>
     <circle cx="32" cy="36" r="24" fill="${c}" stroke="${ink}" stroke-width="3"/>
     <circle cx="32" cy="36" r="18.5" fill="#fff" opacity=".13"/>
     <path d="M14.6 30.5A18.5 18.5 0 0 1 25 18.4" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/>
     <g transform="rotate(${turn} 32 36)"><path d="M32 15.5V22.5" stroke="${ink}" stroke-width="7" stroke-linecap="round"/><path d="M32 15.5V22.5" stroke="${cream}" stroke-width="3.4" stroke-linecap="round"/></g>
-    ${cheeks}${eyes}${mouth}</svg>`;
+    ${cheeks}${eyes}${mouth}${Season.on() ? SANTA_HAT : ''}</svg>`;
 }
+const SANTA_HAT = `<g class="santa" transform="rotate(-14 32 15)"><path d="M16.5 15.5C19 3.5 33 -5.5 47.5 -3C44.5 2 45.5 9 47.5 15.5Z" fill="#e8344e" stroke="#0a0520" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M22 7.5C27 2.5 34 0 40 -.5" stroke="#fff" stroke-opacity=".35" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <rect x="13.5" y="12.5" width="37" height="7.5" rx="3.75" fill="#fff6e5" stroke="#0a0520" stroke-width="2.2"/><circle cx="48" cy="-3.2" r="4.4" fill="#fff6e5" stroke="#0a0520" stroke-width="2.2"/></g>`;
 const moodFor = total => total >= 4500 ? 'wow' : total >= 2500 ? 'happy' : total >= 1200 ? 'meh' : 'sad';
 const moodPts = p => p >= 750 ? 'wow' : p >= 400 ? 'happy' : p > 0 ? 'meh' : 'sad';
 function paintChrome(){
@@ -3589,6 +3699,11 @@ const Dial = {
     ctx.lineTo(cx - nx * w, cy - ny * w);
     ctx.closePath();
     ctx.fillStyle = col; ctx.fill();
+    if (alpha >= 1 && Season.on()) {   // candy-cane stripes over the needle's own colour
+      ctx.save(); ctx.clip(); ctx.translate(cx, cy); ctx.rotate(a); ctx.fillStyle = 'rgba(255,255,255,.55)';
+      for (let x = -tail; x < len + 10; x += 13) { ctx.beginPath(); ctx.moveTo(x, -w - 2); ctx.lineTo(x + 6, -w - 2); ctx.lineTo(x + 2, w + 2); ctx.lineTo(x - 4, w + 2); ctx.closePath(); ctx.fill(); }
+      ctx.restore();
+    }
     if (alpha >= 1) { ctx.lineJoin = 'round'; ctx.lineWidth = 2.5; ctx.strokeStyle = P.edge; ctx.stroke(); }
     ctx.restore();
   },
@@ -3597,6 +3712,10 @@ const Dial = {
     ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.fillStyle = P.rim; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = P.edge; ctx.stroke();
     ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
     ctx.beginPath(); ctx.arc(cx - 4, cy - 5, 3, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill();
+    if (Season.on()) {   // the hub becomes a bauble: a gold cap and hanging loop
+      ctx.beginPath(); ctx.arc(cx, cy - 24, 3.6, 0, Math.PI * 2); ctx.lineWidth = 2; ctx.strokeStyle = P.edge; ctx.stroke();
+      ctx.beginPath(); ctx.rect(cx - 6, cy - 21, 12, 6); ctx.fillStyle = P.gold; ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+    }
   },
   // A big word in the middle of the dial
   caption(ctx, G, P, text, col, scale){
@@ -4123,7 +4242,8 @@ function viewHome(){
     ${DEV.on ? `<button class="px devbanner" data-act="devopen"><b>DEV SANDBOX</b><span>Nothing here counts. Tap for the developer panel.</span></button>` : ''}
     <div class="hero">${mascot(done ? moodFor(dayTotal(day)) : 'happy', 84, 'bob')}
       <h1 class="logo" tabindex="-1">Dial <span>In</span></h1>
-      <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p></div>
+      <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p>
+      ${Season.on() ? `<p class="xmas-count">${Season.countdown()}</p>` : ''}</div>
     ${acctBannerHTML()}
     <div class="modes">
       <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
@@ -4624,7 +4744,7 @@ function chalBackText(d){
 }
 function challengeText(d, g, daily){
   const total = dayBase(g) + (daily ? dayBonus(g) : 0);
-  return `I scored ${fmtNum(total)} on ${d === App.today ? 'today’s ' : ''}DIAL IN #${DateUK.puzzleNo(d)}. Can you beat me? 🎯\n${g.answers.map(a => Scoring.emoji(a.s)).join('')}\n${challengeLink(d, g.answers.map(a => a.s), daily ? dayBonus(g) : 0)}`;
+  return `I scored ${fmtNum(total)} on ${d === App.today ? 'today’s ' : ''}DIAL IN #${DateUK.puzzleNo(d)}. Can you beat me? 🎯${Season.on() ? '🎄' : ''}\n${g.answers.map(a => Scoring.emoji(a.s)).join('')}\n${challengeLink(d, g.answers.map(a => a.s), daily ? dayBonus(g) : 0)}`;
 }
 // Opened from a challenge link
 function showChallenge(){
@@ -6025,6 +6145,8 @@ function viewSettings(){
       <p class="label">Sound &amp; effects</p>
       <div class="btnrow"><button class="btn ${S.sound === false ? 'btn-ghost' : 'btn-mint'}" data-act="sound" aria-pressed="${S.sound !== false}">Sound: ${S.sound === false ? 'Off' : 'On'}</button></div>
       <p class="small muted">Arcade bleeps for key taps, dial clicks and scores. Animations follow your phone’s reduce-motion setting.</p>
+      ${Season.available() ? `<div class="btnrow"><button class="btn ${S.festive === false ? 'btn-ghost' : 'btn-mint'}" data-act="festive" aria-pressed="${S.festive !== false}">Festive look: ${S.festive === false ? 'Off' : 'On'} 🎄</button></div>
+      <p class="small muted">Snow, a Santa hat for Knobby and Christmas colours, just for December. Everything goes back to normal on 1 January.</p>` : ''}
     </div>
     ${Habit.settingsHTML()}
     ${Backend.on ? `<div class="px card stack">
@@ -6112,6 +6234,7 @@ function render(focus = true){
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
+  Season.paint();
   App.fresh = -1;
 }
 function postRender(){
@@ -6244,7 +6367,7 @@ function flashKey(k){ const b = document.querySelector(`.key[data-k="${k}"]`); i
 const siteLink = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|\[::1\])/.test(location.hostname) && window.top === window) ? location.origin + location.pathname : '';
 function shareDailyText(){
   const day = S.days[App.today], st = getStats(App.today);
-  const lines = [`📻 ${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayTotal(day))} points`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
+  const lines = [`${Season.on() ? '🎄' : '📻'} ${CONFIG.GAME_NAME} #${DateUK.puzzleNo(App.today)} · ${DateUK.pretty(App.today)}`, `${fmtNum(dayTotal(day))} points`, day.answers.map(a => Scoring.emoji(a.s)).join('')];
   const ex = day.answers.filter(a => a.s === 1000).length;
   lines.push(`🎯 ${fmtNum(dayBase(day))} / 7,000${ex ? ` · ${ex} dialed in` : ''}`);
   if (day.pin && day.pin.balls) lines.push(`🎰 Dial Ball +${fmtNum(day.pin.bonus)} (${day.pin.balls} ${day.pin.balls === 1 ? 'ball' : 'balls'})`);
@@ -6509,6 +6632,7 @@ function onClick(e){
     case 'copysave': showCopy('YOUR SAVE CODE', saveCode()); break;
     case 'restore': $('#restore-text').value = ''; openDialog('dlg-restore'); break;
     case 'sound': S.sound = S.sound === false; save(); if (S.sound) { Sfx.init(); Sfx.land(750); } render(false); break;
+    case 'festive': S.festive = S.festive === false; save(); paintChrome(); render(false); if (Season.on()) Fx.rain(40); break;
     case 'pay': openPay(); break;
     case 'buy': buy(); break;
     case 'payemail': closeDialog('dlg-pay'); App.afterEmail = 'pay'; go('settings'); loadFriendNames(); break;
@@ -6676,6 +6800,7 @@ function takeHandoff(){
   if (Backend.on && rt && (!mine || !mine.refresh_token || !played)) { Store.set(CONFIG.STORAGE_KEY + ':auth', { access_token:'handoff', refresh_token:rt, expires_at:0, user_id:null }); Backend.sess = null; }
 }
 async function boot(){
+  Season.init();
   Store.init();
   let local = Store.read();
   if (!local) local = await Store.idbGet();
