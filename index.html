@@ -718,7 +718,7 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 @media (max-height:640px){ .qtext{font-size:16px} .pip{height:40px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
-/* ---- Christmas (html[data-season="xmas"], 1–31 December or ?season=xmas): visual only ---- */
+/* ---- Christmas (html[data-season="xmas"], 26 November – 31 December or ?season=xmas): visual only ---- */
 .snow{position:fixed;left:0;right:0;top:0;height:100vh;pointer-events:none;z-index:43;overflow:hidden;display:none;contain:strict}
 .snow.on{display:block}
 .snow i{position:absolute;top:-12px;display:block;border-radius:50%;background:#fff;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:transform}
@@ -3269,7 +3269,7 @@ const Theme = {
   apply(){ document.documentElement.dataset.theme = this.id; Season.paint(); paintChrome(); }
 };
 
-/* Christmas: a purely visual layer from 1 to 31 December (UK dates), back to normal on 1 January by itself.
+/* Christmas: a purely visual layer from 26 November to 31 December (UK dates), back to normal on 1 January by itself.
    Nothing about questions, scores or saves changes. Players can switch it off in Settings.
    Preview it any time with ?season=xmas (remembered for this tab only); ?season=off ends the preview. */
 const Season = {
@@ -3285,8 +3285,9 @@ const Season = {
       this.preview = sessionStorage.getItem('dialin:season') || '';
     } catch(e){}
   },
-  december(){ return String(App.today || DateUK.today()).slice(5, 7) === '12'; },
-  available(){ return this.preview === 'xmas' || this.december(); },
+  // the festive season: 26 November to 31 December, every year (UK dates)
+  inSeason(){ const md = String(App.today || DateUK.today()).slice(5, 10); return md >= '11-26' && md <= '12-31'; },
+  available(){ return this.preview === 'xmas' || this.inSeason(); },
   on(){ return this.available() && !(S && S.festive === false); },
   // days from today to Christmas Day this year (negative once it has passed)
   daysLeft(){ const t = App.today || DateUK.today(); return DateUK.diff(t, t.slice(0, 4) + '-12-25'); },
@@ -6161,7 +6162,7 @@ function viewSettings(){
       <div class="btnrow"><button class="btn ${S.sound === false ? 'btn-ghost' : 'btn-mint'}" data-act="sound" aria-pressed="${S.sound !== false}">Sound: ${S.sound === false ? 'Off' : 'On'}</button></div>
       <p class="small muted">Arcade bleeps for key taps, dial clicks and scores. Animations follow your phone’s reduce-motion setting.</p>
       ${Season.available() ? `<div class="btnrow"><button class="btn ${S.festive === false ? 'btn-ghost' : 'btn-mint'}" data-act="festive" aria-pressed="${S.festive !== false}">Festive look: ${S.festive === false ? 'Off' : 'On'} 🎄</button></div>
-      <p class="small muted">Snow, a Santa hat for Knobby and Christmas colours, just for December. Everything goes back to normal on 1 January.</p>` : ''}
+      <p class="small muted">Snow, a Santa hat for Knobby and Christmas colours for the festive season. Everything goes back to normal on 1 January.</p>` : ''}
     </div>
     ${Habit.settingsHTML()}
     ${Backend.on ? `<div class="px card stack">
