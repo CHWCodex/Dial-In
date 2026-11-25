@@ -6059,7 +6059,7 @@ async function loadBoard(){
     }
   } catch(e) {
     if (token !== App.boardToken) return;
-    el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
+    el.innerHTML = emptyState(`${/^Couldn’t reach/.test(e.message) ? esc(e.message) : 'Couldn’t load the leaderboard: ' + esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
   }
 }
 
