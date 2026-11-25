@@ -718,6 +718,67 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 @media (max-height:640px){ .qtext{font-size:16px} .pip{height:40px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
+/* ==== Design system ====
+   Buttons: yellow (.btn-mint) is the one main action on a screen; purple (.btn-ghost) for everything else;
+   red (.btn-coral) only for deleting. Cyan buttons are folded into purple. No glow on buttons. */
+.btn-sky{background:var(--ghost);color:var(--on-ghost)}
+[data-theme="dial"] .btn-mint{box-shadow:var(--sh-btn)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-pill);background:var(--inset);color:var(--text);font:800 12px/1.2 var(--font-ui);letter-spacing:.02em}
+.chip.streak{color:var(--gold)} .chip.ok{color:#7dff6a}
+.mode .go.quiet{background:var(--ghost);color:var(--on-ghost);box-shadow:none}
+
+/* ---- Bottom navigation: Home · Play · Ranks · Profile (hidden while a game is on screen) ---- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bar-bg);border-top:2px solid var(--bar-edge);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding:0 max(6px,env(safe-area-inset-left,0px)) 0 max(6px,env(safe-area-inset-right,0px))}
+.navtab{position:relative;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:0;cursor:pointer;
+  color:var(--text-2);font:800 11px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.navtab[aria-current="page"]{color:var(--gold)}
+.navtab[aria-current="page"]::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+.navtab:focus-visible{outline:3px solid var(--link);outline-offset:-4px;border-radius:12px}
+body:not(.in-game){padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+body.in-game .tabbar{display:none}
+body:not(.in-game) .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+
+/* ---- Home: today's Daily is the one big thing ---- */
+.dcard{padding:16px 18px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.dc-top{align-self:stretch;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.dc-kicker{font:800 12px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
+.dc-dial{display:block;margin:4px auto 0}
+.dc-needle{transform-origin:32px 41px;animation:dcNeedle 3.4s ease-in-out infinite}
+@keyframes dcNeedle{0%,100%{transform:rotate(0)}50%{transform:rotate(-62deg)}}
+.is-done .dc-needle{animation:none}
+.dc-title{margin:0;font:400 28px/1.1 var(--font-logo);letter-spacing:.03em;color:var(--text)}
+@media (max-width:360px){.dc-title{font-size:23px}}
+.dc-sub{margin:0;color:var(--text-2);max-width:32ch}
+.dcard .dc-go{margin:6px 0 0;width:100%}
+.dc-score b{display:block;font:400 46px/1 var(--font-logo);color:var(--gold)}
+.dc-score span{display:block;margin-top:4px;color:var(--text-2);font-weight:700}
+.dc-next{margin:0;color:var(--text-2);font-size:14px}
+.dc-pips{display:flex;gap:6px;justify-content:center}
+.dc-pips i{width:24px;height:10px;border-radius:5px;background:var(--inset);box-shadow:inset 0 0 0 2px var(--edge)}
+.dc-pips i.t1000{background:var(--t1000)} .dc-pips i.t900{background:var(--t900)} .dc-pips i.t750{background:var(--t750)} .dc-pips i.t600{background:var(--t600)}
+.dc-pips i.t400{background:var(--t400)} .dc-pips i.t200{background:var(--t200)} .dc-pips i.t0{background:var(--t0)}
+.home .xmas-count{align-self:center}
+.home .mode{min-height:60px}
+
+/* ---- Profile: header, then sections that open on tap ---- */
+.phead{display:flex;align-items:center;gap:14px;padding:16px}
+.ph-id{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.ph-name{margin:0;font:400 22px/1.15 var(--font-logo);letter-spacing:.02em;overflow-wrap:anywhere}
+.fold-h{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;min-height:56px;cursor:pointer;font:800 16px/1.25 var(--font-ui);color:var(--text)}
+.fold-h::-webkit-details-marker{display:none}
+.fold-c{flex:none;color:var(--text-2);transition:transform var(--dur-2)}
+.fold[open] .fold-c{transform:rotate(180deg)}
+.fold-h:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.fold-b{padding-top:12px}
+.res-name{margin:10px 0 0}
+.profile .ph-stats{margin-top:10px}
+
+/* ---- Ranks: the leaderboard choices sit on one scrollable row ---- */
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:3px;margin:0 -3px;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs .tab{flex:none;padding:0 16px;border-radius:var(--r-pill);min-height:40px}
+
 /* ---- Christmas (html[data-season="xmas"], 26 November – 31 December or ?season=xmas): visual only ---- */
 .snow{position:fixed;left:0;right:0;top:0;height:100vh;pointer-events:none;z-index:43;overflow:hidden;display:none;contain:strict}
 .snow.on{display:block}
@@ -749,10 +810,8 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <header class="topbar">
   <div class="topbar-in">
     <button class="iconbtn" data-act="intro" aria-label="How to play" id="ic-help"></button>
-    <button class="iconbtn" data-act="stats" aria-label="Your statistics" id="ic-stats"></button>
     <button class="brand" data-act="home" aria-label="DIAL IN home"><span id="ic-brand"></span><b>Dial <span>In</span></b><span class="devchip" data-act="devopen" role="button" aria-label="Developer panel">DEV</span></button>
-    <button class="iconbtn gold" data-act="board" aria-label="Leaderboards" id="ic-board"></button>
-    <button class="iconbtn" data-act="settings" aria-label="Settings and profile" id="ic-settings"></button>
+    <span class="iconbtn" aria-hidden="true"></span>
   </div>
 </header>
 
@@ -870,6 +929,14 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
   </div>
 </dialog>
 
+<nav class="tabbar" id="tabbar" aria-label="Main">
+  <div class="tabbar-in">
+    <button class="navtab" data-act="home" data-nav="home"><span id="ic-nhome"></span><span>Home</span></button>
+    <button class="navtab" data-act="modes" data-nav="modes"><span id="ic-nplay"></span><span>Play</span></button>
+    <button class="navtab" data-act="board" data-nav="board"><span id="ic-nranks"></span><span>Ranks</span></button>
+    <button class="navtab" data-act="settings" data-nav="settings"><span id="ic-nprofile"></span><span>Profile</span></button>
+  </div>
+</nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <div class="snow" id="snow" aria-hidden="true"></div>
@@ -3523,6 +3590,9 @@ const Hype = {
 
 /* Chunky line icons on a 24px grid */
 const LINE_ICONS = {
+  home:'<path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+  play:'<rect x="3" y="7" width="18" height="11" rx="5"/><path d="M8 10.5v4M6 12.5h4M15.5 11.5h.01M17.5 13.5h.01"/>',
+  user:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.3 7.5-5.3s6.3 1.7 7.5 5.3"/>',
   check:'<circle cx="12" cy="12" r="9"/><path d="M7.8 12.4l2.9 2.9 5.6-6"/>',
   bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
   phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
@@ -3585,7 +3655,8 @@ const moodFor = total => total >= 4500 ? 'wow' : total >= 2500 ? 'happy' : total
 const moodPts = p => p >= 750 ? 'wow' : p >= 400 ? 'happy' : p > 0 ? 'meh' : 'sad';
 function paintChrome(){
   const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-  set('ic-help', icon('help', 24)); set('ic-stats', icon('stats', 24)); set('ic-board', icon('board', 24)); set('ic-settings', icon('settings', 24));
+  set('ic-help', icon('help', 24));
+  set('ic-nhome', icon('home', 24)); set('ic-nplay', icon('play', 24)); set('ic-nranks', icon('board', 24)); set('ic-nprofile', icon('user', 24));
   set('ic-brand', mascot('happy', 28));
 }
 
@@ -4117,7 +4188,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'create', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'create', email:'', type:'', busy:false }, folds:new Set(), counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -4134,11 +4205,10 @@ const isPremium = () => !paywallOn() || DEV.on || S.premium.active === true;
 const freeRunLeft = () => !isPremium() && S.endless.freeDay !== App.today;
 
 /* ---- Name prompt ---- */
+// New players start straight away under a friendly random name; they can change it from their results or Profile.
 function requireName(next){
-  if (S.player.name) return next();
-  App.afterName = next;
-  $('#pname').value = ''; $('#pname').placeholder = randomName();
-  openDialog('dlg-name'); setTimeout(() => $('#pname').focus(), 50);
+  if (!S.player.name) { S.player.name = randomName(); save(); Backend.nameSent = ''; }
+  return next();
 }
 
 /* ---- Shared question pieces ---- */
@@ -4246,44 +4316,65 @@ function acctBannerHTML(){
   if (was) return `<button class="px banner acctnudge" data-act="acctgo">${acctWasText(was, true)}</button>`;
   return '';
 }
+// The dial from the DIAL IN icon: the brand's coloured gauge, used as the hero of the Daily card.
+function dialArt(size){
+  const seg = [['M27.88 19.39A22 22 0 0 1 36.12 19.39','#ffd23f'],['M36.12 19.39A22 22 0 0 1 41.99 21.40','#7dff6a'],['M22.01 21.40A22 22 0 0 1 27.88 19.39','#7dff6a'],['M41.99 21.40A22 22 0 0 1 47.56 25.44','#2fe0a8'],['M16.44 25.44A22 22 0 0 1 22.01 21.40','#2fe0a8'],['M47.56 25.44A22 22 0 0 1 51.60 31.01','#4de1ff'],['M12.40 31.01A22 22 0 0 1 16.44 25.44','#4de1ff'],['M51.60 31.01A22 22 0 0 1 53.61 36.88','#a77bff'],['M10.39 36.88A22 22 0 0 1 12.40 31.01','#a77bff'],['M53.61 36.88A22 22 0 0 1 54.00 41.00','#ff9a3d'],['M10.00 41.00A22 22 0 0 1 10.39 36.88','#ff9a3d']];
+  return `<svg class="dc-dial" viewBox="2 2 60 47" width="${size}" height="${Math.round(size * .78)}" aria-hidden="true"><g fill="none" stroke-width="9">${seg.map(([d, c]) => `<path d="${d}" stroke="${c}"/>`).join('')}</g>
+    <path d="M5.5 41A26.5 26.5 0 0 1 58.5 41" fill="none" stroke="#0a0520" stroke-width="2"/><path d="M27 6h10l-5 7z" fill="#ffd23f" stroke="#0a0520" stroke-width="2" stroke-linejoin="round"/>
+    <g class="dc-needle"><path d="M28.6 43.4L46.5 22.5L35.4 44.6Z" fill="#fff6e5" stroke="#0a0520" stroke-width="2.2" stroke-linejoin="round"/></g>
+    <circle cx="32" cy="41" r="5" fill="#ff3d7f" stroke="#0a0520" stroke-width="2.6"/></svg>`;
+}
 function viewHome(){
   const day = S.days[App.today], st = getStats(App.today);
-  const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
+  const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done, bonus = done && !pinDone(day);
   const rs = done && S.rankSeen && S.rankSeen.d === App.today && S.rankSeen.players > 1 ? S.rankSeen : null;
-  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : dayBonus(day) ? ` · incl. +${fmtNum(dayBonus(day))} bonus` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
-  const run = S.run && !S.run.over ? S.run : null;
-  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>` : freeRunLeft() ? 'Free run available today' : `Unlock with ${PLUS}`;
-  const bStatus = MP.code ? `In room <b>${MP.code}</b>` : 'Up to 4 friends · room codes';
-  return `<section class="stack">
+  const pips = day ? `<div class="dc-pips" aria-label="${n} of 7 answered">${day.answers.map(a => `<i class="${a ? 't' + a.s : ''}"></i>`).join('')}</div>` : '';
+  let body;
+  if (!done && !n) body = `<p class="dc-sub">Seven questions. Every answer is a number. Spin the dial and see how close you get.</p>
+      <button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Play now</button>`;
+  else if (!done) body = `${pips}<button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Continue · question ${n + 1} of 7</button>`;
+  else if (bonus) body = `${pips}<p class="dc-sub">All seven answered. Your Dial Ball bonus round is waiting.</p>
+      <button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Play Dial Ball</button>`;
+  else body = `<div class="dc-score"><b>${fmtNum(dayTotal(day))}</b><span>${rs ? (rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'Top ' + rs.top + '% today' : 'Beat ' + fmtNum(rs.beaten) + ' players') : 'points today'}</span></div>
+      ${pips}<button class="btn btn-ghost btn-block dc-go" data-act="play">See results</button>
+      <p class="dc-next">Next puzzle in <b data-countdown>${countdownText()}</b></p>`;
+  const fd = S.facts.days[App.today];
+  const fStatus = fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : 'True or false? 7 claims a day';
+  return `<section class="stack home">
     ${DEV.on ? `<button class="px devbanner" data-act="devopen"><b>DEV SANDBOX</b><span>Nothing here counts. Tap for the developer panel.</span></button>` : ''}
-    <div class="hero">${mascot(done ? moodFor(dayTotal(day)) : 'happy', 84, 'bob')}
-      <h1 class="logo" tabindex="-1">Dial <span>In</span></h1>
-      <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p>
-      ${Season.on() ? `<p class="xmas-count">${Season.countdown()}</p>` : ''}</div>
+    <div class="px dcard${done && !bonus ? ' is-done' : ''}">
+      <div class="dc-top"><span class="dc-kicker">Daily #${DateUK.puzzleNo(App.today)} · ${esc(DateUK.pretty(App.today))}</span>${st.current > 0 ? `<span class="chip streak">🔥 ${st.current}-day streak</span>` : ''}</div>
+      ${dialArt(118)}
+      <h1 class="dc-title" tabindex="-1">Today’s DIAL IN</h1>
+      ${body}
+    </div>
+    ${Season.on() ? `<p class="xmas-count">${Season.countdown()}</p>` : ''}
+    ${factOn() ? `<button class="px mode m-fact" data-act="facthome"><span class="mi">${icon('check', 26)}</span>
+      <span class="mt"><b>Fact Check!</b><span>${fStatus}</span></span><span class="go quiet">${fd && fd.done ? 'Results' : 'Play'}</span></button>` : ''}
     ${acctBannerHTML()}
+    ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Profile so you don’t lose progress.</p>'}
+    <p class="center"><button class="link quiet" data-act="intro">How to play &amp; scoring</button></p>
+  </section>`;
+}
+
+// Play: every way to play beyond today's daily, in one consistent list
+function viewModes(){
+  const day = S.days[App.today], n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
+  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>` : n ? `${n}/7 answered` : 'Seven new questions today';
+  const run = S.run && !S.run.over ? S.run : null;
+  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b> · keep going until 3 misses` : freeRunLeft() ? 'Free run available today' : `More runs with ${PLUS}`;
+  const fd = S.facts.days[App.today];
+  const row = (cls, act, ic, title, sub, go) => `<button class="px mode ${cls}" data-act="${act}"><span class="mi">${icon(ic, 26)}</span><span class="mt"><b>${title}</b><span>${sub}</span></span><span class="go quiet">${go}</span></button>`;
+  return `<section class="stack">
+    <h1 class="label" tabindex="-1">Play</h1>
     <div class="modes">
-      <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
-        <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
-      ${factOn() ? `<button class="px mode m-fact" data-act="facthome"><span class="mi">${icon('check', 30)}</span>
-        <span class="mt"><b>Fact Check!</b><span>${(() => { const fd = S.facts.days[App.today]; return fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : 'True or false? 7 new claims a day'; })()}</span></span>
-        <span class="go">${S.facts.days[App.today] && S.facts.days[App.today].done ? 'Results' : 'Play'}</span></button>` : ''}
-      <button class="px mode m-unl" data-act="endless"><span class="mi">${icon('inf', 30)}</span>
-        <span class="mt"><b>Unlimited</b><span>${eStatus}</span></span><span class="go">${!isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play'}</span></button>
-      <button class="px mode m-past" data-act="archive"><span class="mi">${icon('past', 30)}</span>
-        <span class="mt"><b>Past puzzles</b><span>${archStatus()}</span></span><span class="go">${archAllLocked() ? icon('lock', 16) : 'Play'}</span></button>
-      <button class="px mode m-battle" data-act="battle"><span class="mi">${icon('swords', 30)}</span>
-        <span class="mt"><b>Battle</b><span>${bStatus}</span></span><span class="go">${MP.code ? 'Return' : 'Play'}</span></button>
+      ${row('m-daily', 'play', 'cal', `Daily #${DateUK.puzzleNo(App.today)}`, dStatus, done ? 'Results' : n ? 'Go' : 'Play')}
+      ${factOn() ? row('m-fact', 'facthome', 'check', 'Fact Check!', fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : 'Daily claims, plus unlimited runs', 'Play') : ''}
+      ${row('m-unl', 'endless', 'inf', 'Unlimited', eStatus, !isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play')}
+      ${row('m-past', 'archive', 'past', 'Past puzzles', archStatus(), archAllLocked() ? icon('lock', 16) : 'Play')}
+      ${row('m-battle', 'battle', 'swords', 'Battle', MP.code ? `In room <b>${MP.code}</b>` : '2–4 friends, same questions, last one standing', MP.code ? 'Return' : 'Play')}
     </div>
-    ${Backend.on && !DEV.on ? `<button class="px card lgpromo" data-act="leagues"><span class="mi">${icon('board', 26, 'var(--gold)')}</span>
-      <span><b>Leagues</b><small id="home-leagues">${homeLeagueLine()}</small></span><span class="go">${App.leagues && App.leagues.length ? 'Open' : 'Start'}</span></button>` : ''}
-    ${done ? `<p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>` : ''}
-    <div class="minis">
-      <div class="px mini"><span class="label">Streak</span><b>${st.current}</b></div>
-      <div class="px mini"><span class="label">Best day</span><b>${fmtNum(st.best)}</b></div>
-      <div class="px mini"><span class="label">Played</span><b>${st.played}</b></div>
-    </div>
-    ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Settings so you don’t lose progress.</p>'}
-    <p class="center"><button class="link" data-act="intro">How to play &amp; scoring</button></p>
+    <p class="small muted center">Unlimited and past puzzles don’t affect your streak or the daily leaderboard.</p>
   </section>`;
 }
 
@@ -5368,28 +5459,27 @@ function viewResults(){
       ${tilesHTML(day.answers.map(a => a.s), first)}
       <p class="rank-title ${first ? 'slam' : ''}">${rankTitle(dayBase(day))}</p>
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
+      ${st.current > 0 ? `<span class="chip streak">🔥 ${st.current}-day streak</span>` : ''}
+      <p class="small muted res-name">Playing as <b>${esc(displayName())}</b> · <button class="link" data-act="rename">Change name</button></p>
     </div>
     ${h2hHTML(App.today)}
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
     <div class="sharebox">
-      <button class="btn btn-coral btn-block btn-xl" data-act="challenge" data-d="${App.today}">Challenge a friend</button>
-      <div class="btnrow"><button class="btn btn-mint" data-act="share">Share score</button><button class="btn btn-sky" data-act="shareImg">Share image</button></div>
+      <button class="btn btn-mint btn-block btn-xl" data-act="share">Share score</button>
+      <div class="btnrow"><button class="btn btn-ghost" data-act="challenge" data-d="${App.today}">Challenge a friend</button><button class="btn btn-ghost" data-act="shareImg">Share image</button></div>
     </div>
     <div class="px card stack leaguecard" id="leaguecard" hidden></div>
-    ${Habit.cardHTML()}
-    ${streakNudgeHTML(st)}
-    ${upsellHTML()}
-    <div class="statgrid">
+    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
+    ${[streakNudgeHTML(st), Habit.cardHTML(), upsellHTML()].find(Boolean) || ''}
+    ${fold('rstats', 'More stats', `<div class="statgrid">
       <div class="px stat"><span class="label">Dialed in</span><b>${exacts}</b></div>
       <div class="px stat"><span class="label">Personal best</span><b>${fmtNum(st.best)}</b></div>
       <div class="px stat"><span class="label">Streak</span><b>${st.current}</b></div>
       <div class="px stat"><span class="label">Longest</span><b>${st.longest}</b></div>
       <div class="px stat"><span class="label">Vs your avg</span><b>${vs}</b></div>
       <div class="px stat"><span class="label">Played</span><b>${st.played}</b></div>
-    </div>
-    <div class="btnrow"><button class="btn btn-ghost" data-act="board">Leaderboard</button><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
+    </div>`)}
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
-    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
 }
 // Guests' streaks live only on this device: offer to protect them with an account once there's something to lose
@@ -5495,7 +5585,7 @@ function viewEndless(){
           <div class="px stat"><span class="label">Longest</span><b>${S.endless.bestN} Qs</b></div>
         </div>
         ${locked ? `<p class="small muted" style="margin-top:14px">You’ve used today’s free run.</p>
-            <button class="btn btn-block btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`
+            <button class="btn btn-mint btn-block btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`
           : `<button class="btn btn-mint btn-block btn-xl" data-act="startrun" style="margin-top:14px">${isPremium() ? 'Start a run' : 'Start today’s free run'}</button>
              ${isPremium() ? '' : `<button class="link" data-act="pay">Unlimited runs with ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}`}
       </div>
@@ -5586,8 +5676,8 @@ function viewBattle(){
     return `<section class="stack"><div class="px card center">${icon('swords', 48, 'var(--m-battle)', 'mascot')}
       <h1 class="logo" style="font-size:22px;margin-top:10px" tabindex="-1">Battle</h1>
       <p class="tagline">Battles need the game to be online so friends’ phones can talk to each other.</p>
-      <p class="small muted">${location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname) ? 'Host the game with online mode switched on (see README.md) to create rooms with a 4-digit code. To try it on this computer, add ?mp=local to the address and open two tabs.' : 'Battles aren’t switched on for this site yet. Check back soon!'}</p>
-      <button class="btn btn-ghost btn-block" data-act="home">Home</button></div></section>`;
+      <p class="small muted">Check your connection and try again in a moment.</p>
+      <button class="btn btn-ghost btn-block" data-act="home">Back to Home</button></div></section>`;
   }
   if (!MP.code) {
     return `<section class="stack">
@@ -6123,67 +6213,82 @@ function viewStats(){
   </section>`;
 }
 
-/* ---- Settings ---- */
+/* ---- Profile (Settings) ---- */
+// A section that opens on tap; which ones are open is remembered while the game is open.
+const fold = (id, title, body) => `<details class="fold" data-fold="${id}"${App.folds.has(id) ? ' open' : ''}><summary class="px fold-h"><span>${title}</span><svg class="fold-c" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="fold-b stack">${body}</div></details>`;
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.matches && d.matches('details.fold')) { if (d.open) App.folds.add(d.dataset.fold); else App.folds.delete(d.dataset.fold); } }, true);
 function viewSettings(){
   const friends = S.friends.map(c => { const n = App.friendNames[c];
     return `<li>${n ? `${esc(n)} <small class="muted">${c}</small>` : c}<button data-act="rmfriend" data-code="${c}" aria-label="Remove friend ${n ? esc(n) : c}">×</button></li>`; }).join('');
   const cloud = Cloud.kind === 'claude' ? 'Saved on this device and to your Claude account, so it follows you to any device where you open this page.'
     : Cloud.kind === 'online' ? 'Saved on this device and to your online profile. Save your account below to use it on other devices.'
     : 'Saved on this device. To move to another phone, copy your save code and restore it there.';
-  return `<section class="stack">
-    <h1 class="label" tabindex="-1">Settings &amp; profile</h1>
-    <div class="px card stack">
+  const st = getStats(App.today);
+  if (App.afterEmail || (App.acct && App.acct.step && !['create','pin','out'].includes(App.acct.step))) App.folds.add('acct');
+  const status = Backend.member ? '<span class="chip ok">✓ Verified account</span>' : Backend.on && !DEV.on ? '<span class="chip">Guest · not saved yet</span>' : '<span class="chip">Saved on this device</span>';
+  return `<section class="stack profile">
+    <div class="px card phead">
+      ${mascot('happy', 56)}
+      <div class="ph-id"><h1 class="ph-name" tabindex="-1">${esc(displayName())}</h1>${status}</div>
+    </div>
+    <div class="minis">
+      <div class="px mini"><span class="label">Streak</span><b>${st.current}</b></div>
+      <div class="px mini"><span class="label">Best day</span><b>${fmtNum(st.best)}</b></div>
+      <div class="px mini"><span class="label">Played</span><b>${st.played}</b></div>
+    </div>
+    <button class="btn btn-ghost btn-block ph-stats" data-act="stats">All statistics and history</button>
+    ${fold('name', 'Display name', `<div class="px card stack">
       <form id="nameform" novalidate>
-        <label class="label" for="name">Display name</label>
-        <div class="formrow" style="margin-top:8px"><input id="name" maxlength="16" value="${esc(S.player.name)}" placeholder="${esc(displayName())}" autocomplete="nickname">
+        <label class="sr-only" for="name">Display name</label>
+        <div class="formrow"><input id="name" maxlength="16" value="${esc(S.player.name)}" placeholder="${esc(displayName())}" autocomplete="nickname">
         <button class="btn btn-mint" type="submit">Save</button></div>
         <p class="small muted">Up to 16 letters, numbers and spaces. Shown on leaderboards and in battles.</p>
       </form>
-    </div>
+    </div>`)}
+    ${fold('acct', Backend.on && !DEV.on ? 'Account &amp; devices' : 'Your progress', `${Backend.on ? `<div class="px card stack" id="acctcard">
+        <p class="label">Your account</p>
+        ${Backend.member ? '' : '<p class="small">You’re on the leaderboards already. Save your account to get a verified tick next to your name and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
+        ${accountHTML()}
+      </div>` : ''}
     <div class="px card stack">
       <p class="label">Your progress</p>
       <p class="small">${cloud}</p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="copysave">Copy save code</button><button class="btn btn-ghost" data-act="restore">Restore a save</button></div>
-    </div>
-    ${paywallOn() ? `<div class="px card stack">
+    </div>`)}
+    ${paywallOn() || tipOn() ? fold('plus', paywallOn() ? (isPremium() ? `${PLUS} · unlocked` : `${PLUS} · one-off ${esc(CONFIG.PRICE_LABEL)}`) : 'Support DIAL IN', `${paywallOn() ? `<div class="px card stack">
       <p class="label">${PLUS}</p>
       <p class="small">${isPremium() ? (S.premium.source === 'demo' ? 'Unlocked in preview mode (no payment was taken).' : 'Unlocked: every past puzzle and unlimited runs. Thank you for supporting DIAL IN!') : `Every past puzzle and unlimited runs, for ${CONFIG.PRICE_LABEL}, a one-off payment.`}</p>
-      <div class="btnrow">${isPremium() ? '' : `<button class="btn" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
+      <div class="btnrow">${isPremium() ? '' : `<button class="btn btn-mint" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
       ${S.premium.source === 'stripe' ? `<div class="btnrow"><button class="btn ${S.badge ? 'btn-mint' : 'btn-ghost'}" data-act="badge" aria-pressed="${S.badge}">Supporter badge: ${S.badge ? 'On' : 'Off'}</button></div>
       <p class="small muted">Shows a SUPPORTER badge next to your name on the leaderboards.</p>` : ''}
     </div>` : ''}
     ${tipOn() ? `<div class="px card stack">
       <p class="label">Tip jar</p>
       <p class="small">DIAL IN is made by a team of two. If it brightens your day, a ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions and keeps the daily puzzle free.</p>
-      <div class="btnrow"><button class="btn btn-sky" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
-    </div>` : ''}
-    <div class="px card stack">
+      <div class="btnrow"><button class="btn btn-ghost" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
+    </div>` : ''}`) : ''}
+    ${fold('prefs', 'Sound &amp; display', `<div class="px card stack">
       <p class="label">Sound &amp; effects</p>
       <div class="btnrow"><button class="btn ${S.sound === false ? 'btn-ghost' : 'btn-mint'}" data-act="sound" aria-pressed="${S.sound !== false}">Sound: ${S.sound === false ? 'Off' : 'On'}</button></div>
       <p class="small muted">Arcade bleeps for key taps, dial clicks and scores. Animations follow your phone’s reduce-motion setting.</p>
       ${Season.available() ? `<div class="btnrow"><button class="btn ${S.festive === false ? 'btn-ghost' : 'btn-mint'}" data-act="festive" aria-pressed="${S.festive !== false}">Festive look: ${S.festive === false ? 'Off' : 'On'} 🎄</button></div>
       <p class="small muted">Snow, a Santa hat for Knobby and Christmas colours for the festive season. Everything goes back to normal on 1 January.</p>` : ''}
-    </div>
-    ${Habit.settingsHTML()}
-    ${Backend.on ? `<div class="px card stack">
+    </div>`)}
+    ${(() => { const h = Habit.settingsHTML(); return h ? fold('remind', 'Reminders &amp; home screen', h) : ''; })()}
+    ${Backend.on ? fold('friends', 'Friends', `<div class="px card stack">
         <p class="label">Online profile</p>
         <div><span class="label">Your friend code</span><code class="mono">${Backend.profile ? esc(Backend.profile.code) : 'Loading…'}</code></div>
         <form id="friendform" novalidate><label class="label" for="fcode">Add a friend's code</label>
           <div class="formrow" style="margin-top:8px"><input id="fcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters"><button class="btn btn-sky" type="submit">Add</button></div></form>
         ${friends ? `<ul class="friends">${friends}</ul>` : '<p class="small muted">No friends added yet.</p>'}
-      </div>
-      <div class="px card stack" id="acctcard">
-        <p class="label">Your account</p>
-        ${Backend.member ? '' : '<p class="small">You’re on the leaderboards already. Save your account to get a verified tick next to your name and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
-        ${accountHTML()}
-      </div>` : ''}
-    <div class="px card stack">
+      </div>`) : ''}
+    ${fold('data', 'Your data &amp; privacy', `<div class="px card stack">
       <p class="label">Your data</p>
       <p class="small">We only keep what the game needs: your username and PIN (stored scrambled) if you save an account, your display name, scores and progress. No email, no ads, no tracking cookies. Shared results show your score pattern, never your name. <a href="privacy">Privacy notice</a> · <a href="terms">Terms</a></p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
       <button class="btn ${App.delArm ? 'btn-coral' : 'btn-ghost'}" data-act="acctdelete" style="margin-top:10px">${App.delArm ? 'Tap again to delete everything for good' : 'Delete my account and data'}</button>
       ${App.delArm ? `<p class="small">This deletes your ${Backend.on && !DEV.on ? 'account, scores, streak, saved progress and leagues from our servers and this device' : 'progress on this device'}. It can’t be undone.${isPremium() ? ` ${PLUS} goes too.` : ''}</p>` : ''}
-    </div>
+    </div>`)}
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
     ${DEV.askPass ? `<form class="px card stack" id="devpassform" novalidate><label class="label" for="devpass">Developer passcode</label><div class="formrow"><input id="devpass" type="password" autocomplete="off"><button class="btn btn-coral" type="submit">Unlock</button></div></form>` : ''}
     <p class="small muted center"><button class="link quiet" data-act="devtap">DIAL IN · ${BANK.length} hand-checked questions</button></p>
@@ -6238,15 +6343,18 @@ function render(focus = true){
   if (App.view === 'play') expireDaily();
   if (['factplay','facthome','factres'].includes(App.view) && factOn()) expireFacts();
   if (App.view === 'endless') expireRun();
-  const views = { dev:viewDev, home:viewHome, facthome:viewFactHub, factplay:viewFactPlay, factres:viewFactRes, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
+  const views = { dev:viewDev, home:viewHome, facthome:viewFactHub, factplay:viewFactPlay, factres:viewFactRes, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle, modes:viewModes };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
   const about = $('#about'); if (about) about.hidden = App.view !== 'home';
   main.classList.toggle('playing', !!main.querySelector('.play'));
-  document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
-  const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
-  if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
+  // bottom navigation: which destination this screen belongs to, and hide it while a game is on screen
+  const NAV_OF = { home:'home', facthome:'home', factres:'home', results:'home', modes:'modes', archive:'modes', archres:'modes', endless:'modes', battle:'modes', board:'board', settings:'settings', stats:'settings' };
+  document.querySelectorAll('.navtab').forEach(b => { if (b.dataset.nav === NAV_OF[App.view]) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  const inGame = ['play','pinball','factplay','arch','dev'].includes(App.view) || (App.view === 'endless' && S.run && !S.run.over)
+    || (App.view === 'battle' && !!MP.code && !!MP.room && ['question','reveal'].includes(MP.room.status));
+  document.body.classList.toggle('in-game', inGame);
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', modes:'Play · DIAL IN', settings:'Profile · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
@@ -6627,6 +6735,8 @@ function onClick(e){
     case 'mprematch': MP.rematch(); break;
     case 'mpinvite': share(inviteText()); break;
     case 'board': go('board'); break;
+    case 'modes': go('modes'); break;
+    case 'rename': App.afterName = null; $('#pname').value = S.player.name || ''; $('#pname').placeholder = randomName(); openDialog('dlg-name'); setTimeout(() => $('#pname').focus(), 50); break;
     case 'stats': go('stats'); break;
     case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); loadFriendNames(); break;
     case 'intro': openDialog('dlg-intro'); break;
