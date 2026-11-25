@@ -3,7 +3,7 @@
    waits at most 2.5 seconds before opening the saved copy; the download carries on and updates it for next time.
    Icons and fonts are cache-first.
    Supabase and Stripe requests are never touched. Bump VERSION to clear old caches. */
-const VERSION = 'dialin-v42';
+const VERSION = 'dialin-v43';
 const PAGE_WAIT_MS = 2500;
 const CORE = ['./', 'index.html', 'config.js', 'facts.js', 'manifest.webmanifest', 'icons/favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
   'fonts/rubik-latin.woff2', 'fonts/bungee-latin.woff2'];
