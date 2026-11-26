@@ -1,6 +1,6 @@
 {
- "_about": "DRAFT Fact Check! statements written 26 Nov 2026 to extend the schedule past 30 Dec 2026. Status: pending owner approval. They were checked editorially, not against the named sources; none is served or scheduled until approved. To approve: append the approved rows to facts.js, then run node scripts/build-content.mjs and node scripts/validate-questions.mjs (see docs/content/RUNBOOK.md).",
- "status": "pending-approval",
+ "_about": "DRAFT Fact Check! statements written 26 Nov 2026 to extend the schedule past 30 Dec 2026. Status: approved by the owner on 26 Nov 2026 and added to facts.js. They were checked editorially, not against the named sources; To approve: append the approved rows to facts.js, then run node scripts/build-content.mjs and node scripts/validate-questions.mjs (see docs/content/RUNBOOK.md).",
+ "status": "approved",
  "rows": [
   [
    "f301",

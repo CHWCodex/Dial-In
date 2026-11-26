@@ -113,7 +113,8 @@ const validate = today => { try { return { code: 0, out: execFileSync(process.ex
 test('simulated daily resets: validation passes today and fails loudly as content runs low', () => {
   let last = G.DAILY_V2.from; while (G.hasDaily(G.DateUK.add(last, 1))) last = G.DateUK.add(last, 1);
   const ok = validate('2026-11-26'); assert.equal(ok.code, 0, ok.out);
-  const lowFact = validate('2026-12-27'); assert.equal(lowFact.code, 1); assert.match(lowFact.out, /Fact Check! claims run out/);
+  let fEnd = F.FACT_V2.from; while (F.factDailyIds(F.DateUK.add(fEnd, 1))) fEnd = F.DateUK.add(fEnd, 1);
+  const lowFact = validate(F.DateUK.add(fEnd, -3)); assert.equal(lowFact.code, 1); assert.match(lowFact.out, /Fact Check! claims run out/);
   const low = JSON.parse(validate(G.DateUK.add(last, -10)).out); assert.ok(low.errors.some(e => /Daily puzzles run out/.test(e)), JSON.stringify(low.errors));
   const none = JSON.parse(validate(G.DateUK.add(last, 1)).out); assert.ok(none.errors.some(e => /No Daily DIAL IN puzzle for today/.test(e)));
 });
