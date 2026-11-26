@@ -5960,9 +5960,11 @@ function boardStatusHTML(kind){
 }
 function viewBoard(){
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
-  const tabs = Object.keys(BOARDS).map(k =>
-    `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
-    + (Backend.on && !DEV.on ? `<button class="tab" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '');
+  // order on the scrollable row: the public boards, then Leagues (on screen without scrolling), then streaks and friends
+  const btn = k => k === 'leagues'
+    ? (Backend.on && !DEV.on ? `<button class="tab" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '')
+    : `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`;
+  const tabs = ['daily', 'all', 'leagues', 'streak', 'fdaily', 'fall'].map(btn).join('');
   if (lg) return `<section class="stack">
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
@@ -6092,17 +6094,6 @@ function leagueItems(list){
       <small>${n} ${n === 1 ? 'player' : 'players'} · ${p} played today${l.my_rank ? '' : ' · you haven’t yet'}</small></button></li>`; }).join('')}</ul>`;
 }
 // Home card line: your best league position today, or what leagues are
-function homeLeagueLine(){
-  const L = App.leagues || [];
-  if (!L.length) return 'Private leaderboards for your group chat. No account needed.';
-  const ranked = L.filter(l => l.my_rank).sort((a, b) => a.my_rank - b.my_rank)[0];
-  return ranked ? `${esc(ranked.name)}: you’re #${ranked.my_rank} of ${Number(ranked.played_today)} today` : `${L.length} ${L.length === 1 ? 'league' : 'leagues'} · play today to get on the board`;
-}
-async function refreshHomeLeagues(){
-  if (!Backend.on || DEV.on || App.view !== 'home' || (App.leaguesAt && Date.now() - App.leaguesAt < 60000)) return;
-  App.leaguesAt = Date.now();
-  try { await fetchLeagues(); if (App.view === 'home') { const el = $('#home-leagues'); if (el) el.innerHTML = homeLeagueLine(); const go = el && el.closest('button').querySelector('.go'); if (go) go.textContent = App.leagues.length ? 'Open' : 'Start'; } } catch(e){}
-}
 async function fetchLeagues(){ await Backend.auth(); const r = await Backend.rpc('my_leagues', { p_date: App.today }); App.leagues = Array.isArray(r) ? r : []; return App.leagues; }
 async function loadLeagueList(){
   const el = $('#league-list'); if (!el) return; const token = ++App.boardToken;
@@ -6404,7 +6395,6 @@ function postRender(){
     }
   }
   if (App.view === 'board') loadBoard();
-  if (App.view === 'home') refreshHomeLeagues();
   if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
   if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || App.view === 'factplay' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
