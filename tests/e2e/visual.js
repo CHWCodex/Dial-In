@@ -1,0 +1,33 @@
+const { BASE_URL } = require('./_guard');   // refuses to run against the live site or database
+const { chromium } = require('playwright'); const O = (process.argv[2] || require('os').tmpdir() + '/dialin-visual') + '/'; require('fs').mkdirSync(O, { recursive:true });
+(async () => {
+  const b = await chromium.launch(require('./_guard').LAUNCH);
+  const ctx = await b.newContext({ viewport:{ width:390, height:844 }, isMobile:true, hasTouch:true });
+  await ctx.route(/jfutntnbxwhstqgrwskj|cloudflareinsights|buy\.stripe\.com/, r => r.abort());
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const shot = async n => { await p.waitForTimeout(900); await p.evaluate(() => scrollTo(0, 0)); await p.screenshot({ path: O + n + '.png' }); };
+  const ev = f => p.evaluate(f);
+  await p.goto(BASE_URL, { waitUntil:'networkidle' }); await p.waitForTimeout(2500); await shot('01-first-visit');
+  await ev(() => document.querySelectorAll('dialog[open]').forEach(d => d.close())); await shot('02-home-guest-undone');
+  await ev(() => { S.player.name = 'QA Visual'; save(); startDaily(); }); await shot('03-question');
+  await p.click('[data-act=key][data-k="4"]'); await p.click('[data-act=key][data-k="2"]'); await p.click('#enterkey'); await p.waitForTimeout(2500); await shot('04-reveal');
+  await ev(() => go('home')); await shot('05-home-in-progress');
+  await ev(() => { const d = getDay(App.today, true); d.answers = d.ids.map((_, i) => ({ g:5, s:[1000,600,400,0,750,200,900][i] })); d.done = true; d.pin = { done:true, bonus:400 }; save(); go('results'); }); await shot('06-results');
+  await ev(() => go('home')); await shot('07-home-done');
+  await ev(() => go('modes')); await shot('08-play-tab');
+  await ev(() => { App.boardTab = 'daily'; go('board'); }); await p.waitForTimeout(3000); await shot('09-ranks-daily');
+  await ev(() => { App.boardTab = 'leagues'; go('board'); }); await p.waitForTimeout(2500); await shot('10-ranks-leagues-empty');
+  await ev(() => go('settings')); await shot('11-profile-guest');
+  await ev(() => go('stats')); await shot('12-stats');
+  await ev(() => go('facthome')); await shot('13-fact-check');
+  await ev(() => go('endless')); await shot('14-unlimited-locked');
+  await ev(() => { S.premium = { active:true, source:'demo', at:Date.now() }; save(); go('endless'); }); await shot('15-unlimited-plus');
+  await ev(() => go('settings')); await shot('16-profile-plus');
+  await ev(() => go('archive')); await shot('17-archive');
+  await ev(() => go('battle')); await shot('18-battles');
+  await ev(() => mpCreate && mpCreate()); await p.waitForTimeout(4000); await shot('19-battle-lobby');
+  await ev(() => { try { MP.leave && MP.leave(); } catch(e) {} go('home'); });
+  await ctx.setOffline(true); await ev(() => { App.boardTab = 'all'; go('board'); }); await p.waitForTimeout(3000); await shot('20-ranks-offline-error'); await ctx.setOffline(false);
+  await ev(() => { document.body.dataset.season = ''; S.festive = false; save(); render(false); }); await shot('21-home-festive-off');
+  console.log('errors:', errs.length ? errs : 'none'); await b.close();
+})().catch(e => { console.log('CRASH', e.message.split('\n')[0]); process.exit(1); });

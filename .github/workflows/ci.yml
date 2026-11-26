@@ -1,0 +1,24 @@
+# Release gate: every pull request and every push to main must pass these before it can be trusted to deploy.
+name: Checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests (dates, daily reset, scoring, schedule, name filter, input)
+        run: node --test tests/unit.test.mjs tests/input.test.mjs
+      - name: Question integrity tests (duplicates, schedule, history, inventory)
+        run: node --test tests/content.test.mjs
+      - name: Validate questions and schedules
+        run: node scripts/validate-questions.mjs
+      - name: Game script parses
+        run: node -e "const h=require('fs').readFileSync('index.html','utf8');for(const m of h.matchAll(/<script>([\s\S]*?)<\/script>/g))new Function(m[1]);console.log('ok')"

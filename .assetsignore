@@ -9,3 +9,5 @@ node_modules
 *.md
 .wrangler
 docs
+tests
+content

@@ -718,6 +718,69 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 @media (max-height:640px){ .qtext{font-size:16px} .pip{height:40px} .key{min-height:44px} .screen .val{min-height:46px;padding:8px 10px} .qcard{padding:10px 12px} .pad{gap:6px} }
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
 @media (prefers-contrast:more){ :root{--text-2:var(--text);--card-text-2:var(--card-text);--inset-text-2:var(--inset-text)} .px,.reveal,.rowbtn,.lb li{outline:1px solid currentColor} }
+/* ==== Design system ====
+   Buttons: yellow (.btn-mint) is the one main action on a screen; purple (.btn-ghost) for everything else;
+   red (.btn-coral) only for deleting. Cyan buttons are folded into purple. No glow on buttons. */
+.btn-sky{background:var(--ghost);color:var(--on-ghost)}
+[data-theme="dial"] .btn-mint{box-shadow:var(--sh-btn)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-pill);background:var(--inset);color:var(--text);font:800 12px/1.2 var(--font-ui);letter-spacing:.02em}
+.chip.streak{color:var(--gold)} .chip.ok{color:#7dff6a}
+.chip-btn{border:2px solid var(--gold);color:var(--gold);cursor:pointer;min-height:44px;padding:8px 14px;touch-action:manipulation}
+.chip-btn:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.mode .go.quiet{background:var(--ghost);color:var(--on-ghost);box-shadow:none}
+
+/* ---- Bottom navigation: Home · Play · Ranks · Profile (hidden while a game is on screen) ---- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bar-bg);border-top:2px solid var(--bar-edge);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding:0 max(6px,env(safe-area-inset-left,0px)) 0 max(6px,env(safe-area-inset-right,0px))}
+.navtab{position:relative;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:0;cursor:pointer;
+  color:var(--text-2);font:800 11px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.navtab[aria-current="page"]{color:var(--gold)}
+.navtab[aria-current="page"]::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+.navtab:focus-visible{outline:3px solid var(--link);outline-offset:-4px;border-radius:12px}
+body:not(.in-game){padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+body.in-game .tabbar{display:none}
+body:not(.in-game) .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+
+/* ---- Home: today's Daily is the one big thing ---- */
+.dcard{padding:16px 18px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.dc-top{align-self:stretch;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.dc-kicker{font:800 12px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
+.dc-dial{display:block;margin:4px auto 0}
+.dc-needle{transform-origin:32px 41px;animation:dcNeedle 3.4s ease-in-out infinite}
+@keyframes dcNeedle{0%,100%{transform:rotate(0)}50%{transform:rotate(-62deg)}}
+.is-done .dc-needle{animation:none}
+.dc-title{margin:0;font:400 28px/1.1 var(--font-logo);letter-spacing:.03em;color:var(--text)}
+@media (max-width:360px){.dc-title{font-size:23px}}
+.dc-sub{margin:0;color:var(--text-2);max-width:32ch}
+.dcard .dc-go{margin:6px 0 0;width:100%}
+.dc-score b{display:block;font:400 46px/1 var(--font-logo);color:var(--gold)}
+.dc-score span{display:block;margin-top:4px;color:var(--text-2);font-weight:700}
+.dc-next{margin:0;color:var(--text-2);font-size:14px}
+.dc-pips{display:flex;gap:6px;justify-content:center}
+.dc-pips i{width:24px;height:10px;border-radius:5px;background:var(--inset);box-shadow:inset 0 0 0 2px var(--edge)}
+.dc-pips i.t1000{background:var(--t1000)} .dc-pips i.t900{background:var(--t900)} .dc-pips i.t750{background:var(--t750)} .dc-pips i.t600{background:var(--t600)}
+.dc-pips i.t400{background:var(--t400)} .dc-pips i.t200{background:var(--t200)} .dc-pips i.t0{background:var(--t0)}
+.home .xmas-count{align-self:center}
+.home .mode{min-height:60px}
+
+/* ---- Profile: header, then sections that open on tap ---- */
+.phead{display:flex;align-items:center;gap:14px;padding:16px}
+.ph-id{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.ph-name{margin:0;font:400 22px/1.15 var(--font-logo);letter-spacing:.02em;overflow-wrap:anywhere}
+.fold-h{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;min-height:56px;cursor:pointer;font:800 16px/1.25 var(--font-ui);color:var(--text)}
+.fold-h::-webkit-details-marker{display:none}
+.fold-c{flex:none;color:var(--text-2);transition:transform var(--dur-2)}
+.fold[open] .fold-c{transform:rotate(180deg)}
+.fold-h:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.fold-b{padding-top:12px}
+.res-name{margin:10px 0 0}
+.profile .ph-stats{margin-top:10px}
+
+/* ---- Ranks: the leaderboard choices sit on one scrollable row ---- */
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:3px;margin:0 -3px;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs .tab{flex:none;padding:0 16px;border-radius:var(--r-pill);min-height:40px}
+
 /* ---- Christmas (html[data-season="xmas"], 26 November – 31 December or ?season=xmas): visual only ---- */
 .snow{position:fixed;left:0;right:0;top:0;height:100vh;pointer-events:none;z-index:43;overflow:hidden;display:none;contain:strict}
 .snow.on{display:block}
@@ -749,10 +812,8 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <header class="topbar">
   <div class="topbar-in">
     <button class="iconbtn" data-act="intro" aria-label="How to play" id="ic-help"></button>
-    <button class="iconbtn" data-act="stats" aria-label="Your statistics" id="ic-stats"></button>
     <button class="brand" data-act="home" aria-label="DIAL IN home"><span id="ic-brand"></span><b>Dial <span>In</span></b><span class="devchip" data-act="devopen" role="button" aria-label="Developer panel">DEV</span></button>
-    <button class="iconbtn gold" data-act="board" aria-label="Leaderboards" id="ic-board"></button>
-    <button class="iconbtn" data-act="settings" aria-label="Settings and profile" id="ic-settings"></button>
+    <span class="iconbtn" aria-hidden="true"></span>
   </div>
 </header>
 
@@ -799,7 +860,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <dialog id="dlg-name" aria-labelledby="name-h">
   <form class="px dlg" id="pnameform" novalidate>
     <h2 id="name-h">What shall we call you?</h2>
-    <p class="small muted">Your name appears on the leaderboards for everyone to see, and in battles. Use a nickname rather than your full name. You can change it any time in Settings.</p>
+    <p class="small muted">Your name appears on the leaderboards for everyone to see, and in battles. Use a nickname rather than your full name. You can change it any time in Profile.</p>
     <div class="formrow"><input id="pname" maxlength="16" autocomplete="nickname" aria-label="Display name">
       <button class="btn btn-ghost" type="button" data-act="dice" aria-label="Suggest a random name">🎲</button></div>
     <div class="btnrow" style="margin-top:12px"><button class="btn btn-mint" type="submit">Save name</button><button class="btn btn-ghost" type="button" data-close>Not now</button></div>
@@ -820,7 +881,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
     <ol class="iosteps">
       <li>In <b>Safari</b>, tap the <b>Share</b> button (the square with an arrow pointing up).</li>
       <li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
-      <li>Open DIAL IN from your home screen. You can then switch on the daily reminder in Settings.</li>
+      <li>Open DIAL IN from your home screen. You can then switch on the daily reminder in Profile.</li>
     </ol>
     <p class="small muted">Opened this from Instagram, Snapchat or TikTok? Open it in Safari first: tap ••• then Open in browser.</p>
     <button class="btn btn-mint btn-block" data-close>Got it</button>
@@ -846,7 +907,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <dialog id="dlg-restore" aria-labelledby="restore-h">
   <form class="px dlg" id="restoreform" novalidate>
     <h2 id="restore-h">Restore a save</h2>
-    <p class="small muted">Paste a save code copied from Settings on another device. Your progress here is kept and combined with it.</p>
+    <p class="small muted">Paste a save code copied from Profile on another device. Your progress here is kept and combined with it.</p>
     <textarea id="restore-text" aria-label="Save code" placeholder="PP1.…"></textarea>
     <div class="btnrow"><button class="btn btn-mint" type="submit">Restore</button><button class="btn btn-ghost" type="button" data-close>Cancel</button></div>
   </form>
@@ -857,7 +918,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
     <h2 id="rec-h">Save your recovery code</h2>
     <p class="small" id="rec-first">Your account is saved. There’s no email to reset a forgotten PIN, so this code is your way back in.</p>
     <p class="reccode mono" id="rec-code" aria-label="Recovery code"></p>
-    <p class="small">Screenshot it, or keep it in your notes or password manager. You’ll only see it this once (you can make a new one in Settings).</p>
+    <p class="small">Screenshot it, or keep it in your notes or password manager. You’ll only see it this once (you can make a new one in Profile).</p>
     <div class="btnrow"><button class="btn btn-sky" data-act="reccopy">Copy code</button><button class="btn btn-mint" data-close>I’ve saved it</button></div>
   </div>
 </dialog>
@@ -870,6 +931,14 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
   </div>
 </dialog>
 
+<nav class="tabbar" id="tabbar" aria-label="Main">
+  <div class="tabbar-in">
+    <button class="navtab" data-act="home" data-nav="home"><span id="ic-nhome"></span><span>Home</span></button>
+    <button class="navtab" data-act="modes" data-nav="modes"><span id="ic-nplay"></span><span>Play</span></button>
+    <button class="navtab" data-act="board" data-nav="board"><span id="ic-nranks"></span><span>Ranks</span></button>
+    <button class="navtab" data-act="settings" data-nav="settings"><span id="ic-nprofile"></span><span>Profile</span></button>
+  </div>
+</nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <div class="snow" id="snow" aria-hidden="true"></div>
@@ -1181,13 +1250,13 @@ const RAW_QUESTIONS = [
   ["p38","Sport",1,"How many points does a Formula 1 race winner receive?",25,"points","25 points (since 2010).","FIA","Global"],
   ["p39","Sport",2,"How many Formula 1 world titles did Michael Schumacher win?",7,"titles","Seven: 1994, 1995 and 2000–2004.","FIA","Global"],
   ["p40","Sport",2,"How many Wimbledon men’s singles titles did Roger Federer win?",8,"titles","Eight, the men’s record.","All England Lawn Tennis Club","UK"],
-  ["p41","Sport",2,"What is Usain Bolt’s 100 metres world record, in seconds?",9.58,"seconds","9.58 s, Berlin 2009.","World Athletics","Global","pct"],
+  ["p41","Sport",2,"What was Usain Bolt’s time when he set the 100 m world record in 2009, in seconds?",9.58,"seconds","9.58 s, Berlin 2009.","World Athletics","Global","pct"],
   ["p42","Sport",2,"How many Olympic gold medals did swimmer Michael Phelps win?",23,"medals","23 golds, a record.","International Olympic Committee","Global"],
   ["p43","Sport",3,"How many Olympic gold medals did cyclist Sir Chris Hoy win?",6,"medals","Six golds.","Team GB","UK"],
   ["p44","Sport",3,"How many Olympic gold medals did cyclist Jason Kenny win?",7,"medals","Seven, the British record.","Team GB","UK"],
   ["p45","Sport",2,"In what year did England’s Lionesses first win the women’s European Championship?",2022,"year","July 2022 at Wembley.","UEFA","UK"],
   ["p46","Sport",2,"How many Premier League titles did Manchester United win?",13,"titles","13, all under Sir Alex Ferguson (1993–2013).","Premier League","UK"],
-  ["p47","Sport",3,"How many European Cups / Champions League titles have Liverpool won (as of 2026)?",6,"titles","1977, 1978, 1981, 1984, 2005 and 2019.","UEFA","UK"],
+  ["p47","Sport",3,"By the end of 2025, how many European Cups / Champions League titles had Liverpool won?",6,"titles","1977, 1978, 1981, 1984, 2005 and 2019.","UEFA","UK"],
   ["p48","Sport",2,"How many players are in each Ryder Cup team?",12,"players","12 per side.","Ryder Cup Europe","Global"],
   ["p49","Sport",3,"What is Brian Lara’s world-record individual Test score?",400,"runs","400 not out, v England in 2004.","ICC","Global"],
   ["p51","Sport",2,"In what year did England win the Rugby Union World Cup?",2003,"year","November 2003 in Sydney.","World Rugby","UK"],
@@ -1401,7 +1470,7 @@ const RAW_QUESTIONS = [
   ["sp13","Sport",2,"How many teams are in the NBA?",30,"teams","30 teams.","NBA","USA"],
   ["sp14","Sport",2,"How many teams are in Major League Baseball?",30,"teams","30 teams.","MLB","USA"],
   ["sp15","Sport",1,"How many clubs are in the Premier League?",20,"clubs","20 clubs.","Premier League","UK"],
-  ["sp16","Sport",2,"How many Super Bowls have the New England Patriots won (as of 2026)?",6,"Super Bowls","Six, tied with the Pittsburgh Steelers for the most. They lost Super Bowl LX in 2026 to Seattle.","NFL","USA"],
+  ["sp16","Sport",2,"By the end of 2025, how many Super Bowls had the New England Patriots won?",6,"Super Bowls","Six, tied with the Pittsburgh Steelers for the most. They lost Super Bowl LX in 2026 to Seattle.","NFL","USA"],
   ["sp17","Sport",2,"Before the 2026 tournament, how many FIFA World Cups had Brazil won?",5,"World Cups","Five: 1958, 1962, 1970, 1994 and 2002.","FIFA","Global"],
   ["sp18","Sport",2,"In what year was the first FIFA World Cup held?",1930,"year","1930, in Uruguay.","FIFA","Global"],
   ["sp19","Sport",2,"In what year were the first modern Olympic Games held?",1896,"year","1896, in Athens.","International Olympic Committee","Global"],
@@ -1727,10 +1796,10 @@ const RAW_QUESTIONS = [
   ["x186","Geography",2,"How many countries does Brazil share a land border with?",10,"countries","Every South American country except Chile and Ecuador, counting France via French Guiana.","Standard geography","South America"],
   ["x187","Geography",3,"How many countries share a land border with China?",14,"countries","14, tied with Russia for the most.","Standard geography","Asia"],
   ["x188","Geography",2,"How many countries are there in Central America?",7,"countries","Belize, Costa Rica, El Salvador, Guatemala, Honduras, Nicaragua and Panama.","Standard geography","Central America"],
-  ["x189","Geography",2,"Roughly how many people live in the UK, in millions?",69,"million","About 69.3 million (ONS mid-2024 estimate). 68.5 to 70 counts as exact.","Office for National Statistics","UK",null,[68.5,70]],
-  ["x190","Geography",2,"Roughly how many people live in the world, in billions?",8.2,"billion","About 8.2 billion. 8 to 8.3 counts as exact.","United Nations","Global","pct",[8,8.3]],
+  ["x189","Geography",2,"In mid-2024, roughly how many people lived in the UK, in millions?",69,"million","About 69.3 million (ONS mid-2024 estimate). 68.5 to 70 counts as exact.","Office for National Statistics","UK",null,[68.5,70]],
+  ["x190","Geography",2,"In 2025, roughly how many people lived in the world, in billions?",8.2,"billion","About 8.2 billion (UN estimate for 2025). 8 to 8.3 counts as exact.","United Nations","Global","pct",[8,8.3]],
   ["x191","Geography",3,"Roughly how many people live in India, in millions?",1460,"million","About 1.46 billion, the most of any country. 1,430 to 1,470 counts as exact.","United Nations World Population Prospects","Asia",null,[1430,1470]],
-  ["x192","Geography",2,"Roughly how many people live in the USA, in millions?",340,"million","About 340 million. 335 to 345 counts as exact.","US Census Bureau","USA",null,[335,345]],
+  ["x192","Geography",2,"In 2025, roughly how many people lived in the USA, in millions?",340,"million","About 340 million (US Census Bureau estimate for 2025). 335 to 345 counts as exact.","US Census Bureau","USA",null,[335,345]],
   ["x193","Geography",3,"Roughly how many people live in Australia, in millions?",27,"million","About 27 million. 26.5 to 28 counts as exact.","Australian Bureau of Statistics","Australia",null,[26.5,28]],
   ["x194","Geography",3,"Roughly how long is the Amazon River, in kilometres?",6400,"km","Usually given as 6,400 km, though some surveys say over 6,900. 6,400 to 7,000 counts as exact.","Commonly cited figure","South America",null,[6400,7000]],
   ["x195","Geography",3,"How long is the Mississippi River, in kilometres?",3730,"km","About 3,730 km (2,340 miles). 3,700 to 3,770 counts as exact.","US National Park Service","USA",null,[3700,3770]],
@@ -2206,10 +2275,10 @@ const RAW_QUESTIONS = [
   ["z124", "Sport", 2, "How many Olympic gold medals did cyclist Dame Laura Kenny win?", 5, "medals", "Two at London 2012, two at Rio 2016 and one at Tokyo 2020.", "Olympics.com", "UK"],
   ["z125", "Sport", 1, "How many players are on each side in beach volleyball?", 2, "players", "Two-a-side.", "FIVB", "Global"],
   ["z126", "Sport", 2, "How many Olympic gold medals did Carl Lewis win?", 9, "medals", "Between 1984 and 1996, in sprints and the long jump.", "Olympics.com", "USA"],
-  ["z127", "Sport", 3, "What is the men’s long jump world record, in metres?", 8.95, "metres", "Mike Powell, 1991.", "World Athletics", "Global", "pct", null],
-  ["z128", "Sport", 3, "What is the women’s 100 m world record, in seconds?", 10.49, "seconds", "Florence Griffith-Joyner, 1988.", "World Athletics", "Global", "pct", null],
-  ["z129", "Sport", 2, "What is Usain Bolt’s 200 m world record, in seconds?", 19.19, "seconds", "Berlin, 2009.", "World Athletics", "Global"],
-  ["z130", "Sport", 3, "What is the men’s high jump world record, in metres?", 2.45, "metres", "Javier Sotomayor, 1993.", "World Athletics", "Global", "pct", null],
+  ["z127", "Sport", 3, "Mike Powell set the men’s long jump world record in 1991. How far did he jump, in metres?", 8.95, "metres", "Mike Powell, 1991.", "World Athletics", "Global", "pct", null],
+  ["z128", "Sport", 3, "Florence Griffith-Joyner set the women’s 100 m world record in 1988. What was her time, in seconds?", 10.49, "seconds", "Florence Griffith-Joyner, 1988.", "World Athletics", "Global", "pct", null],
+  ["z129", "Sport", 2, "What was Usain Bolt’s time when he set the 200 m world record in 2009, in seconds?", 19.19, "seconds", "Berlin, 2009.", "World Athletics", "Global"],
+  ["z130", "Sport", 3, "Javier Sotomayor set the men’s high jump world record in 1993. How high did he jump, in metres?", 2.45, "metres", "Javier Sotomayor, 1993.", "World Athletics", "Global", "pct", null],
   ["z131", "Sport", 3, "How high is the centre of a dartboard’s bullseye from the floor, in centimetres?", 173, "cm", "5 ft 8 in (1.73 m).", "World Darts Federation", "Global"],
   ["z132", "Sport", 2, "How long is a full-size snooker table, in feet?", 12, "feet", "12 ft by 6 ft (nominally).", "World Snooker Tour", "Global"],
   ["z133", "Sport", 1, "In what year did Manchester United win the treble?", 1999, "year", "Premier League, FA Cup and Champions League.", "Premier League", "UK"],
@@ -2400,7 +2469,7 @@ function rangeHint(q){
   const r = mulberry32(hashStr('hint|' + q.id));
   if (q.scoring === 'year') {
     let lo = Math.floor((q.answer - (8 + Math.floor(r() * 25))) / 10) * 10, hi = lo + 50;
-    if (q.unit === 'year' && hi > 2026) { hi = 2026; lo = hi - 50; }
+    if (q.unit === 'year' && hi > 2026 && q.answer <= 2026) { hi = 2026; lo = hi - 50; }   // no future years, unless the answer is one (“In what year will…”)
     if (q.range) { lo = Math.min(lo, Math.floor(q.range[0] / 10) * 10); hi = Math.max(hi, Math.ceil(q.range[1] / 10) * 10); }
     return [lo, hi];
   }
@@ -2438,7 +2507,9 @@ function buildCycle(seg, cycle){
   cycleCache.set(key, days);
   return days;
 }
-function dailyIds(iso){
+// The original rolling schedule. It produced every puzzle up to DAILY_V2.from and must never change (players' archives,
+// leaderboards and the database's daily_sets all hold its output). From DAILY_V2.from the reviewed list below takes over.
+function legacyDailyIds(iso){
   let seg = SCHEDULE[0];
   for (const s of SCHEDULE) if (s.from <= iso) seg = s;
   const per = Math.floor(Math.min(seg.size, BANK.length) / 7);
@@ -2446,24 +2517,58 @@ function dailyIds(iso){
   const cycle = Math.floor(n / per), idx = n - cycle * per;
   return buildCycle(seg, cycle)[idx].slice();
 }
+/* Question integrity (see content/question-groups.json and scripts/build-content.mjs, which writes the block below).
+   A fact group is a set of questions that test the same fact: only one may ever be a daily question, and Unlimited/Battles
+   treat the group as one question. Quarantined questions are never served anywhere. */
+/*QUALITY:START*/
+const QUALITY = {"groups":[["g03","lm33"],["g42","lm34"],["x285","y121"],["x317","y082"],["fm06","y129"],["sc15","y063"],["p09","p35"],["p51","y118"],["x329","y136"],["x351","y140"],["x398","y131"],["lm15","y113"],["p22","y122"],["x379","y127"],["g62","y103"],["x185","y107"],["x362","y128"],["x133","y137"],["r02","y033"],["s52","y138"],["sp03","y119"],["b03","y042"],["c46","y024"],["x025","y002"],["x022","y006"],["b17","y068"],["x076","y052"],["x079","y031"],["sc05","y060"],["x393","y130"],["f10","fd13"],["u09","y003"],["h45","z030"],["x247","x266"],["h26","z055"]],"quarantine":["y049","z245"],"fgroups":[["f067","f068"]],"fquarantine":[]};
+const DAILY_V2 = {"from":"2026-11-27","days":"p52,u44,gm19,x214,x285,x329,x317;c29,h13,p10,x279,sc06,x082,x418;fm10,z105,fd01,x164,x190,x417,sc14;x137,tc08,y107,y138,z028,g18,x415;y110,m47,sc16,x113,z154,y044,y089;u09,gm04,x334,x394,y127,x155,x224;mu01,gm08,sp23,z019,lm21,x118,x309;tv14,n01,p53,sp17,x167,x229,x259;z106,c01,h08,h46,x388,z109,sc15;h40,gm18,x036,x045,x206,p20,x194;m24,n20,p12,y113,x019,x211,x416;x302,k18,mu10,x052,y042,r03,y025;an15,s11,sp24,y008,z137,h52,y071;fd03,g62,m51,s10,y030,x421,y047;mu09,x031,x072,y068,z114,x028,y032;m48,x008,y123,y132,fd17,lm04,s48;gm12,gm06,p42,x330,lm22,y057,z131;lm35,s01,x209,y086,n04,y062,z152;c20,fm25,x071,x292,y100,z062,p21;fm01,tv17,u45,x029,x268,c31,lm13;c19,n05,x276,x407,h48,h62,y060;p16,m50,x385,z047,an21,sp11,x058;n11,z221,g14,x056,x181,x307,z132;p04,s44,sp30,x169,x061,y007,y019;x387,x399,lm17,x093,x308,x172,y066;z029,c09,x064,x409,z013,p47,x143;z148,x086,x365,z233,hs12,s06,y065;y043,g36,x012,x420,z017,z112,y109;z025,an22,y128,z252,k03,lm06,y087;a16,x050,x154,x368,sp25,x054,x152;fm02,mu14,x102,y111,z122,x297,y052;p02,y021,a02,s43,sp29,x017,y055;z203,x160,x215,x282,p49,sc09,x402;s09,fm16,x263,z143,z250,lm24,x051;sp01,x121,sp28,x186,x327,an23,y070;b02,x007,an07,h17,p37,x324,y102;h44,p55,x200,tv10,an03,h21,x199;c24,x306,gm03,x109,z205,g28,y036;gm11,y020,z111,x383,z217,fd14,x341;z222,k07,p14,p41,x108,z015,g41;x009,x117,tv01,x293,n16,sc02,x105;z133,an01,h06,sp07,x358,n06,x156;x047,x238,g13,x313,y051,fd12,x197;mu04,n02,f09,tc06,x272,hs01,x144;g45,s63,tv16,z032,x161,x223,y058;p29,y041,x015,x413,z042,y029,z009;fm19,x360,hs09,x004,z124,z144,t18;z018,tv03,x196,x202,z207,a10,y056;c11,x227,z146,z248,x106,x162,y034;k10,z012,fm27,x078,x335,x411,z037;p32,y005,h18,x159,hs04,x125,x198;f01,g63,lm12,x288,x296,h45,x149;c32,x320,lm01,z119,lm28,y053,z110;x005,g61,p45,x351,p24,x333,x422;c03,g08,h47,lm03,x089,y134,z140;fm13,y017,z141,z210,lm32,sp26,z050;lm31,s53,x412,x414,y033,g42,x210;x066,z115,hs05,hs10,y122,z229,y067;p33,x295,x084,x165,y083,z226,z234;z211,an06,b08,y118,x241,x408,y054;b01,x134,x328,y016,y120,z239,an12;c28,n03,a09,g38,s64,x338,z036;c15,h59,c35,u02,z027,z061,z113;y012,g67,x349,x375,x381,y092,g37;c10,x332,x348,h07,s12,y014,y117;sp05,fd13,x085,x283,x392,z244,y093;fd02,x218,x353,y084,y104,x142,x342;a15,lm33,p17,x065,c38,sc08,z059;c08,p19,x405,z145,lm05,y078,y126;sp34,x378,y141,z218,fd06,g05,sc12;sp35,sp22,x010,x016,y018,n18,x127;s02,fd20,sp03,y045,y076,g31,p44;mu02,mu03,g40,lm16,z023,z129,z134;z020,an17,c45,fd16,k02,z034,x204;p09,p38,x184,x220,x136,x389,z057;x070,x059,x340,z142,x254,x264,z223;sp33,x115,x201,x255,lm11,x401,z116;sc13,sp14,x042,x126,x148,x346,y098;s13,x228,c02,p30,x419,g65,y048;y040,z120,x188,x260,x275,y038,x151;f06,u25,x303,x397,g20,h55,x038;z045,m05,p23,sp31,z204,fm22,y139;z117,tc02,x138,x310,y037,x135,z220;h38,gm13,mu08,sp12,x403,g17,x266;g11,an09,lm27,m03,tv12,x130,z011;mu12,x284,y116,c14,h43,lm14,sc04;p06,lm23,p46,sc11,x116,x339,z054;an05,sp02,h35,x390,y035,z021,x277;c33,gm20,g21,sp19,x053,b15,g39;c05,c23,gm14,h11,x090,y015,z007;fm04,hs06,p34,x129,x269,y105,z043;f02,h34,m07,z213,lm25,x243,x347;fm05,hs07,x207,x289,c42,g30,x077;c40,an10,y080,z238,g27,x011,y106;x396,lm29,tc04,tv02,x003,z227,g04;c22,x001,fm21,gm17,x234,x114,y108;u20,x013,y072,z225,fd22,x062,x180;h41,x343,c07,x132,n09,x248,x357;x371,h27,n19,sp16,z108,x406,y075;g16,c30,mu20,tv09,x145,x171,z118;gm16,f14,lm26,x092,z102,x176,x212;s03,s14,an04,z224,fd24,x300,y069;x236,x410,y059,z214,c48,x091,y081;c27,x043,x386,p13,sp21,y077,y112;fm12,p01,x139,y001,b09,r01,z033;h36,x141,x133,y091,h10,x404,z128;p25,g07,sc07,z126,x014,y013,y050;fm14,s26,p07,sp13,tc09,x168,y011;x239,fd19,x150,x274,y131,tv05,z127;p15,x374,z053,n14,x270,f17,z016;z201,b11,c18,x057,f11,k11,x350;an18,s58,fm28,p26,y022,tv13,x273;y010,an02,b05,y074,z235,f07,tv11;z101,x286,z010,z031,s05,x088,x170;h25,p31,x081,x166,x395,x048,y114;fm11,g19,k12,u43,c13,x187,z060;x237,z125,c06,g01,x101,x192,y009;u08,c39,p40,x060,x104,y124,x195;fm03,z107,mu21,n15,x203,y115,z241;h04,g47,x163,x331,b04,x094,x251;tc03,x032,p48,x189,x364,z242,p43"};
+const FACT_V2 = {"from":"2026-11-27","days":"f111,f276,f289,f261,f181,f195,f238;f164,f259,f293,f208,f092,f169,f024;f294,f295,f133,f122,f222,f134,f212;f079,f209,f080,f008,f123,f274,f218;f162,f144,f043,f020,f135,f183,f234;f185,f240,f076,f094,f177,f283,f034;f188,f165,f081,f025,f120,f060,f009;f151,f160,f032,f287,f087,f239,f056;f098,f178,f005,f139,f003,f102,f108;f045,f233,f187,f172,f255,f051,f030;f001,f278,f268,f029,f066,f254,f063;f044,f013,f116,f179,f058,f072,f201;f040,f202,f050,f077,f104,f109,f099;f220,f101,f053,f193,f173,f070,f117;f170,f159,f071,f084,f042,f290,f285;f299,f158,f069,f064,f007,f269,f097;f280,f232,f171,f194,f225,f010,f230;f054,f174,f296,f124,f125,f026,f012;f264,f153,f046,f073,f145,f047,f128;f157,f203,f019,f127,f017,f217,f266;f166,f006,f147,f121,f065,f035,f279;f021,f191,f083,f260,f148,f198,f228;f141,f015,f258,f219,f167,f028,f115;f231,f235,f038,f057,f090,f265,f243;f205,f037,f031,f213,f156,f184,f086;f211,f214,f138,f110,f227,f298,f143;f267,f226,f175,f246,f089,f048,f096;f182,f062,f002,f253,f146,f154,f033;f263,f273,f075,f262,f150,f237,f082;f221,f131,f206,f168,f277,f155,f052;f210,f085,f126,f041,f152,f114,f107;f291,f247,f223,f270,f207,f093,f257;f130,f215,f284,f229,f189,f036,f140;f055,f074,f137,f282,f078,f132,f004"};
+/*QUALITY:END*/
+const FACT_OF = new Map(); QUALITY.groups.forEach(g => g.forEach(id => FACT_OF.set(id, g[0])));
+const factOf = id => FACT_OF.get(id) || id;
+const QUARANTINED = new Set(QUALITY.quarantine);
+const DAILY_LIST = DAILY_V2.days ? DAILY_V2.days.split(';').map(d => d.split(',')) : [];
+// A day's seven question ids, or null when no reviewed puzzle exists for that date (the game then shows a friendly holding screen).
+function dailyIds(iso){
+  if (iso < DAILY_V2.from) return legacyDailyIds(iso);
+  const day = DAILY_LIST[DateUK.diff(DAILY_V2.from, iso)];
+  return day ? day.slice() : null;
+}
+const hasDaily = iso => !!dailyIds(iso);
 
 /* Unlimited: the n-th question for this player. Each player gets their own shuffled
    order of the whole bank; when they've seen every question it reshuffles. */
+const PLAY_POOL = BANK.filter(q => !QUARANTINED.has(q.id) && factOf(q.id) === q.id);
+// Unlimited and Battles never serve a fact that is (or soon will be) a daily question, so nobody meets today's or an
+// upcoming puzzle early. The window is configurable; if it ever left too little to play with, the modes fall back to the full pool.
+const DAILY_GUARD = { before: 3, after: 30 };
+function dailyWindow(){
+  const t = App.today || DateUK.today();
+  if (dailyWindow.t !== t) { const s = new Set(); for (let i = -DAILY_GUARD.before; i <= DAILY_GUARD.after; i++) (dailyIds(DateUK.add(t, i)) || []).forEach(id => s.add(factOf(id))); dailyWindow.t = t; dailyWindow.s = s; }
+  return dailyWindow.s;
+}
 function endlessQ(playerId, n){
-  const L = BANK.length, cycle = Math.floor(n / L), idx = n - cycle * L, key = playerId + '|' + cycle;
+  const L = PLAY_POOL.length, cycle = Math.floor(n / L), idx = n - cycle * L, key = playerId + '|' + cycle;
   if (endlessQ.key !== key) {
-    const ids = BANK.map(q => q.id), r = mulberry32(hashStr('endless|' + key));
+    const ids = PLAY_POOL.map(q => q.id), r = mulberry32(hashStr('endless|' + key));
     for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
     endlessQ.cache = ids; endlessQ.key = key;
   }
   return BY_ID.get(endlessQ.cache[idx]);
 }
-const pickEndless = (playerId, n) => endlessQ(playerId, n);
+// The run's next question, moving past anything the player saw recently (the last 800, across runs): returns it and its position.
+function pickEndless(playerId, n, recent){
+  const seen = new Set((recent || []).map(factOf)), daily = dailyWindow();
+  for (let k = 0; k < PLAY_POOL.length; k++) { const q = endlessQ(playerId, n + k); if (!seen.has(factOf(q.id)) && !daily.has(factOf(q.id))) return { q, n: n + k }; }
+  for (let k = 0; k < PLAY_POOL.length; k++) { const q = endlessQ(playerId, n + k); if (!daily.has(factOf(q.id))) return { q, n: n + k }; }
+  return { q: endlessQ(playerId, n), n };   // they've seen everything recently: carry on round the shuffle
+}
 /* Battles: a random bank question the room hasn't had yet. */
 function battleQ(seed, round, used){
-  const r = mulberry32(hashStr('battle|' + seed + '|' + round));
-  for (let g = 0; g < 80; g++) { const q = BANK[Math.floor(r() * BANK.length)]; if (!used.includes(q.id)) return q; }
-  return BANK[Math.floor(r() * BANK.length)];
+  const r = mulberry32(hashStr('battle|' + seed + '|' + round)), done = new Set((used || []).map(factOf)), daily = dailyWindow();
+  for (let g = 0; g < 400; g++) { const q = PLAY_POOL[Math.floor(r() * PLAY_POOL.length)]; if (!done.has(factOf(q.id)) && !daily.has(factOf(q.id))) return q; }
+  return PLAY_POOL.find(q => !done.has(factOf(q.id))) || PLAY_POOL[Math.floor(r() * PLAY_POOL.length)];
 }
 const qPayload = q => ({ id:q.id, category:q.category, difficulty:q.difficulty, question:q.question, answer:q.answer, unit:q.unit,
   explanation:q.explanation, source:q.source, scoring:q.scoring, range:q.range, gen: !!q.gen });
@@ -2714,7 +2819,7 @@ function restoreFromCode(code){
 }
 
 function getDay(iso, create){
-  if (!S.days[iso] && create) S.days[iso] = { ids: dailyIds(iso), answers: Array(7).fill(null), st: Array(7).fill(null), done:false, synced:false, doneAt:0 };
+  if (!S.days[iso] && create && hasDaily(iso)) S.days[iso] = { ids: dailyIds(iso), answers: Array(7).fill(null), st: Array(7).fill(null), done:false, synced:false, doneAt:0 };
   return S.days[iso] || null;
 }
 const dayBase = d => d.answers.reduce((t, a) => t + (a ? a.s : 0), 0);
@@ -2761,7 +2866,15 @@ const Backend = {
       if (auth && this.sess) headers.Authorization = 'Bearer ' + this.sess.access_token;
       const r = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, '') + path, { method, headers, body: body === undefined || method === 'GET' ? undefined : JSON.stringify(body), signal: ctrl && ctrl.signal });
       const txt = await r.text(); let data = null; try { data = txt ? JSON.parse(txt) : null; } catch(e){}
-      if (!r.ok) throw new Error((data && (data.message || data.msg || data.error_description || data.error)) || ('Server error ' + r.status));
+      if (!r.ok) {
+        // Messages our own database functions raise on purpose (code P0001) and sign-in messages are written for players.
+        // Anything else (constraint names, missing functions, expired tokens, 5xx) is technical: say something useful instead.
+        const raw = (data && (data.message || data.msg || data.error_description || data.error)) || '';
+        const code = data && data.code ? String(data.code) : '';
+        const technical = (code && code !== 'P0001' && /^(PGRST|[0-9A-Z]{5}$)/.test(code)) || r.status >= 500 || !raw;
+        if (technical) { console.warn('DIAL IN server error', r.status, code, raw); const e = new Error(/JWT|PGRST30/i.test(raw + code) ? 'Your session needs refreshing. Try that again.' : 'DIAL IN hit a problem on our side. Try again in a moment.'); e.technical = raw; throw e; }
+        throw new Error(raw);
+      }
       return data;
     } catch(e) {
       if (e.name === 'AbortError') throw new Error('The server took too long to respond.');
@@ -2810,9 +2923,9 @@ const Backend = {
     let note = '';
     if (h.get('access_token')) {
       try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); note = 'You’re signed in.'; }
-      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Settings.'; }
+      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Profile.'; }
     } else if (h.get('error_description')) note = /expired|invalid/i.test(h.get('error_description'))
-      ? 'That email link has expired or was already used. Send a new one from Settings.' : 'Email link problem: ' + h.get('error_description');
+      ? 'That email link has expired or was already used. Send a new one from Profile.' : 'Email link problem: ' + h.get('error_description');
     else if (h.get('message')) note = /confirmation link accepted/i.test(h.get('message')) ? 'Email linked to your profile.' : h.get('message');
     try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
     return note;
@@ -2833,7 +2946,7 @@ const Backend = {
     catch(e) {
       // the sign-in was ended elsewhere (e.g. the PIN was set on another phone) while this device's pass was still valid:
       // refresh now, which falls back to a guest and asks the player to sign back in
-      if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message) || !this.sess) throw e;
+      if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message + " " + (e.technical || "")) || !this.sess) throw e;
       this.sess.expires_at = 0; await this.auth();
       u = await this.rest('GET', '/auth/v1/user'); st = status();   // the earlier answer was for the old sign-in
     }
@@ -3523,6 +3636,9 @@ const Hype = {
 
 /* Chunky line icons on a 24px grid */
 const LINE_ICONS = {
+  home:'<path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+  play:'<rect x="3" y="7" width="18" height="11" rx="5"/><path d="M8 10.5v4M6 12.5h4M15.5 11.5h.01M17.5 13.5h.01"/>',
+  user:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.3 7.5-5.3s6.3 1.7 7.5 5.3"/>',
   check:'<circle cx="12" cy="12" r="9"/><path d="M7.8 12.4l2.9 2.9 5.6-6"/>',
   bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
   phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
@@ -3545,7 +3661,7 @@ function icon(name, size, color, cls){
   return `<svg class="ico ${cls || ''}" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"${st}>${LINE_ICONS[name] || ''}</svg>`;
 }
 const heart = (full, size = 14) => icon('heart', size, full ? 'var(--heart)' : 'var(--heart-off)');
-const hearts = (n, max, size) => `<span class="hearts" aria-label="${n} of ${max} lives">${Array.from({ length:max }, (_, i) => heart(i < n, size)).join('')}</span>`;
+const hearts = (n, max, size) => `<span class="hearts" role="img" aria-label="${n} of ${max} lives">${Array.from({ length:max }, (_, i) => heart(i < n, size)).join('')}</span>`;
 
 /* Knobby: a tuning knob with a face. Mood changes the eyes, the mouth and how far the knob is turned. */
 function mascot(mood, size, extraCls, col){
@@ -3585,7 +3701,8 @@ const moodFor = total => total >= 4500 ? 'wow' : total >= 2500 ? 'happy' : total
 const moodPts = p => p >= 750 ? 'wow' : p >= 400 ? 'happy' : p > 0 ? 'meh' : 'sad';
 function paintChrome(){
   const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-  set('ic-help', icon('help', 24)); set('ic-stats', icon('stats', 24)); set('ic-board', icon('board', 24)); set('ic-settings', icon('settings', 24));
+  set('ic-help', icon('help', 24));
+  set('ic-nhome', icon('home', 24)); set('ic-nplay', icon('play', 24)); set('ic-nranks', icon('board', 24)); set('ic-nprofile', icon('user', 24));
   set('ic-brand', mascot('happy', 28));
 }
 
@@ -4035,7 +4152,7 @@ function viewDev(){
   const d = devSet(), day = S.days[App.today];
   const opt = (act, v, cur, label) => `<button class="opt" data-act="${act}" data-v="${v}" aria-pressed="${cur === v}">${label}</button>`;
   const tog = (act, on, label) => `<button class="btn ${on ? 'btn-mint' : 'btn-ghost'}" data-act="${act}" aria-pressed="${on}">${label}: ${on ? 'On' : 'Off'}</button>`;
-  const ans = dailyIds(App.today).map((id, i) => { const q = BY_ID.get(id); return `<li><span>Q${i + 1} · ${esc(q.question)}</span><b>${fmtAns(q, q.answer)}</b></li>`; }).join('');
+  const ans = (dailyIds(App.today) || []).map((id, i) => { const q = BY_ID.get(id); return `<li><span>Q${i + 1} · ${esc(q.question)}</span><b>${fmtAns(q, q.answer)}</b></li>`; }).join('');
   const found = DEV.search ? `<ul class="devlist">${DEV.search.length ? DEV.search.map(q => `<li><span>${esc(q.id)} · ${esc(q.question)}<small>${esc(q.category)} · ${esc(q.source)}${rangeHint(q) ? ' · hint ' + fmtAns(q, rangeHint(q)[0]) + '–' + fmtAns(q, rangeHint(q)[1]) : ''}</small></span><b>${fmtAns(q, q.answer)}</b></li>`).join('') : '<li><span>No matches.</span></li>'}</ul>` : '';
   return `<section class="stack">
     <div class="px card devhead">
@@ -4117,7 +4234,7 @@ async function devAction(act, el){
 }
 
 /* ------------------------------- UI --------------------------------- */
-const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'create', email:'', type:'', busy:false }, counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
+const App = { rank:null, rankBusy:false, view:'home', today:'', cur:0, busy:false, fresh:-1, endFresh:false, boardTab:'daily', boardToken:0, league:null, leagueMode:'today', leagues:null, friendNames:{}, acct:{ step:'create', email:'', type:'', busy:false }, folds:new Set(), counted:'', entry:'', joinEntry:'', afterName:null, mpShown:{}, joining:false };
 
 function toast(msg, ms = 2600, top = false){
   const t = $('#toast'); t.textContent = msg; t.classList.remove('on'); t.classList.toggle('top', top); void t.offsetWidth; t.classList.add('on');
@@ -4134,7 +4251,14 @@ const isPremium = () => !paywallOn() || DEV.on || S.premium.active === true;
 const freeRunLeft = () => !isPremium() && S.endless.freeDay !== App.today;
 
 /* ---- Name prompt ---- */
+// New players start straight away under a friendly random name; they can change it from their results or Profile.
 function requireName(next){
+  if (!S.player.name) { S.player.name = randomName(); save(); Backend.nameSent = ''; }
+  return next();
+}
+// Battles are the exception: friends see each other's names, and typing the same name is how a player gets their
+// seat back after reopening an invite in another app. So joining or hosting a Battle asks for a name first.
+function askName(next){
   if (S.player.name) return next();
   App.afterName = next;
   $('#pname').value = ''; $('#pname').placeholder = randomName();
@@ -4246,44 +4370,67 @@ function acctBannerHTML(){
   if (was) return `<button class="px banner acctnudge" data-act="acctgo">${acctWasText(was, true)}</button>`;
   return '';
 }
+// The dial from the DIAL IN icon: the brand's coloured gauge, used as the hero of the Daily card.
+function dialArt(size){
+  const seg = [['M27.88 19.39A22 22 0 0 1 36.12 19.39','#ffd23f'],['M36.12 19.39A22 22 0 0 1 41.99 21.40','#7dff6a'],['M22.01 21.40A22 22 0 0 1 27.88 19.39','#7dff6a'],['M41.99 21.40A22 22 0 0 1 47.56 25.44','#2fe0a8'],['M16.44 25.44A22 22 0 0 1 22.01 21.40','#2fe0a8'],['M47.56 25.44A22 22 0 0 1 51.60 31.01','#4de1ff'],['M12.40 31.01A22 22 0 0 1 16.44 25.44','#4de1ff'],['M51.60 31.01A22 22 0 0 1 53.61 36.88','#a77bff'],['M10.39 36.88A22 22 0 0 1 12.40 31.01','#a77bff'],['M53.61 36.88A22 22 0 0 1 54.00 41.00','#ff9a3d'],['M10.00 41.00A22 22 0 0 1 10.39 36.88','#ff9a3d']];
+  return `<svg class="dc-dial" viewBox="2 2 60 47" width="${size}" height="${Math.round(size * .78)}" aria-hidden="true"><g fill="none" stroke-width="9">${seg.map(([d, c]) => `<path d="${d}" stroke="${c}"/>`).join('')}</g>
+    <path d="M5.5 41A26.5 26.5 0 0 1 58.5 41" fill="none" stroke="#0a0520" stroke-width="2"/><path d="M27 6h10l-5 7z" fill="#ffd23f" stroke="#0a0520" stroke-width="2" stroke-linejoin="round"/>
+    <g class="dc-needle"><path d="M28.6 43.4L46.5 22.5L35.4 44.6Z" fill="#fff6e5" stroke="#0a0520" stroke-width="2.2" stroke-linejoin="round"/></g>
+    <circle cx="32" cy="41" r="5" fill="#ff3d7f" stroke="#0a0520" stroke-width="2.6"/></svg>`;
+}
 function viewHome(){
   const day = S.days[App.today], st = getStats(App.today);
-  const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
+  const n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done, bonus = done && !pinDone(day);
   const rs = done && S.rankSeen && S.rankSeen.d === App.today && S.rankSeen.players > 1 ? S.rankSeen : null;
-  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>${rs ? ` · ${rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'top ' + rs.top + '%' : 'beat ' + fmtNum(rs.beaten)}` : dayBonus(day) ? ` · incl. +${fmtNum(dayBonus(day))} bonus` : ' / 7,000'}` : n ? `In progress · ${n} of 7` : 'Ready to play';
-  const run = S.run && !S.run.over ? S.run : null;
-  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b>` : freeRunLeft() ? 'Free run available today' : `Unlock with ${PLUS}`;
-  const bStatus = MP.code ? `In room <b>${MP.code}</b>` : 'Up to 4 friends · room codes';
-  return `<section class="stack">
+  const pips = day ? `<div class="dc-pips" aria-label="${n} of 7 answered">${day.answers.map(a => `<i class="${a ? 't' + a.s : ''}"></i>`).join('')}</div>` : '';
+  let body;
+  if (!day && !hasDaily(App.today)) body = `<p class="dc-sub">Today’s puzzle isn’t ready yet. It will appear here as soon as it is. Meanwhile, try Unlimited or a past puzzle.</p>
+      <button class="btn btn-mint btn-xl btn-block dc-go" data-act="modes">More ways to play</button>`;
+  else if (!done && !n) body = `<p class="dc-sub">Seven questions. Every answer is a number. Spin the dial and see how close you get.</p>
+      <button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Play now</button>`;
+  else if (!done) body = `${pips}<button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Continue · question ${n + 1} of 7</button>`;
+  else if (bonus) body = `${pips}<p class="dc-sub">All seven answered. Your Dial Ball bonus round is waiting.</p>
+      <button class="btn btn-mint btn-xl btn-block dc-go" data-act="play">Play Dial Ball</button>`;
+  else body = `<div class="dc-score"><b>${fmtNum(dayTotal(day))}</b><span>${rs ? (rs.rank === 1 ? '#1 today' : rs.top <= 50 ? 'Top ' + rs.top + '% today' : 'Beat ' + fmtNum(rs.beaten) + ' players') : 'points today'}</span></div>
+      ${pips}<button class="btn btn-ghost btn-block dc-go" data-act="play">See results</button>
+      <p class="dc-next">Next puzzle in <b data-countdown>${countdownText()}</b></p>`;
+  const fd = S.facts.days[App.today];
+  const fStatus = fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : hasFactDaily(App.today) ? 'True or false? 7 claims a day' : 'New claims coming soon · try Unlimited';
+  return `<section class="stack home">
     ${DEV.on ? `<button class="px devbanner" data-act="devopen"><b>DEV SANDBOX</b><span>Nothing here counts. Tap for the developer panel.</span></button>` : ''}
-    <div class="hero">${mascot(done ? moodFor(dayTotal(day)) : 'happy', 84, 'bob')}
-      <h1 class="logo" tabindex="-1">Dial <span>In</span></h1>
-      <p class="tagline">${S.player.name ? `Hi <b>${esc(S.player.name)}</b>! ` : ''}Every answer's a number. Spin the dial. Get it spot on.</p>
-      ${Season.on() ? `<p class="xmas-count">${Season.countdown()}</p>` : ''}</div>
+    <div class="px dcard${done && !bonus ? ' is-done' : ''}">
+      <div class="dc-top"><span class="dc-kicker">Daily #${DateUK.puzzleNo(App.today)} · ${esc(DateUK.pretty(App.today))}</span>${st.current > 0 ? `<span class="chip streak">🔥 ${st.current}-day streak</span>` : ''}</div>
+      ${dialArt(118)}
+      <h1 class="dc-title" tabindex="-1">Today’s DIAL IN</h1>
+      ${body}
+    </div>
+    ${Season.on() ? `<p class="xmas-count">${Season.countdown()}</p>` : ''}
+    ${factOn() ? `<button class="px mode m-fact" data-act="facthome"><span class="mi">${icon('check', 26)}</span>
+      <span class="mt"><b>Fact Check!</b><span>${fStatus}</span></span><span class="go quiet">${fd && fd.done ? 'Results' : 'Play'}</span></button>` : ''}
     ${acctBannerHTML()}
+    ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Profile so you don’t lose progress.</p>'}
+    <p class="center"><button class="link quiet" data-act="intro">How to play &amp; scoring</button></p>
+  </section>`;
+}
+
+// Play: every way to play beyond today's daily, in one consistent list
+function viewModes(){
+  const day = S.days[App.today], n = day ? day.answers.filter(Boolean).length : 0, done = day && day.done;
+  const dStatus = done && !pinDone(day) ? 'Bonus round waiting' : done ? `Done · <b>${fmtNum(dayTotal(day))}</b>` : n ? `${n}/7 answered` : 'Seven new questions today';
+  const run = S.run && !S.run.over ? S.run : null;
+  const eStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : isPremium() ? `Best <b>${fmtNum(S.endless.best)}</b> · keep going until 3 misses` : freeRunLeft() ? 'Free run available today' : `More runs with ${PLUS}`;
+  const fd = S.facts.days[App.today];
+  const row = (cls, act, ic, title, sub, go) => `<button class="px mode ${cls}" data-act="${act}"><span class="mi">${icon(ic, 26)}</span><span class="mt"><b>${title}</b><span>${sub}</span></span><span class="go quiet">${go}</span></button>`;
+  return `<section class="stack">
+    <h1 class="label" tabindex="-1">Play</h1>
     <div class="modes">
-      <button class="px mode m-daily ${done || n ? '' : 'hot'}" data-act="play"><span class="mi">${icon('cal', 30)}</span>
-        <span class="mt"><b>Daily #${DateUK.puzzleNo(App.today)}</b><span>${dStatus}</span></span><span class="go">${done && !pinDone(day) ? 'Bonus' : done ? 'Results' : n ? 'Go' : 'Play'}</span></button>
-      ${factOn() ? `<button class="px mode m-fact" data-act="facthome"><span class="mi">${icon('check', 30)}</span>
-        <span class="mt"><b>Fact Check!</b><span>${(() => { const fd = S.facts.days[App.today]; return fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : 'True or false? 7 new claims a day'; })()}</span></span>
-        <span class="go">${S.facts.days[App.today] && S.facts.days[App.today].done ? 'Results' : 'Play'}</span></button>` : ''}
-      <button class="px mode m-unl" data-act="endless"><span class="mi">${icon('inf', 30)}</span>
-        <span class="mt"><b>Unlimited</b><span>${eStatus}</span></span><span class="go">${!isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play'}</span></button>
-      <button class="px mode m-past" data-act="archive"><span class="mi">${icon('past', 30)}</span>
-        <span class="mt"><b>Past puzzles</b><span>${archStatus()}</span></span><span class="go">${archAllLocked() ? icon('lock', 16) : 'Play'}</span></button>
-      <button class="px mode m-battle" data-act="battle"><span class="mi">${icon('swords', 30)}</span>
-        <span class="mt"><b>Battle</b><span>${bStatus}</span></span><span class="go">${MP.code ? 'Return' : 'Play'}</span></button>
+      ${row('m-daily', 'play', 'cal', `Daily #${DateUK.puzzleNo(App.today)}`, dStatus, done ? 'Results' : n ? 'Go' : 'Play')}
+      ${factOn() ? row('m-fact', 'facthome', 'check', 'Fact Check!', fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : 'Daily claims, plus unlimited runs', 'Play') : ''}
+      ${row('m-unl', 'endless', 'inf', 'Unlimited', eStatus, !isPremium() && !freeRunLeft() && !run ? icon('lock', 16) : 'Play')}
+      ${row('m-past', 'archive', 'past', 'Past puzzles', archStatus(), archAllLocked() ? icon('lock', 16) : 'Play')}
+      ${row('m-battle', 'battle', 'swords', 'Battle', MP.code ? `In room <b>${MP.code}</b>` : '2–4 friends, same questions, last one standing', MP.code ? 'Return' : 'Play')}
     </div>
-    ${Backend.on && !DEV.on ? `<button class="px card lgpromo" data-act="leagues"><span class="mi">${icon('board', 26, 'var(--gold)')}</span>
-      <span><b>Leagues</b><small id="home-leagues">${homeLeagueLine()}</small></span><span class="go">${App.leagues && App.leagues.length ? 'Open' : 'Start'}</span></button>` : ''}
-    ${done ? `<p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>` : ''}
-    <div class="minis">
-      <div class="px mini"><span class="label">Streak</span><b>${st.current}</b></div>
-      <div class="px mini"><span class="label">Best day</span><b>${fmtNum(st.best)}</b></div>
-      <div class="px mini"><span class="label">Played</span><b>${st.played}</b></div>
-    </div>
-    ${Store.ok ? '' : '<p class="banner">This browser is blocking storage. Copy a save code from Settings so you don’t lose progress.</p>'}
-    <p class="center"><button class="link" data-act="intro">How to play &amp; scoring</button></p>
+    <p class="small muted center">Unlimited and past puzzles don’t affect your streak or the daily leaderboard.</p>
   </section>`;
 }
 
@@ -4318,21 +4465,44 @@ function factCycle(seg, cycle){
   }
   factCycleCache.set(key, days); return days;
 }
-function factDailyIds(iso){
+// As with the number puzzles: the original rolling schedule up to FACT_V2.from (never changes), the reviewed list after it.
+function legacyFactDailyIds(iso){
   let seg = FACT_SCHEDULE[0]; for (const s of FACT_SCHEDULE) if (s.from <= iso) seg = s;
   const per = Math.floor(Math.min(seg.size, FACTS.length) / 7), n = Math.max(0, DateUK.diff(seg.from, iso));
   const cycle = Math.floor(n / per); return factCycle(seg, cycle)[n - cycle * per].slice();
 }
+const FACT_LIST = FACT_V2.days ? FACT_V2.days.split(';').map(d => d.split(',')) : [];
+const FFACT_OF = new Map(); QUALITY.fgroups.forEach(g => g.forEach(id => FFACT_OF.set(id, g[0])));
+const ffactOf = id => FFACT_OF.get(id) || id;
+const FACT_POOL = FACTS.filter(f => !QUALITY.fquarantine.includes(f.id) && ffactOf(f.id) === f.id);
+function factDailyIds(iso){
+  if (iso < FACT_V2.from) return legacyFactDailyIds(iso);
+  const day = FACT_LIST[DateUK.diff(FACT_V2.from, iso)];
+  return day ? day.slice() : null;
+}
+const hasFactDaily = iso => FACTS.length >= 7 && !!factDailyIds(iso);
+function factWindow(){
+  const t = App.today || DateUK.today();
+  if (factWindow.t !== t) { const s = new Set(); for (let i = -DAILY_GUARD.before; i <= DAILY_GUARD.after; i++) (factDailyIds(DateUK.add(t, i)) || []).forEach(id => s.add(ffactOf(id))); factWindow.t = t; factWindow.s = s; }
+  return factWindow.s;
+}
 // Unlimited: each player works through their own shuffle of the whole bank before anything repeats
+// the next Unlimited Fact Check claim, moving past anything in the current daily window (see DAILY_GUARD)
+function factNextRunId(){
+  const daily = factWindow();
+  for (let k = 0; k < FACT_POOL.length; k++) { const id = factEndlessId(S.player.id, S.facts.pos); if (!daily.has(ffactOf(id))) return id; S.facts.pos++; }
+  return factEndlessId(S.player.id, S.facts.pos);
+}
 function factEndlessId(playerId, n){
-  const L = FACTS.length, cycle = Math.floor(n / L), key = playerId + '|' + cycle + '|' + L;
-  if (factEndlessId.key !== key) { const ids = FACTS.map(f => f.id), r = mulberry32(hashStr('factrun|' + key)); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } factEndlessId.key = key; factEndlessId.ids = ids; }
+  const L = FACT_POOL.length, cycle = Math.floor(n / L), key = playerId + '|' + cycle + '|' + L;
+  if (factEndlessId.key !== key) { const ids = FACT_POOL.map(f => f.id), r = mulberry32(hashStr('factrun|' + key)); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } factEndlessId.key = key; factEndlessId.ids = ids; }
   return factEndlessId.ids[n - cycle * L];
 }
 // Battles: a statement this room hasn't had yet (across rematches too)
 function factBattlePick(seed, round, used){
-  const r = mulberry32(hashStr('factbattle|' + seed + '|' + round)), seen = new Set(used || []), fresh = FACTS.filter(f => !seen.has(f.id));
-  const pool = fresh.length ? fresh : FACTS;
+  const r = mulberry32(hashStr('factbattle|' + seed + '|' + round)), seen = new Set((used || []).map(ffactOf)), daily = factWindow();
+  const fresh = FACT_POOL.filter(f => !seen.has(ffactOf(f.id)) && !daily.has(ffactOf(f.id)));
+  const pool = fresh.length ? fresh : FACT_POOL;
   return pool[Math.floor(r() * pool.length)];
 }
 const factPayload = f => ({ kind:'fact', id:f.id, category:f.category, statement:f.statement, truth:f.truth, explanation:f.explanation, source:f.source });
@@ -4340,7 +4510,7 @@ const factPts = (ok, msLeft) => ok ? 100 + Math.round(50 * Math.max(0, Math.min(
 function factAnswer(f, v, msLeft){ const ok = v !== null && (v === 1) === f.truth; return { v, ok, p:factPts(ok, msLeft), to: v === null, at:Date.now() }; }
 
 function getFactDay(iso, create){
-  if (!S.facts.days[iso] && create) S.facts.days[iso] = { ids:factDailyIds(iso), ans:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
+  if (!S.facts.days[iso] && create && hasFactDaily(iso)) S.facts.days[iso] = { ids:factDailyIds(iso), ans:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
   return S.facts.days[iso] || null;
 }
 const factDayScore = d => d.ans.reduce((t, a) => t + (a ? a.p : 0), 0);
@@ -4364,6 +4534,7 @@ function expireFacts(){
 function openFactDaily(){
   App.fmode = 'daily'; App.fdate = App.today;
   const d = getFactDay(App.fdate, true); save();
+  if (!d) { toast('New Fact Check claims are on their way. Try Unlimited Fact Check meanwhile.'); go('facthome'); return; }
   if (d.done) { go('factres'); return; }
   App.fcur = factFirstOpen(d); App.ffresh = -1; go('factplay');
 }
@@ -4371,7 +4542,7 @@ function startFactRun(){
   if (!isPremium()) { openPay(); return; }
   App.fmode = 'run';
   if (S.frun && !S.frun.over) { go('factplay'); return; }
-  S.frun = { id:factEndlessId(S.player.id, S.facts.pos), lives:FACT_LIVES, st:0, ans:null, count:0, right:0, score:0, streak:0, bestStreak:0, over:false, startedAt:Date.now() };
+  S.frun = { id:factNextRunId(), lives:FACT_LIVES, st:0, ans:null, count:0, right:0, score:0, streak:0, bestStreak:0, over:false, startedAt:Date.now() };
   App.ffresh = -1; save(); go('factplay');
 }
 function recordFactRun(v, msLeft){
@@ -4401,7 +4572,7 @@ function nextFact(){
       if (r.score > 0 && r.score >= S.facts.best) setTimeout(() => Hype.party(true), 300);
       return;
     }
-    r.id = factEndlessId(S.player.id, S.facts.pos); r.st = 0; r.ans = null; App.ffresh = -1; save(); go('factplay'); return;
+    r.id = factNextRunId(); r.st = 0; r.ans = null; App.ffresh = -1; save(); go('factplay'); return;
   }
   const d = getFactDay(App.fdate, false); App.ffresh = -1;
   if (!d || d.done) { go('factres'); return; }
@@ -4438,7 +4609,7 @@ function factCardHTML(f, answered, fresh){
 function viewFactHub(){
   if (!factOn()) { App.view = 'home'; return viewHome(); }
   const d = S.facts.days[App.today], n = d ? d.ans.filter(Boolean).length : 0, prem = isPremium(), run = S.frun && !S.frun.over ? S.frun : null;
-  const dStatus = d && d.done ? `Done · <b>${factDayRight(d)}/7</b> · ${fmtNum(factDayScore(d))} pts` : n ? `${n}/7 answered · carry on` : '7 claims · 12 seconds each';
+  const dStatus = d && d.done ? `Done · <b>${factDayRight(d)}/7</b> · ${fmtNum(factDayScore(d))} pts` : n ? `${n}/7 answered · carry on` : hasFactDaily(App.today) ? '7 claims · 12 seconds each' : 'New claims coming soon';
   const rStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : prem ? (S.facts.best ? `Best <b>${fmtNum(S.facts.best)}</b> · ${S.facts.bestN} right` : 'Keep going until you lose 3 hearts') : `Unlock with ${PLUS}`;
   return `<section class="stack">
     <div class="px card center fc-hero">
@@ -4477,7 +4648,7 @@ function viewFactPlay(){
     : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${f.truth ? 'ans-t' : 'ans-f'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
        <div class="fc-truth ${f.truth ? 't' : 'f'} ${fresh ? 'pop' : ''}"><span class="ft-label">The truth</span><b class="ft-word">${f.truth ? 'TRUE' : 'FALSE'}</b><p class="ft-why">${esc(f.explanation)}</p></div>
        <button class="btn btn-mint btn-block btn-xl next" data-act="factnext" id="nextbtn">${run ? (run.lives <= 0 ? 'See my run' : 'Next claim →') : cur.day.done ? 'See my results' : 'Next claim →'}</button>`;
-  return `<section class="play fc">
+  return `<section class="play fc"><h1 class="sr-only">Fact Check, claim ${(App.fcur || 0) + 1}</h1>
     <p class="small muted center fc-title">${run ? 'Unlimited Fact Check' : `Fact Check #${factNo(App.fdate)} · claim ${App.fcur + 1} of 7`}</p>
     ${head}
     ${factCardHTML(f, !!a, fresh)}
@@ -4547,7 +4718,7 @@ function archStatus(){
   return left ? `<b>${left}</b> ${left === 1 ? 'puzzle' : 'puzzles'} to catch up on` : 'All caught up!';
 }
 function getArch(d, create){
-  if (!S.archive[d] && create) S.archive[d] = { ids:dailyIds(d), answers:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
+  if (!S.archive[d] && create && hasDaily(d)) S.archive[d] = { ids:dailyIds(d), answers:Array(7).fill(null), st:Array(7).fill(null), done:false, doneAt:0 };
   return S.archive[d] || null;
 }
 function viewArchive(){
@@ -4585,7 +4756,7 @@ function viewArch(){
     return `<li><button class="pip ${x ? 'done t' + x.s : ''}" data-act="archq" data-i="${k}" ${k === i ? 'aria-current="step"' : ''} ${can ? '' : 'disabled'} aria-label="Question ${k + 1}${x ? ', ' + x.s + ' points' : ', unanswered'}">${x ? (x.to ? '⏱' : x.s === 1000 ? '★' : k + 1) : k + 1}</button></li>`; }).join('');
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, '')}<button class="btn btn-mint btn-block btn-xl next" data-act="archnext" id="nextbtn">${A.done ? 'See my score' : 'Next question →'}</button>`;
-  return `<section class="play">
+  return `<section class="play"><h1 class="sr-only">Past puzzle #${DateUK.puzzleNo(App.archDate)}, question ${App.cur + 1} of 7</h1>
     <p class="small muted center" style="margin:0 0 6px">Past puzzle #${DateUK.puzzleNo(App.archDate)} · ${esc(DateUK.pretty(App.archDate))}</p>
     <ol class="pips" aria-label="Progress">${pips}</ol>
     ${qcardHTML(q, `Q<b>${i + 1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
@@ -4782,7 +4953,9 @@ function showChallenge(){
 }
 
 /* ---- Daily ---- */
-function startDaily(){ requireName(() => { const day = getDay(App.today, true); expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); notePlay(); go('play'); }); }
+// No reviewed puzzle for today (content ran out or failed checks): say so plainly instead of serving a repeat
+function noPuzzle(){ toast('Today’s puzzle isn’t ready yet. Try Unlimited or a past puzzle meanwhile.'); go('home'); }
+function startDaily(){ requireName(() => { const day = getDay(App.today, true); if (!day) { noPuzzle(); return; } expireDaily(); if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; } App.cur = firstOpen(day); App.entry = ''; save(); notePlay(); go('play'); }); }
 // Tells the server this connection started today's daily (a short-lived, scrambled tag: see the privacy notice)
 function notePlay(){ if (!Backend.on || DEV.on || App.noted === App.today) return; App.noted = App.today; Backend.rpc('note_play', { p_date: App.today }).catch(() => { App.noted = ''; }); }
 function firstOpen(day){ const i = day.answers.findIndex(a => !a); return i < 0 ? 0 : i; }
@@ -4798,7 +4971,7 @@ function expireDaily(){
   return changed;
 }
 function viewPlay(){
-  const day = getDay(App.today, true);
+  const day = getDay(App.today, true); if (!day) { App.view = 'home'; return viewHome(); }
   const i = App.cur, q = BY_ID.get(day.ids[i]), a = day.answers[i], open = firstOpen(day);
   if (!a && !day.st[i]) { day.st[i] = Date.now(); save(); }
   const answered = day.answers.filter(Boolean).length;
@@ -4810,7 +4983,7 @@ function viewPlay(){
   const bank = ballsFor(day) - (fresh && a && !reducedMotion() ? BALLS_FOR[a.s] || 0 : 0);
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, ballLineHTML(a))}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
-  return `<section class="play">
+  return `<section class="play"><h1 class="sr-only">Daily #${DateUK.puzzleNo(App.today)}, question ${i + 1} of 7</h1>
     <ol class="pips" aria-label="Progress">${pips}</ol>
     <div class="ballbank" aria-label="Bonus round balls earned so far: ${bank}"><span>Dial Ball bonus</span><span class="bb-dots" id="bb-dots">${'●'.repeat(bank)}${bank ? '' : '<i>none yet</i>'}</span><b id="ballcount">${bank}</b><span>${bank === 1 ? 'ball' : 'balls'}</span></div>
     ${qcardHTML(q, `Q<b>${i+1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
@@ -4820,7 +4993,7 @@ function viewPlay(){
 function submitDaily(timedOut){
   if (App.busy) return;
   const day = getDay(App.today, true), i = App.cur;
-  if (day.answers[i]) return;
+  if (!day || day.answers[i]) return;
   const v = Entry.value(App.entry);
   if (v === null && !timedOut) { showError('Tap in a number first.'); return; }
   App.busy = true; Timer.stop();
@@ -4832,7 +5005,7 @@ function submitDaily(timedOut){
   if (day.done && pinDone(day) && Backend.on) Backend.sync().catch(() => toast('Score saved here. Will retry posting it to the leaderboard.'));
 }
 function nextDaily(){
-  const day = getDay(App.today, true);
+  const day = getDay(App.today, true); if (!day) { noPuzzle(); return; }
   if (day.done) { go(pinDone(day) ? 'results' : 'pinball'); return; }
   App.cur = firstOpen(day); App.entry = ''; go('play');
 }
@@ -5368,28 +5541,27 @@ function viewResults(){
       ${tilesHTML(day.answers.map(a => a.s), first)}
       <p class="rank-title ${first ? 'slam' : ''}">${rankTitle(dayBase(day))}</p>
       ${newPB ? '<span class="pb">★ New personal best ★</span>' : ''}
+      ${st.current > 0 ? `<span class="chip streak">🔥 ${st.current}-day streak</span>` : ''}
+      <p class="small muted res-name">Playing as <b>${esc(displayName())}</b> · <button class="link" data-act="rename">Change name</button></p>
     </div>
     ${h2hHTML(App.today)}
     <div class="px rankcard" id="rankcard" aria-live="polite">${rankCardHTML()}</div>
     <div class="sharebox">
-      <button class="btn btn-coral btn-block btn-xl" data-act="challenge" data-d="${App.today}">Challenge a friend</button>
-      <div class="btnrow"><button class="btn btn-mint" data-act="share">Share score</button><button class="btn btn-sky" data-act="shareImg">Share image</button></div>
+      <button class="btn btn-mint btn-block btn-xl" data-act="share">Share score</button>
+      <div class="btnrow"><button class="btn btn-ghost" data-act="challenge" data-d="${App.today}">Challenge a friend</button><button class="btn btn-ghost" data-act="shareImg">Share image</button></div>
     </div>
     <div class="px card stack leaguecard" id="leaguecard" hidden></div>
-    ${Habit.cardHTML()}
-    ${streakNudgeHTML(st)}
-    ${upsellHTML()}
-    <div class="statgrid">
+    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
+    ${[streakNudgeHTML(st), Habit.cardHTML(), upsellHTML()].find(Boolean) || ''}
+    ${fold('rstats', 'More stats', `<div class="statgrid">
       <div class="px stat"><span class="label">Dialed in</span><b>${exacts}</b></div>
       <div class="px stat"><span class="label">Personal best</span><b>${fmtNum(st.best)}</b></div>
       <div class="px stat"><span class="label">Streak</span><b>${st.current}</b></div>
       <div class="px stat"><span class="label">Longest</span><b>${st.longest}</b></div>
       <div class="px stat"><span class="label">Vs your avg</span><b>${vs}</b></div>
       <div class="px stat"><span class="label">Played</span><b>${st.played}</b></div>
-    </div>
-    <div class="btnrow"><button class="btn btn-ghost" data-act="board">Leaderboard</button><button class="btn btn-ghost" data-act="endless">Play Unlimited</button><button class="btn btn-ghost" data-act="battle">Battle friends</button></div>
+    </div>`)}
     <p class="countdown">Next daily puzzle in <b data-countdown>${countdownText()}</b></p>
-    <div><p class="label">Your answers (tap to review)</p><ol class="rows">${rows}</ol></div>
   </section>`;
 }
 // Guests' streaks live only on this device: offer to protect them with an account once there's something to lose
@@ -5495,7 +5667,7 @@ function viewEndless(){
           <div class="px stat"><span class="label">Longest</span><b>${S.endless.bestN} Qs</b></div>
         </div>
         ${locked ? `<p class="small muted" style="margin-top:14px">You’ve used today’s free run.</p>
-            <button class="btn btn-block btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`
+            <button class="btn btn-mint btn-block btn-xl" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`
           : `<button class="btn btn-mint btn-block btn-xl" data-act="startrun" style="margin-top:14px">${isPremium() ? 'Start a run' : 'Start today’s free run'}</button>
              ${isPremium() ? '' : `<button class="link" data-act="pay">Unlimited runs with ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}`}
       </div>
@@ -5526,7 +5698,7 @@ function viewEndless(){
   const head = `<div class="runbar"><span id="runhearts">${hearts(heartsShown, CONFIG.ENDLESS_LIVES, 16)}</span><span class="label">Q<b>${r.count + (a ? 0 : 1)}</b></span><span class="label">${r.free ? 'FREE RUN' : 'UNLIMITED'}</span></div>`;
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, lost ? `<p class="lifelost" id="lifelost">${heart(false, 14)} −1 heart${r.lives === 0 ? ' · run over' : ''}</p>` : '')}<button class="btn btn-mint btn-block btn-xl next" data-act="nextrun" id="nextbtn">${r.lives > 0 ? 'Next question →' : 'See my run'}</button>`;
-  return `<section class="play">${head}
+  return `<section class="play"><h1 class="sr-only">Unlimited, question ${(S.run ? S.run.count : 0) + 1}</h1>${head}
     ${qcardHTML(q, 'Unlimited', `Score <b id="runscore" data-prefix="">${fmtNum(fresh ? r.score - a.s : r.score)}</b>`, !a)}
     ${body}</section>`;
 }
@@ -5547,7 +5719,7 @@ function submitRun(timedOut){
   recordRun(v); App.entry = ''; App.endFresh = true; render(); App.busy = false;
 }
 function advanceRunQ(){
-  const r = S.run, q = pickEndless(S.player.id, r.n, S.endless.recent);
+  const r = S.run, next = pickEndless(S.player.id, r.n, S.endless.recent), q = next.q; r.n = next.n;
   r.q = qPayload(q); S.endless.recent = S.endless.recent.concat(q.id).slice(-800);
 }
 function nextRun(){
@@ -5586,8 +5758,8 @@ function viewBattle(){
     return `<section class="stack"><div class="px card center">${icon('swords', 48, 'var(--m-battle)', 'mascot')}
       <h1 class="logo" style="font-size:22px;margin-top:10px" tabindex="-1">Battle</h1>
       <p class="tagline">Battles need the game to be online so friends’ phones can talk to each other.</p>
-      <p class="small muted">${location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname) ? 'Host the game with online mode switched on (see README.md) to create rooms with a 4-digit code. To try it on this computer, add ?mp=local to the address and open two tabs.' : 'Battles aren’t switched on for this site yet. Check back soon!'}</p>
-      <button class="btn btn-ghost btn-block" data-act="home">Home</button></div></section>`;
+      <p class="small muted">Check your connection and try again in a moment.</p>
+      <button class="btn btn-ghost btn-block" data-act="home">Back to Home</button></div></section>`;
   }
   if (!MP.code) {
     return `<section class="stack">
@@ -5623,7 +5795,8 @@ function viewBattle(){
         <div class="codeboxes big">${MP.code.split('').map(d => `<span>${d}</span>`).join('')}</div>
         <button class="btn btn-sky" data-act="mpinvite">Invite friends</button>
       </div>
-      <div class="px card"><p class="label">Players ${R.roster.length}/${st.max}</p><ul class="seats">${seats}</ul></div>
+      <div class="px card"><p class="label">Players ${R.roster.length}/${st.max}</p><ul class="seats">${seats}</ul>
+        <p class="small muted center res-name">Playing as <b>${esc(displayName())}</b> · <button class="link" data-act="rename">Change name</button></p></div>
       <div class="px card stack">
         <p class="label">${host ? 'Game mode (you choose)' : 'Game mode'}</p>
         ${factOn() ? `<div class="opts modeopts" role="group" aria-label="Game mode"><button class="opt" data-act="mpmode" data-mode="dial" aria-pressed="${!MP.isFact(R)}" ${host ? '' : 'disabled'}>Standard</button><button class="opt" data-act="mpmode" data-mode="fact" aria-pressed="${MP.isFact(R)}" ${host ? '' : 'disabled'}>Fact Check</button></div>` : ''}
@@ -5705,7 +5878,7 @@ function viewBattle(){
   return `<section><p>Loading…</p></section>`;
 }
 async function mpCreate(){
-  requireName(async () => {
+  askName(async () => {
     App.joining = true; render(false);
     try { await MP.create(); App.view = 'battle'; render(); Sfx.land(750); }
     catch(e){ toast(e.message || 'Couldn’t create a room.'); }
@@ -5717,7 +5890,7 @@ function openRoomLink(code){
   App.pendingRoom = null;
   if (S.mp && S.mp.code === code) { MP.enter(code); go('battle'); return; }
   App.view = 'battle'; render(false);
-  requireName(async () => {
+  askName(async () => {
     App.joining = true;
     try { if (MP.code && MP.code !== code) await MP.leave(); await MP.join(code); App.joinEntry = ''; go('battle'); Sfx.land(750); }
     catch(e){ toast(e.message || 'Couldn’t join that room.', 4500); render(false); }
@@ -5731,7 +5904,7 @@ function mpFact(v){
 function mpJoin(){
   const code = App.joinEntry;
   if (!/^\d{4}$/.test(code)) { showError('Room codes are 4 digits.'); return; }
-  requireName(async () => {
+  askName(async () => {
     App.joining = true;
     try { await MP.join(code); App.joinEntry = ''; render(); Sfx.land(750); }
     catch(e){ showError(e.message || 'Couldn’t join that room.'); }
@@ -5765,7 +5938,7 @@ function accountHTML(){
           <p class="small">Your old recovery code stops working once you make a new one.</p>
           ${pinInput('pincheck', 'Your PIN', 'current-password')}
           <div class="btnrow"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Make a new code</button><button class="btn btn-ghost" type="button" data-act="acctpanel" data-p="">Cancel</button></div></form>`
-      : A.panel === 'device' ? `<div class="stack center"><p class="small">On your other phone or computer, open DIAL IN, go to Settings, tap <b>Sign in</b>, then <b>Use a code from another device</b>, and type:</p>
+      : A.panel === 'device' ? `<div class="stack center"><p class="small">On your other phone or computer, open DIAL IN, go to Profile, tap <b>Account &amp; devices</b>, then <b>Sign in</b>, then <b>Use a code from another device</b>, and type:</p>
           <p class="devcode mono" aria-label="Device code">${esc(A.devCode || '······')}</p><p class="small muted">Works once, for 10 minutes.</p>
           <button class="btn btn-ghost" data-act="acctpanel" data-p="">Done</button></div>`
       : A.panel === 'out' ? `<div class="stack"><p class="small">This removes your game from this device. Your account keeps everything: sign back in any time with <b>@${esc(Backend.acct)}</b> and your PIN.</p>
@@ -5791,7 +5964,7 @@ function accountHTML(){
       ${pinInput('acctpin', 'New PIN', 'new-password')}${pinInput('acctpin2', 'New PIN again', 'new-password')}
       <button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Reset PIN and sign in</button></form>${alt}`;
   if (A.step === 'device') return `<form id="deviceform" class="stack" novalidate>
-      <p class="small">On a phone or computer where you’re already signed in, open Settings and tap <b>Add a device</b>. Type the 6-character code it shows.</p>
+      <p class="small">On a phone or computer where you’re already signed in, open Profile → <b>Account &amp; devices</b> and tap <b>Add a device</b>. Type the 6-character code it shows.</p>
       <div class="formrow"><input id="devcodein" class="mono" autocapitalize="characters" autocomplete="one-time-code" spellcheck="false" maxlength="7" placeholder="ABC123" aria-label="Code from your other device"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Sign in</button></div></form>${alt}`;
   if (A.step === 'code') return `<form id="codeform" class="stack" novalidate>
       <p class="small">We’ve emailed <b>${esc(A.email)}</b>. Type the code from the email here, or tap the link in it on this device. Check your spam folder if it isn’t there in a minute.</p>
@@ -5870,9 +6043,11 @@ function boardStatusHTML(kind){
 }
 function viewBoard(){
   const kind = boardKind(), B = BOARDS[kind], day = S.days[App.today], lg = App.boardTab === 'leagues' && Backend.on && !DEV.on;
-  const tabs = Object.keys(BOARDS).map(k =>
-    `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`).join('')
-    + (Backend.on && !DEV.on ? `<button class="tab" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '');
+  // order on the scrollable row: the public boards, then Leagues (on screen without scrolling), then streaks and friends
+  const btn = k => k === 'leagues'
+    ? (Backend.on && !DEV.on ? `<button class="tab" role="tab" aria-selected="${lg}" data-act="tab" data-tab="leagues">Leagues</button>` : '')
+    : `<button class="tab" role="tab" aria-selected="${!lg && kind===k}" data-act="tab" data-tab="${k}">${BOARDS[k].label}</button>`;
+  const tabs = ['daily', 'all', 'leagues', 'streak', 'fdaily', 'fall'].map(btn).join('');
   if (lg) return `<section class="stack">
     <h1 class="label" tabindex="-1">Leaderboards</h1>
     <div class="tabs" role="tablist" aria-label="Choose a leaderboard">${tabs}</div>
@@ -5902,7 +6077,7 @@ function lbRows(rows, meId, kind, extra){
     return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.verified === true ? '<span class="vtick" role="img" aria-label="Verified account" title="Verified: saved account">✓</span>' : ''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
-const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
+const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Profile → Friends, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
 function demoBoard(){
   const kind = boardKind(), st = getStats(App.today), day = S.days[App.today];
   if (BOARDS[kind].friends) return emptyState('Friends leaderboards need online mode. For now, share your results card with friends to compare.');
@@ -5969,7 +6144,7 @@ async function loadBoard(){
     }
   } catch(e) {
     if (token !== App.boardToken) return;
-    el.innerHTML = emptyState(`Couldn’t reach the leaderboard: ${esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
+    el.innerHTML = emptyState(`${/^Couldn’t reach/.test(e.message) ? esc(e.message) : 'Couldn’t load the leaderboard: ' + esc(e.message)}<br><br><button class="btn btn-ghost" data-act="tab" data-tab="${kind}">Try again</button>`, 'sad');
   }
 }
 
@@ -5984,7 +6159,7 @@ const leagueInviteText = (name, code) => `Join my DIAL IN league “${name}”! 
 
 function leagueListShell(){
   return `<p class="small muted">Private leaderboards for your group chat, office or family. Make one, share the link, and see who’s best every day.</p>
-    ${Backend.acct ? '' : '<p class="small muted">No account needed. Tip: save one in Settings to keep your leagues if you change phone.</p>'}
+    ${Backend.acct ? '' : '<p class="small muted">No account needed. Tip: save one in Profile to keep your leagues if you change phone.</p>'}
     <div id="league-list"><p class="empty">Loading…</p></div>
     <form id="leaguecreate" class="px card stack" novalidate>
       <label class="label" for="lgname">Start a league</label>
@@ -6002,17 +6177,6 @@ function leagueItems(list){
       <small>${n} ${n === 1 ? 'player' : 'players'} · ${p} played today${l.my_rank ? '' : ' · you haven’t yet'}</small></button></li>`; }).join('')}</ul>`;
 }
 // Home card line: your best league position today, or what leagues are
-function homeLeagueLine(){
-  const L = App.leagues || [];
-  if (!L.length) return 'Private leaderboards for your group chat. No account needed.';
-  const ranked = L.filter(l => l.my_rank).sort((a, b) => a.my_rank - b.my_rank)[0];
-  return ranked ? `${esc(ranked.name)}: you’re #${ranked.my_rank} of ${Number(ranked.played_today)} today` : `${L.length} ${L.length === 1 ? 'league' : 'leagues'} · play today to get on the board`;
-}
-async function refreshHomeLeagues(){
-  if (!Backend.on || DEV.on || App.view !== 'home' || (App.leaguesAt && Date.now() - App.leaguesAt < 60000)) return;
-  App.leaguesAt = Date.now();
-  try { await fetchLeagues(); if (App.view === 'home') { const el = $('#home-leagues'); if (el) el.innerHTML = homeLeagueLine(); const go = el && el.closest('button').querySelector('.go'); if (go) go.textContent = App.leagues.length ? 'Open' : 'Start'; } } catch(e){}
-}
 async function fetchLeagues(){ await Backend.auth(); const r = await Backend.rpc('my_leagues', { p_date: App.today }); App.leagues = Array.isArray(r) ? r : []; return App.leagues; }
 async function loadLeagueList(){
   const el = $('#league-list'); if (!el) return; const token = ++App.boardToken;
@@ -6118,72 +6282,87 @@ function viewStats(){
       <div class="px stat"><span class="label">Runs</span><b>${S.endless.runs}</b></div>
       <div class="px stat"><span class="label">Unlimited Qs</span><b>${fmtNum(S.endless.answered)}</b></div>
     </div>
-    ${st.played ? `<div><p class="label">Last ${recent.length} daily games</p><div class="bars" role="img" aria-label="Bar chart of your recent daily scores">${bars}</div></div>
+    ${st.played ? `<div><p class="label">${recent.length === 1 ? "Your first daily game" : `Last ${recent.length} daily games`}</p><div class="bars" role="img" aria-label="Bar chart of your recent daily scores">${bars}</div></div>
       <div><p class="label">Daily history</p><ul class="hist">${hist}</ul></div>` : emptyState('No completed daily puzzles yet. Your history will appear here.', 'happy')}
   </section>`;
 }
 
-/* ---- Settings ---- */
+/* ---- Profile (Settings) ---- */
+// A section that opens on tap; which ones are open is remembered while the game is open.
+const fold = (id, title, body) => `<details class="fold" data-fold="${id}"${App.folds.has(id) ? ' open' : ''}><summary class="px fold-h"><span>${title}</span><svg class="fold-c" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="fold-b stack">${body}</div></details>`;
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.matches && d.matches('details.fold')) { if (d.open) App.folds.add(d.dataset.fold); else App.folds.delete(d.dataset.fold); } }, true);
 function viewSettings(){
   const friends = S.friends.map(c => { const n = App.friendNames[c];
     return `<li>${n ? `${esc(n)} <small class="muted">${c}</small>` : c}<button data-act="rmfriend" data-code="${c}" aria-label="Remove friend ${n ? esc(n) : c}">×</button></li>`; }).join('');
   const cloud = Cloud.kind === 'claude' ? 'Saved on this device and to your Claude account, so it follows you to any device where you open this page.'
     : Cloud.kind === 'online' ? 'Saved on this device and to your online profile. Save your account below to use it on other devices.'
     : 'Saved on this device. To move to another phone, copy your save code and restore it there.';
-  return `<section class="stack">
-    <h1 class="label" tabindex="-1">Settings &amp; profile</h1>
-    <div class="px card stack">
+  const st = getStats(App.today);
+  if (App.afterEmail || (App.acct && App.acct.step && !['create','pin','out'].includes(App.acct.step))) App.folds.add('acct');
+  const status = Backend.member ? '<span class="chip ok">✓ Verified account</span>' : Backend.on && !DEV.on ? '<button class="chip chip-btn" data-act="acctopen">Guest · save or sign in</button>' : '<span class="chip">Saved on this device</span>';
+  return `<section class="stack profile">
+    <div class="px card phead">
+      ${mascot('happy', 56)}
+      <div class="ph-id"><h1 class="ph-name" tabindex="-1">${esc(displayName())}</h1>${status}</div>
+    </div>
+    <div class="minis">
+      <div class="px mini"><span class="label">Streak</span><b>${st.current}</b></div>
+      <div class="px mini"><span class="label">Best day</span><b>${fmtNum(st.best)}</b></div>
+      <div class="px mini"><span class="label">Played</span><b>${st.played}</b></div>
+    </div>
+    <button class="btn btn-ghost btn-block ph-stats" data-act="stats">All statistics and history</button>
+    ${fold('name', 'Display name', `<div class="px card stack">
       <form id="nameform" novalidate>
-        <label class="label" for="name">Display name</label>
-        <div class="formrow" style="margin-top:8px"><input id="name" maxlength="16" value="${esc(S.player.name)}" placeholder="${esc(displayName())}" autocomplete="nickname">
+        <label class="sr-only" for="name">Display name</label>
+        <div class="formrow"><input id="name" maxlength="16" value="${esc(S.player.name)}" placeholder="${esc(displayName())}" autocomplete="nickname">
         <button class="btn btn-mint" type="submit">Save</button></div>
         <p class="small muted">Up to 16 letters, numbers and spaces. Shown on leaderboards and in battles.</p>
       </form>
-    </div>
+    </div>`)}
+    ${fold('acct', Backend.on && !DEV.on ? 'Account &amp; devices' : 'Your progress', `${Backend.on ? `<div class="px card stack" id="acctcard">
+        <p class="label">Your account</p>
+        ${Backend.member ? '' : '<p class="small">You’re on the leaderboards already. Save your account to get a verified tick next to your name and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
+        ${accountHTML()}
+      </div>` : ''}
     <div class="px card stack">
       <p class="label">Your progress</p>
       <p class="small">${cloud}</p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="copysave">Copy save code</button><button class="btn btn-ghost" data-act="restore">Restore a save</button></div>
-    </div>
-    ${paywallOn() ? `<div class="px card stack">
+    </div>`)}
+    ${paywallOn() || tipOn() ? fold('plus', paywallOn() ? (isPremium() ? `${PLUS} · unlocked` : `${PLUS} · one-off ${esc(CONFIG.PRICE_LABEL)}`) : 'Support DIAL IN', `${paywallOn() ? `<div class="px card stack">
       <p class="label">${PLUS}</p>
       <p class="small">${isPremium() ? (S.premium.source === 'demo' ? 'Unlocked in preview mode (no payment was taken).' : 'Unlocked: every past puzzle and unlimited runs. Thank you for supporting DIAL IN!') : `Every past puzzle and unlimited runs, for ${CONFIG.PRICE_LABEL}, a one-off payment.`}</p>
-      <div class="btnrow">${isPremium() ? '' : `<button class="btn" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
+      <div class="btnrow">${isPremium() ? '' : `<button class="btn btn-mint" data-act="pay">Get ${PLUS} · ${CONFIG.PRICE_LABEL}</button>`}<button class="btn btn-ghost" data-act="restorebuy">Restore purchase</button></div>
       ${S.premium.source === 'stripe' ? `<div class="btnrow"><button class="btn ${S.badge ? 'btn-mint' : 'btn-ghost'}" data-act="badge" aria-pressed="${S.badge}">Supporter badge: ${S.badge ? 'On' : 'Off'}</button></div>
       <p class="small muted">Shows a SUPPORTER badge next to your name on the leaderboards.</p>` : ''}
     </div>` : ''}
     ${tipOn() ? `<div class="px card stack">
       <p class="label">Tip jar</p>
       <p class="small">DIAL IN is made by a team of two. If it brightens your day, a ${esc(CONFIG.TIP_LABEL)} tip helps pay for new questions and keeps the daily puzzle free.</p>
-      <div class="btnrow"><button class="btn btn-sky" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
-    </div>` : ''}
-    <div class="px card stack">
+      <div class="btnrow"><button class="btn btn-ghost" data-act="tip">Buy the devs a coffee · ${esc(CONFIG.TIP_LABEL)}</button></div>
+    </div>` : ''}`) : ''}
+    ${fold('prefs', 'Sound &amp; display', `<div class="px card stack">
       <p class="label">Sound &amp; effects</p>
       <div class="btnrow"><button class="btn ${S.sound === false ? 'btn-ghost' : 'btn-mint'}" data-act="sound" aria-pressed="${S.sound !== false}">Sound: ${S.sound === false ? 'Off' : 'On'}</button></div>
       <p class="small muted">Arcade bleeps for key taps, dial clicks and scores. Animations follow your phone’s reduce-motion setting.</p>
       ${Season.available() ? `<div class="btnrow"><button class="btn ${S.festive === false ? 'btn-ghost' : 'btn-mint'}" data-act="festive" aria-pressed="${S.festive !== false}">Festive look: ${S.festive === false ? 'Off' : 'On'} 🎄</button></div>
       <p class="small muted">Snow, a Santa hat for Knobby and Christmas colours for the festive season. Everything goes back to normal on 1 January.</p>` : ''}
-    </div>
-    ${Habit.settingsHTML()}
-    ${Backend.on ? `<div class="px card stack">
+    </div>`)}
+    ${(() => { const h = Habit.settingsHTML(); return h ? fold('remind', 'Reminders &amp; home screen', h) : ''; })()}
+    ${Backend.on ? fold('friends', 'Friends', `<div class="px card stack">
         <p class="label">Online profile</p>
         <div><span class="label">Your friend code</span><code class="mono">${Backend.profile ? esc(Backend.profile.code) : 'Loading…'}</code></div>
         <form id="friendform" novalidate><label class="label" for="fcode">Add a friend's code</label>
           <div class="formrow" style="margin-top:8px"><input id="fcode" maxlength="6" placeholder="A1B2C3" autocapitalize="characters"><button class="btn btn-sky" type="submit">Add</button></div></form>
         ${friends ? `<ul class="friends">${friends}</ul>` : '<p class="small muted">No friends added yet.</p>'}
-      </div>
-      <div class="px card stack" id="acctcard">
-        <p class="label">Your account</p>
-        ${Backend.member ? '' : '<p class="small">You’re on the leaderboards already. Save your account to get a verified tick next to your name and keep your progress on any device. No email needed: just a username and a PIN.</p>'}
-        ${accountHTML()}
-      </div>` : ''}
-    <div class="px card stack">
+      </div>`) : ''}
+    ${fold('data', 'Your data &amp; privacy', `<div class="px card stack">
       <p class="label">Your data</p>
       <p class="small">We only keep what the game needs: your username and PIN (stored scrambled) if you save an account, your display name, scores and progress. No email, no ads, no tracking cookies. Shared results show your score pattern, never your name. <a href="privacy">Privacy notice</a> · <a href="terms">Terms</a></p>
       <div class="btnrow"><button class="btn btn-ghost" data-act="export">Export my data</button><button class="btn btn-ghost" data-act="intro">How to play</button></div>
       <button class="btn ${App.delArm ? 'btn-coral' : 'btn-ghost'}" data-act="acctdelete" style="margin-top:10px">${App.delArm ? 'Tap again to delete everything for good' : 'Delete my account and data'}</button>
       ${App.delArm ? `<p class="small">This deletes your ${Backend.on && !DEV.on ? 'account, scores, streak, saved progress and leagues from our servers and this device' : 'progress on this device'}. It can’t be undone.${isPremium() ? ` ${PLUS} goes too.` : ''}</p>` : ''}
-    </div>
+    </div>`)}
     ${DEV.allowed ? `<div class="px card stack"><p class="label">Developer</p><p class="small">Test every feature endlessly in a separate sandbox. Your real game isn’t affected.</p><button class="btn btn-coral btn-block" data-act="deventer">Open developer sandbox</button></div>` : ''}
     ${DEV.askPass ? `<form class="px card stack" id="devpassform" novalidate><label class="label" for="devpass">Developer passcode</label><div class="formrow"><input id="devpass" type="password" autocomplete="off"><button class="btn btn-coral" type="submit">Unlock</button></div></form>` : ''}
     <p class="small muted center"><button class="link quiet" data-act="devtap">DIAL IN · ${BANK.length} hand-checked questions</button></p>
@@ -6229,7 +6408,7 @@ async function confirmPurchase(manual){
     } catch(e){}
     if (fromCheckout) await new Promise(r => setTimeout(r, 2000));
   }
-  if (fromCheckout || manual) toast(manual ? 'No purchase found for this profile.' : 'Payment received? It can take a minute. Use “Restore purchase” in Settings.', 5000);
+  if (fromCheckout || manual) toast(manual ? 'No purchase found for this profile.' : 'Payment received? It can take a minute. Use “Restore purchase” in Profile.', 5000);
 }
 
 /* ---- Render ---- */
@@ -6238,16 +6417,21 @@ function render(focus = true){
   if (App.view === 'play') expireDaily();
   if (['factplay','facthome','factres'].includes(App.view) && factOn()) expireFacts();
   if (App.view === 'endless') expireRun();
-  const views = { dev:viewDev, home:viewHome, facthome:viewFactHub, factplay:viewFactPlay, factres:viewFactRes, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle };
+  const views = { dev:viewDev, home:viewHome, facthome:viewFactHub, factplay:viewFactPlay, factres:viewFactRes, archive:viewArchive, arch:viewArch, archres:viewArchRes, play:viewPlay, results:viewResults, pinball:viewPinball, board:viewBoard, stats:viewStats, settings:viewSettings, endless:viewEndless, battle:viewBattle, modes:viewModes };
   const main = $('#app');
   main.innerHTML = (views[App.view] || viewHome)();
   const about = $('#about'); if (about) about.hidden = App.view !== 'home';
   main.classList.toggle('playing', !!main.querySelector('.play'));
-  document.querySelectorAll('.topbar [data-act]').forEach(b => b.removeAttribute('aria-current'));
-  const map = { stats:'#ic-stats', board:'#ic-board', settings:'#ic-settings' };
-  if (map[App.view]) $(map[App.view]).setAttribute('aria-current','page');
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
+  // bottom navigation: which destination this screen belongs to, and hide it while a game is on screen
+  const NAV_OF = { home:'home', facthome:'home', factres:'home', results:'home', modes:'modes', archive:'modes', archres:'modes', endless:'modes', battle:'modes', board:'board', settings:'settings', stats:'settings' };
+  document.querySelectorAll('.navtab').forEach(b => { if (b.dataset.nav === NAV_OF[App.view]) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  const inGame = ['play','pinball','factplay','arch','dev'].includes(App.view) || (App.view === 'endless' && S.run && !S.run.over)
+    || (App.view === 'battle' && !!MP.code && !!MP.room && ['question','reveal'].includes(MP.room.status));
+  document.body.classList.toggle('in-game', inGame);
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', modes:'Play · DIAL IN', settings:'Profile · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
+  // every screen has a main heading for screen-reader users; screens without a visible one get a hidden one from the page title
+  if (!main.querySelector('h1')) main.insertAdjacentHTML('afterbegin', `<h1 class="sr-only">${esc(document.title.split(' · ')[0].replace(/ – .*/, ''))}</h1>`);
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
   Season.paint();
@@ -6296,7 +6480,6 @@ function postRender(){
     }
   }
   if (App.view === 'board') loadBoard();
-  if (App.view === 'home') refreshHomeLeagues();
   if (App.view === 'results') { countUp(); loadRank(false); loadLeagueCard(); }
   if (App.view === 'play' || App.view === 'arch' || App.view === 'endless' || App.view === 'factplay' || (App.view === 'battle' && $('.play'))) {
     const over = document.documentElement.scrollHeight - window.innerHeight;
@@ -6574,7 +6757,7 @@ function onClick(e){
     case 'key': pressKey(el.dataset.k); break;
     case 'goq': {
       const i = Math.max(0, Math.min(6, +el.dataset.i || 0)), day = getDay(App.today, true);
-      if (!day.answers[i] && i !== firstOpen(day)) return;
+      if (!day || (!day.answers[i] && i !== firstOpen(day))) return;
       App.cur = i; App.entry = ''; go('play'); break;
     }
     case 'next': Meter.stop(); nextDaily(); break;
@@ -6627,6 +6810,9 @@ function onClick(e){
     case 'mprematch': MP.rematch(); break;
     case 'mpinvite': share(inviteText()); break;
     case 'board': go('board'); break;
+    case 'modes': go('modes'); break;
+    case 'acctopen': App.folds.add('acct'); render(false); focusEmailBox(); break;
+    case 'rename': App.afterName = null; $('#pname').value = S.player.name || ''; $('#pname').placeholder = randomName(); openDialog('dlg-name'); setTimeout(() => $('#pname').focus(), 50); break;
     case 'stats': go('stats'); break;
     case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); loadFriendNames(); break;
     case 'intro': openDialog('dlg-intro'); break;
@@ -6705,6 +6891,7 @@ async function onSubmit(e){
     if (!n) return toast('Pick a name with letters or numbers.');
     if (!nameOk(n)) return toast(NAME_NOT_OK, 3500);
     S.player.name = n; save(); Backend.nameSent = ''; closeDialog('dlg-name');
+    if (MP.code) MP.heartbeat();   // in a Battle room: everyone sees the new name straight away
     const next = App.afterName; App.afterName = null; if (next) next(); else render(false);
     return;
   }
@@ -6779,7 +6966,7 @@ function tick(){
 function exportSQL(days = 365, from = DateUK.today()){
   const q = s => s === null || s === undefined ? 'null' : `'${String(s).replace(/'/g, "''")}'`;
   const qs = BANK.map(x => `(${q(x.id)},${q(x.question)},${x.answer},${x.range ? x.range[0] : 'null'},${x.range ? x.range[1] : 'null'},${q(x.unit)},${q(x.category)},${x.difficulty},${q(x.scoring)},${q(x.explanation)},${q(x.source)},${q(x.geo)})`);
-  const ds = []; for (let k = 0; k < days; k++) { const d = DateUK.add(from, k); ds.push(`('${d}',${DateUK.puzzleNo(d)},array[${dailyIds(d).map(q).join(',')}])`); }
+  const ds = []; for (let k = 0; k < days; k++) { const d = DateUK.add(from, k); if (!hasDaily(d)) break; ds.push(`('${d}',${DateUK.puzzleNo(d)},array[${dailyIds(d).map(q).join(',')}])`); }
   return `insert into public.questions (id,question,answer,range_lo,range_hi,unit,category,difficulty,scoring,explanation,source,geo) values\n${qs.join(',\n')}\non conflict (id) do update set question=excluded.question, answer=excluded.answer, range_lo=excluded.range_lo, range_hi=excluded.range_hi, unit=excluded.unit, category=excluded.category, difficulty=excluded.difficulty, scoring=excluded.scoring, explanation=excluded.explanation, source=excluded.source, geo=excluded.geo;\n\ninsert into public.daily_sets (puzzle_date,puzzle_no,question_ids) values\n${ds.join(',\n')}\non conflict (puzzle_date) do nothing;\n`;
 }
 
