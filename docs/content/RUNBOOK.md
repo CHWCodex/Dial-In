@@ -10,7 +10,7 @@ How DIAL IN keeps its questions unique, correct and in supply. Nothing in `conte
 | `facts.js` | The Fact Check! statement bank, 300 statements. |
 | `content/question-groups.json` | **Reviewed decisions**: fact groups (questions testing the same fact), quarantine with reasons, and a rewording log. |
 | `content/reviewed.json` | Flagged pairs judged to be *different* facts, and time-sensitive questions judged stable. |
-| `content/schedule.json` | The reviewed daily lists for Daily DIAL IN and Fact Check!, from 28 Nov 2026, plus the replacement reserve. |
+| `content/schedule.json` | The reviewed daily lists for Daily DIAL IN and Fact Check!, from 27 Nov 2026, plus the replacement reserve. |
 | `content/question-usage.json` | Generated record per question: fact, status (published / scheduled / reserve / available / retired-same-fact / quarantined), publication dates, source and verification status. |
 | `content/published-history.json` | Every published day. Written nightly; validation fails if the game would ever show something different for a published date. |
 | `content/fact-check-candidates.json` | Draft statements **awaiting your approval**. Never served. |

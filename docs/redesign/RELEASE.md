@@ -24,7 +24,7 @@
 ## Deploy
 
 1. Merge `main` into the branch.
-   - If it's now 28 Nov 2026 or later, re-cut the reviewed schedule so it starts tomorrow:
+   - If the release slips past the reviewed schedule's first day (27 Nov 2026), re-cut the reviewed schedule so it starts tomorrow:
      ```bash
      node scripts/build-content.mjs --from <tomorrow>
      ```

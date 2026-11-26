@@ -22,9 +22,9 @@ console.log('insert into public.daily_sets values ' + rows.join(',') + ';');" | 
 fails=0; ok(){ if [ "$2" = "$3" ]; then echo "PASS | $1"; else echo "FAIL | $1 (got $2, want $3)"; fails=$((fails+1)); fi; }
 md5(){ $S -c "select md5(string_agg(puzzle_date::text||':'||array_to_string(question_ids,','), ';' order by puzzle_date)) from daily_sets $1"; }
 ok "the copy matches production's 1,100 stored days" "$(md5 '')" "f46e68f1eaacc998ec1b4cd37ccaa867"
-before=$(md5 "where puzzle_date <= '2026-11-27'")
+before=$(md5 "where puzzle_date <= '2026-11-26'")
 $S -v ON_ERROR_STOP=1 -f supabase/migrations/20261126000000_question_integrity_sync.sql >/dev/null 2>&1
-ok "published and already-live days are unchanged by the migration" "$(md5 "where puzzle_date <= '2026-11-27'")" "$before"
+ok "published days are unchanged by the migration" "$(md5 "where puzzle_date <= '2026-11-26'")" "$before"
 GAME=$(node --input-type=module -e "import { loadGame } from './scripts/load-game.mjs'; import c from 'node:crypto'; const G = loadGame(); const a=[]; for (let d='2026-10-26'; G.hasDaily(d); d=G.DateUK.add(d,1)) a.push(d+':'+G.dailyIds(d).join(',')); console.log(c.createHash('md5').update(a.join(';')).digest('hex'))")
 ok "after the migration the database holds exactly the game's schedule" "$(md5 '')" "$GAME"
 set -- $(node -e "const u=require('./content/question-usage.json'); console.log(Object.entries(u.questions).filter(([k,v])=>v.status==='reserve').map(([k])=>k).slice(0,13).join(' '))")
