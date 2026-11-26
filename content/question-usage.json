@@ -27290,9 +27290,9 @@
    "category": "History",
    "truth": false,
    "source": "Royal Household",
-   "status": "available",
+   "status": "scheduled",
    "publishedDates": [],
-   "scheduledDate": null,
+   "scheduledDate": "2027-01-10",
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -27346,9 +27346,9 @@
    "category": "History",
    "truth": true,
    "source": "Standard history",
-   "status": "available",
+   "status": "scheduled",
    "publishedDates": [],
-   "scheduledDate": null,
+   "scheduledDate": "2027-01-05",
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -29334,9 +29334,9 @@
    "category": "Sport",
    "truth": true,
    "source": "FIBA",
-   "status": "available",
+   "status": "scheduled",
    "publishedDates": [],
-   "scheduledDate": null,
+   "scheduledDate": "2027-01-05",
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -29748,9 +29748,9 @@
    "category": "Sport",
    "truth": true,
    "source": "Olympics.com",
-   "status": "available",
+   "status": "scheduled",
    "publishedDates": [],
-   "scheduledDate": null,
+   "scheduledDate": "2027-01-06",
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -31352,6 +31352,1840 @@
     "date": "2026-11-26",
     "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
    }
+  },
+  "f301": {
+   "fact": "f301",
+   "category": "History",
+   "truth": false,
+   "source": "Royal Collection Trust",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f302": {
+   "fact": "f302",
+   "category": "History",
+   "truth": false,
+   "source": "Royal Museums Greenwich",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f303": {
+   "fact": "f303",
+   "category": "History",
+   "truth": true,
+   "source": "UK Parliament",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f304": {
+   "fact": "f304",
+   "category": "History",
+   "truth": true,
+   "source": "Museum of London",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f305": {
+   "fact": "f305",
+   "category": "History",
+   "truth": false,
+   "source": "Historic Royal Palaces",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f306": {
+   "fact": "f306",
+   "category": "History",
+   "truth": false,
+   "source": "Berlin Wall Foundation",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f307": {
+   "fact": "f307",
+   "category": "History",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f308": {
+   "fact": "f308",
+   "category": "History",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f309": {
+   "fact": "f309",
+   "category": "History",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f310": {
+   "fact": "f310",
+   "category": "History",
+   "truth": true,
+   "source": "British Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f311": {
+   "fact": "f311",
+   "category": "History",
+   "truth": false,
+   "source": "International Olympic Committee",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f312": {
+   "fact": "f312",
+   "category": "History",
+   "truth": true,
+   "source": "The White House",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f313": {
+   "fact": "f313",
+   "category": "History",
+   "truth": false,
+   "source": "US Department of State",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f314": {
+   "fact": "f314",
+   "category": "Landmarks",
+   "truth": false,
+   "source": "Société d'Exploitation de la Tour Eiffel",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f315": {
+   "fact": "f315",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "US National Park Service",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f316": {
+   "fact": "f316",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "Parco archeologico del Colosseo",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f317": {
+   "fact": "f317",
+   "category": "Landmarks",
+   "truth": false,
+   "source": "Opera della Primaziale Pisana",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-05",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f318": {
+   "fact": "f318",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "UK Parliament",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f319": {
+   "fact": "f319",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "English Heritage",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f320": {
+   "fact": "f320",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "Royal Collection Trust",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f321": {
+   "fact": "f321",
+   "category": "Space",
+   "truth": true,
+   "source": "NASA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f322": {
+   "fact": "f322",
+   "category": "Space",
+   "truth": false,
+   "source": "NASA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f323": {
+   "fact": "f323",
+   "category": "Space",
+   "truth": false,
+   "source": "NASA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f324": {
+   "fact": "f324",
+   "category": "Space",
+   "truth": true,
+   "source": "NASA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f325": {
+   "fact": "f325",
+   "category": "Science",
+   "truth": true,
+   "source": "Royal Society of Chemistry",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f326": {
+   "fact": "f326",
+   "category": "Science",
+   "truth": true,
+   "source": "Smithsonian Institution",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f327": {
+   "fact": "f327",
+   "category": "Body",
+   "truth": true,
+   "source": "American Academy of Ophthalmology",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-05",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f328": {
+   "fact": "f328",
+   "category": "Body",
+   "truth": true,
+   "source": "American Academy of Dermatology",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f329": {
+   "fact": "f329",
+   "category": "Body",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f330": {
+   "fact": "f330",
+   "category": "Science",
+   "truth": true,
+   "source": "Met Office",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f331": {
+   "fact": "f331",
+   "category": "Geography",
+   "truth": false,
+   "source": "NOAA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f332": {
+   "fact": "f332",
+   "category": "Geography",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f333": {
+   "fact": "f333",
+   "category": "Geography",
+   "truth": true,
+   "source": "British Antarctic Survey",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f334": {
+   "fact": "f334",
+   "category": "Nature",
+   "truth": true,
+   "source": "WWF",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f335": {
+   "fact": "f335",
+   "category": "Geography",
+   "truth": true,
+   "source": "CIA World Factbook",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f336": {
+   "fact": "f336",
+   "category": "Geography",
+   "truth": true,
+   "source": "Geoscience Australia",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f337": {
+   "fact": "f337",
+   "category": "Geography",
+   "truth": false,
+   "source": "Scottish Mountaineering Club",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f338": {
+   "fact": "f338",
+   "category": "Geography",
+   "truth": false,
+   "source": "National Parks UK",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f339": {
+   "fact": "f339",
+   "category": "Geography",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f340": {
+   "fact": "f340",
+   "category": "Geography",
+   "truth": true,
+   "source": "Isle of Wight Council",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f341": {
+   "fact": "f341",
+   "category": "Nature",
+   "truth": true,
+   "source": "Smithsonian's National Zoo",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f342": {
+   "fact": "f342",
+   "category": "Nature",
+   "truth": false,
+   "source": "WWF",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f343": {
+   "fact": "f343",
+   "category": "Nature",
+   "truth": true,
+   "source": "NOAA Fisheries",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f344": {
+   "fact": "f344",
+   "category": "Nature",
+   "truth": false,
+   "source": "Smithsonian Institution",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f345": {
+   "fact": "f345",
+   "category": "Nature",
+   "truth": true,
+   "source": "Smithsonian's National Zoo",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f346": {
+   "fact": "f346",
+   "category": "Nature",
+   "truth": true,
+   "source": "WWF",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f347": {
+   "fact": "f347",
+   "category": "Nature",
+   "truth": true,
+   "source": "Natural History Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f348": {
+   "fact": "f348",
+   "category": "Nature",
+   "truth": true,
+   "source": "National Honey Board",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f349": {
+   "fact": "f349",
+   "category": "Nature",
+   "truth": false,
+   "source": "RSPB",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f350": {
+   "fact": "f350",
+   "category": "Nature",
+   "truth": true,
+   "source": "Natural History Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f351": {
+   "fact": "f351",
+   "category": "Nature",
+   "truth": true,
+   "source": "BirdLife International",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f352": {
+   "fact": "f352",
+   "category": "Nature",
+   "truth": false,
+   "source": "Natural History Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f353": {
+   "fact": "f353",
+   "category": "Nature",
+   "truth": true,
+   "source": "PBS NOVA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f354": {
+   "fact": "f354",
+   "category": "Sport",
+   "truth": false,
+   "source": "Wembley Stadium",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f355": {
+   "fact": "f355",
+   "category": "Sport",
+   "truth": true,
+   "source": "World Athletics",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f356": {
+   "fact": "f356",
+   "category": "Sport",
+   "truth": true,
+   "source": "The All England Club",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f357": {
+   "fact": "f357",
+   "category": "Sport",
+   "truth": true,
+   "source": "International Olympic Committee",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f358": {
+   "fact": "f358",
+   "category": "Sport",
+   "truth": false,
+   "source": "Amaury Sport Organisation",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f359": {
+   "fact": "f359",
+   "category": "Sport",
+   "truth": false,
+   "source": "The R&A",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f360": {
+   "fact": "f360",
+   "category": "Sport",
+   "truth": true,
+   "source": "ICC",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f361": {
+   "fact": "f361",
+   "category": "Sport",
+   "truth": true,
+   "source": "NFL",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f362": {
+   "fact": "f362",
+   "category": "Sport",
+   "truth": false,
+   "source": "ITF",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f363": {
+   "fact": "f363",
+   "category": "Sport",
+   "truth": false,
+   "source": "NBA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f364": {
+   "fact": "f364",
+   "category": "Sport",
+   "truth": true,
+   "source": "FIFA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f365": {
+   "fact": "f365",
+   "category": "Sport",
+   "truth": true,
+   "source": "Aintree Racecourse",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f366": {
+   "fact": "f366",
+   "category": "Music",
+   "truth": false,
+   "source": "Billboard",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f367": {
+   "fact": "f367",
+   "category": "Music",
+   "truth": true,
+   "source": "Library of Congress",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f368": {
+   "fact": "f368",
+   "category": "Music",
+   "truth": true,
+   "source": "Official Charts Company",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f369": {
+   "fact": "f369",
+   "category": "Music",
+   "truth": true,
+   "source": "Official Charts Company",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f370": {
+   "fact": "f370",
+   "category": "Film",
+   "truth": false,
+   "source": "BFI",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f371": {
+   "fact": "f371",
+   "category": "Film",
+   "truth": false,
+   "source": "Lucasfilm",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f372": {
+   "fact": "f372",
+   "category": "TV",
+   "truth": true,
+   "source": "Fox",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f373": {
+   "fact": "f373",
+   "category": "TV",
+   "truth": true,
+   "source": "ITV",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f374": {
+   "fact": "f374",
+   "category": "Film",
+   "truth": false,
+   "source": "Lucasfilm",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f375": {
+   "fact": "f375",
+   "category": "Film",
+   "truth": true,
+   "source": "The Walt Disney Company",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-05",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f376": {
+   "fact": "f376",
+   "category": "Film",
+   "truth": true,
+   "source": "Warner Bros.",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f377": {
+   "fact": "f377",
+   "category": "Books",
+   "truth": true,
+   "source": "Bloomsbury",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f378": {
+   "fact": "f378",
+   "category": "Books",
+   "truth": true,
+   "source": "Eric Carle",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f379": {
+   "fact": "f379",
+   "category": "Books",
+   "truth": false,
+   "source": "Agatha Christie Ltd",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-06",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f380": {
+   "fact": "f380",
+   "category": "Books",
+   "truth": true,
+   "source": "Roald Dahl Story Company",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f381": {
+   "fact": "f381",
+   "category": "Food",
+   "truth": false,
+   "source": "McVitie's",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f382": {
+   "fact": "f382",
+   "category": "Food",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f383": {
+   "fact": "f383",
+   "category": "Food",
+   "truth": true,
+   "source": "US Department of Agriculture",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f384": {
+   "fact": "f384",
+   "category": "Food",
+   "truth": true,
+   "source": "McDonald's",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-05",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f385": {
+   "fact": "f385",
+   "category": "Food",
+   "truth": true,
+   "source": "Smithsonian Magazine",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f386": {
+   "fact": "f386",
+   "category": "Food",
+   "truth": false,
+   "source": "UK Tea & Infusions Association",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f387": {
+   "fact": "f387",
+   "category": "Food",
+   "truth": true,
+   "source": "The Coca-Cola Company",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f388": {
+   "fact": "f388",
+   "category": "Food",
+   "truth": false,
+   "source": "Dole",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-05",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f389": {
+   "fact": "f389",
+   "category": "Tech",
+   "truth": true,
+   "source": "Apple",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f390": {
+   "fact": "f390",
+   "category": "Tech",
+   "truth": true,
+   "source": "Smithsonian Institution",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f391": {
+   "fact": "f391",
+   "category": "Tech",
+   "truth": true,
+   "source": "International Bureau of Weights and Measures",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f392": {
+   "fact": "f392",
+   "category": "Tech",
+   "truth": true,
+   "source": "CERN",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f393": {
+   "fact": "f393",
+   "category": "Tech",
+   "truth": false,
+   "source": "YouTube",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2026-12-31",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f394": {
+   "fact": "f394",
+   "category": "Tech",
+   "truth": true,
+   "source": "DENSO WAVE",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-14",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f395": {
+   "fact": "f395",
+   "category": "Tech",
+   "truth": true,
+   "source": "Computer History Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f396": {
+   "fact": "f396",
+   "category": "Money",
+   "truth": true,
+   "source": "Bank of England",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f397": {
+   "fact": "f397",
+   "category": "Money",
+   "truth": true,
+   "source": "Bank of England",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f398": {
+   "fact": "f398",
+   "category": "Money",
+   "truth": false,
+   "source": "The Royal Mint",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f399": {
+   "fact": "f399",
+   "category": "Money",
+   "truth": true,
+   "source": "The Royal Mint",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f400": {
+   "fact": "f400",
+   "category": "Life",
+   "truth": false,
+   "source": "GOV.UK",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f401": {
+   "fact": "f401",
+   "category": "Life",
+   "truth": false,
+   "source": "DVSA",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f402": {
+   "fact": "f402",
+   "category": "Life",
+   "truth": true,
+   "source": "Royal Mail",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f403": {
+   "fact": "f403",
+   "category": "Life",
+   "truth": true,
+   "source": "The Postal Museum",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f404": {
+   "fact": "f404",
+   "category": "Travel",
+   "truth": true,
+   "source": "Russian Railways",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f405": {
+   "fact": "f405",
+   "category": "Travel",
+   "truth": true,
+   "source": "Loganair",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f406": {
+   "fact": "f406",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "The Shard",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-16",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f407": {
+   "fact": "f407",
+   "category": "Landmarks",
+   "truth": false,
+   "source": "London Eye",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-17",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f408": {
+   "fact": "f408",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "Tower Bridge",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f409": {
+   "fact": "f409",
+   "category": "Landmarks",
+   "truth": false,
+   "source": "Gateshead Council",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-08",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f410": {
+   "fact": "f410",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "US National Park Service",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-07",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f411": {
+   "fact": "f411",
+   "category": "Landmarks",
+   "truth": false,
+   "source": "Transport for NSW",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-13",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f412": {
+   "fact": "f412",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "UNESCO",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f413": {
+   "fact": "f413",
+   "category": "Landmarks",
+   "truth": true,
+   "source": "UNESCO",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f414": {
+   "fact": "f414",
+   "category": "Geography",
+   "truth": true,
+   "source": "UNESCO",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-02",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f415": {
+   "fact": "f415",
+   "category": "Geography",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f416": {
+   "fact": "f416",
+   "category": "Language",
+   "truth": true,
+   "source": "Oxford English Dictionary",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f417": {
+   "fact": "f417",
+   "category": "Language",
+   "truth": true,
+   "source": "Folger Shakespeare Library",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-15",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f418": {
+   "fact": "f418",
+   "category": "Language",
+   "truth": true,
+   "source": "Office for National Statistics",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-03",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f419": {
+   "fact": "f419",
+   "category": "Body",
+   "truth": false,
+   "source": "British Heart Foundation",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f420": {
+   "fact": "f420",
+   "category": "Body",
+   "truth": true,
+   "source": "American Academy of Dermatology",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f421": {
+   "fact": "f421",
+   "category": "Body",
+   "truth": true,
+   "source": "Encyclopaedia Britannica",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f422": {
+   "fact": "f422",
+   "category": "Games",
+   "truth": true,
+   "source": "Rubik's",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f423": {
+   "fact": "f423",
+   "category": "Games",
+   "truth": true,
+   "source": "Hasbro",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f424": {
+   "fact": "f424",
+   "category": "Games",
+   "truth": true,
+   "source": "Mojang Studios",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-12",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f425": {
+   "fact": "f425",
+   "category": "Games",
+   "truth": true,
+   "source": "Guinness World Records",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-10",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f426": {
+   "fact": "f426",
+   "category": "Games",
+   "truth": true,
+   "source": "Nintendo",
+   "status": "available",
+   "publishedDates": [],
+   "scheduledDate": null,
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f427": {
+   "fact": "f427",
+   "category": "Aviation",
+   "truth": false,
+   "source": "Boeing",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-11",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f428": {
+   "fact": "f428",
+   "category": "Aviation",
+   "truth": true,
+   "source": "British Airways",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f429": {
+   "fact": "f429",
+   "category": "Travel",
+   "truth": true,
+   "source": "Getlink (Eurotunnel)",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-04",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f430": {
+   "fact": "f430",
+   "category": "Travel",
+   "truth": true,
+   "source": "Transport for London",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-09",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
+  },
+  "f431": {
+   "fact": "f431",
+   "category": "Travel",
+   "truth": true,
+   "source": "National Highways",
+   "status": "scheduled",
+   "publishedDates": [],
+   "scheduledDate": "2027-01-01",
+   "verification": {
+    "status": "editorial-review",
+    "date": "2026-11-26",
+    "note": "Checked by an editorial review of the whole bank; not yet checked line by line against the named source"
+   }
   }
  },
  "inventory": {
@@ -31359,9 +33193,9 @@
   "dailyDaysAhead": 121,
   "reserveQuestions": 35,
   "unplacedQuestions": 169,
-  "factCheckScheduledThrough": "2026-12-30",
-  "factCheckDaysAhead": 34,
-  "factCheckUnplaced": 5,
+  "factCheckScheduledThrough": "2027-01-17",
+  "factCheckDaysAhead": 52,
+  "factCheckUnplaced": 10,
   "relaxations": []
  }
 }
