@@ -4395,7 +4395,7 @@ function viewHome(){
       ${pips}<button class="btn btn-ghost btn-block dc-go" data-act="play">See results</button>
       <p class="dc-next">Next puzzle in <b data-countdown>${countdownText()}</b></p>`;
   const fd = S.facts.days[App.today];
-  const fStatus = fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : 'True or false? 7 claims a day';
+  const fStatus = fd && fd.done ? `Done · <b>${factDayRight(fd)}/7</b> right` : fd && fd.ans.some(Boolean) ? `${fd.ans.filter(Boolean).length}/7 answered` : hasFactDaily(App.today) ? 'True or false? 7 claims a day' : 'New claims coming soon · try Unlimited';
   return `<section class="stack home">
     ${DEV.on ? `<button class="px devbanner" data-act="devopen"><b>DEV SANDBOX</b><span>Nothing here counts. Tap for the developer panel.</span></button>` : ''}
     <div class="px dcard${done && !bonus ? ' is-done' : ''}">
@@ -4609,7 +4609,7 @@ function factCardHTML(f, answered, fresh){
 function viewFactHub(){
   if (!factOn()) { App.view = 'home'; return viewHome(); }
   const d = S.facts.days[App.today], n = d ? d.ans.filter(Boolean).length : 0, prem = isPremium(), run = S.frun && !S.frun.over ? S.frun : null;
-  const dStatus = d && d.done ? `Done · <b>${factDayRight(d)}/7</b> · ${fmtNum(factDayScore(d))} pts` : n ? `${n}/7 answered · carry on` : '7 claims · 12 seconds each';
+  const dStatus = d && d.done ? `Done · <b>${factDayRight(d)}/7</b> · ${fmtNum(factDayScore(d))} pts` : n ? `${n}/7 answered · carry on` : hasFactDaily(App.today) ? '7 claims · 12 seconds each' : 'New claims coming soon';
   const rStatus = run ? `Run in progress · ${fmtNum(run.score)} pts` : prem ? (S.facts.best ? `Best <b>${fmtNum(S.facts.best)}</b> · ${S.facts.bestN} right` : 'Keep going until you lose 3 hearts') : `Unlock with ${PLUS}`;
   return `<section class="stack">
     <div class="px card center fc-hero">
