@@ -18,6 +18,12 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/build-seo-pages.mjs
+      # Content health: records the puzzle that just went live and checks the questions, schedule and inventory.
+      # A failure here fails the run (GitHub emails the owner) without stopping the pages above being published.
+      - name: Check questions, record today's puzzle
+        id: health
+        continue-on-error: true
+        run: node scripts/build-content.mjs --usage-only && node scripts/validate-questions.mjs --record-published
       - name: Commit if anything changed
         run: |
           if [ -z "$(git status --porcelain)" ]; then echo "No changes"; exit 0; fi
@@ -26,3 +32,8 @@ jobs:
           git add -A
           git commit -m "Daily: update past puzzles, answer pages and sitemap"
           git push
+      - name: Alert if the content check failed
+        if: steps.health.outcome == 'failure'
+        run: |
+          echo "::error::Question/schedule check failed: see the 'Check questions' step above (low inventory, a changed published puzzle or invalid content)."
+          exit 1

@@ -52,13 +52,16 @@ test('puzzle numbers count from the launch day', () => {
 
 // ---------------------------------------------------------------- the daily schedule
 test('each day has 7 different, real questions, the same for everyone', () => {
-  for (let k = 0; k < 400; k++) {
+  let k = 0;
+  for (; G.hasDaily(G.DateUK.add('2026-10-26', k)); k++) {
     const d = G.DateUK.add('2026-10-26', k), ids = G.dailyIds(d);
     assert.equal(ids.length, 7, d);
     assert.equal(new Set(ids).size, 7, d);
     for (const id of ids) assert.ok(G.BY_ID.has(id), `${d}: ${id}`);
     assert.deepEqual(G.dailyIds(d), ids, 'deterministic');
   }
+  assert.ok(k >= 150, `only ${k} days of puzzles from launch`);
+  assert.equal(G.dailyIds(G.DateUK.add('2026-10-26', k)), null, 'past the reviewed schedule there is no puzzle (never a repeat)');
 });
 test('the schedule matches the puzzles stored on the server (spot checks from the database)', () => {
   assert.deepEqual([...G.dailyIds('2026-11-25')], ['c04','tv04','an13','c36','c46','s50','x173']);

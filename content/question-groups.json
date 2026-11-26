@@ -1,0 +1,204 @@
+{
+ "_about": "Reviewed question-integrity decisions. factGroups: questions that test the SAME underlying fact (or where one gives away the other's answer). Only one member of a group may ever appear in Daily DIAL IN; Unlimited and Battles treat the group as one question. quarantine: questions that must not be scheduled (reason given). reworded: unpublished questions whose wording was tightened. Reviewed 2026-11-26 (editorial review of every question and statement; not an external source check).",
+ "factGroups": [
+  [
+   "g03",
+   "lm33",
+   "Height of Mount Everest (metres / feet)"
+  ],
+  [
+   "g42",
+   "lm34",
+   "Height of the Statue of Liberty (metres / feet)"
+  ],
+  [
+   "x285",
+   "y121",
+   "Year Andy Murray first won Wimbledon (identical text)"
+  ],
+  [
+   "x317",
+   "y082",
+   "Year Jaffa Cakes launched"
+  ],
+  [
+   "fm06",
+   "y129",
+   "Year Snow White and the Seven Dwarfs came out"
+  ],
+  [
+   "sc15",
+   "y063",
+   "Venus rotation period"
+  ],
+  [
+   "p09",
+   "p35",
+   "Length of a marathon (miles / km)"
+  ],
+  [
+   "p51",
+   "y118",
+   "Year England won the Rugby World Cup"
+  ],
+  [
+   "x329",
+   "y136",
+   "Number of UK Eurovision wins"
+  ],
+  [
+   "x351",
+   "y140",
+   "Year The Hobbit was published"
+  ],
+  [
+   "x398",
+   "y131",
+   "Questions needed to win Who Wants to Be a Millionaire"
+  ],
+  [
+   "lm15",
+   "y113",
+   "Year the Empire State Building opened"
+  ],
+  [
+   "p22",
+   "y122",
+   "Players in a Gaelic football team"
+  ],
+  [
+   "x379",
+   "y127",
+   "Number of actors who have played Bond"
+  ],
+  [
+   "g62",
+   "y103",
+   "Number of Australian states"
+  ],
+  [
+   "x185",
+   "y107",
+   "US states beginning with New"
+  ],
+  [
+   "x362",
+   "y128",
+   "Year The Wizard of Oz came out"
+  ],
+  [
+   "x133",
+   "y137",
+   "Buyable properties on a Monopoly board"
+  ],
+  [
+   "r02",
+   "y033",
+   "Jeanne Calment's age"
+  ],
+  [
+   "s52",
+   "y138",
+   "Year the Game Boy came out"
+  ],
+  [
+   "sp03",
+   "y119",
+   "Length of an NBA game"
+  ],
+  [
+   "b03",
+   "y042",
+   "Number of baby teeth"
+  ],
+  [
+   "c46",
+   "y024",
+   "Letters in pneumonoultramicroscopicsilicovolcanoconiosis"
+  ],
+  [
+   "x025",
+   "y002",
+   "Year the £1 coin replaced the note"
+  ],
+  [
+   "x022",
+   "y006",
+   "Year of the first polymer £5 note"
+  ],
+  [
+   "b17",
+   "y068",
+   "Length of a human pregnancy (40 weeks = 280 days)"
+  ],
+  [
+   "x076",
+   "y052",
+   "Absolute zero / water's freezing point in kelvin (273.15)"
+  ],
+  [
+   "x079",
+   "y031",
+   "Speed of sound (m/s / mph)"
+  ],
+  [
+   "sc05",
+   "y060",
+   "ISS orbits per day / minutes per orbit"
+  ],
+  [
+   "x393",
+   "y130",
+   "Year Channel 4 launched (Countdown was its first programme)"
+  ],
+  [
+   "f10",
+   "fd13",
+   "UK question states the US can size"
+  ],
+  [
+   "u09",
+   "y003",
+   "£1 coin question states the year the 12-sided coin arrived"
+  ],
+  [
+   "h45",
+   "z030",
+   "Berlin Wall: built 1961, stood 28 years"
+  ],
+  [
+   "x247",
+   "x266",
+   "Queen Victoria: died 1901, reigned 63 years"
+  ],
+  [
+   "h26",
+   "z055",
+   "Second World War: ended 1945, lasted 6 years"
+  ]
+ ],
+ "factCheckGroups": [
+  [
+   "f067",
+   "f068",
+   "Share of oxygen and nitrogen in the air (each explanation gives the other away)"
+  ]
+ ],
+ "quarantine": {
+  "y049": "Scottish jury size changes from 15 to 12 under the Victims, Witnesses, and Justice Reform (Scotland) Act 2025; answer depends on commencement date",
+  "z245": "The question gives the answer away ('the Jackson 5')"
+ },
+ "factCheckQuarantine": {},
+ "reworded": {
+  "x190": "Added the reference year (2025)",
+  "x192": "Added the reference year (2025)",
+  "p47": "'as of 2026' replaced with 'by the end of 2025' so a 2026 final can't change the answer",
+  "sp16": "'as of 2026' replaced with 'by the end of 2025' so a 2026 Super Bowl can't change the answer",
+  "x189": "Added the reference date (mid-2024)",
+  "p41": "Anchored to the record-setting performance and year, so the answer stays right if the record is broken",
+  "z127": "Anchored to the record-setting performance and year, so the answer stays right if the record is broken",
+  "z128": "Anchored to the record-setting performance and year, so the answer stays right if the record is broken",
+  "z129": "Anchored to the record-setting performance and year, so the answer stays right if the record is broken",
+  "z130": "Anchored to the record-setting performance and year, so the answer stays right if the record is broken"
+ }
+}
