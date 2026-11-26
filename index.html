@@ -725,6 +725,8 @@ main.shake-hard{animation:bigQuake .5s var(--e-pop)}
 [data-theme="dial"] .btn-mint{box-shadow:var(--sh-btn)}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-pill);background:var(--inset);color:var(--text);font:800 12px/1.2 var(--font-ui);letter-spacing:.02em}
 .chip.streak{color:var(--gold)} .chip.ok{color:#7dff6a}
+.chip-btn{border:2px solid var(--gold);color:var(--gold);cursor:pointer;min-height:44px;padding:8px 14px;touch-action:manipulation}
+.chip-btn:focus-visible{outline:3px solid var(--link);outline-offset:2px}
 .mode .go.quiet{background:var(--ghost);color:var(--on-ghost);box-shadow:none}
 
 /* ---- Bottom navigation: Home · Play · Ranks · Profile (hidden while a game is on screen) ---- */
@@ -858,7 +860,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <dialog id="dlg-name" aria-labelledby="name-h">
   <form class="px dlg" id="pnameform" novalidate>
     <h2 id="name-h">What shall we call you?</h2>
-    <p class="small muted">Your name appears on the leaderboards for everyone to see, and in battles. Use a nickname rather than your full name. You can change it any time in Settings.</p>
+    <p class="small muted">Your name appears on the leaderboards for everyone to see, and in battles. Use a nickname rather than your full name. You can change it any time in Profile.</p>
     <div class="formrow"><input id="pname" maxlength="16" autocomplete="nickname" aria-label="Display name">
       <button class="btn btn-ghost" type="button" data-act="dice" aria-label="Suggest a random name">🎲</button></div>
     <div class="btnrow" style="margin-top:12px"><button class="btn btn-mint" type="submit">Save name</button><button class="btn btn-ghost" type="button" data-close>Not now</button></div>
@@ -879,7 +881,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
     <ol class="iosteps">
       <li>In <b>Safari</b>, tap the <b>Share</b> button (the square with an arrow pointing up).</li>
       <li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
-      <li>Open DIAL IN from your home screen. You can then switch on the daily reminder in Settings.</li>
+      <li>Open DIAL IN from your home screen. You can then switch on the daily reminder in Profile.</li>
     </ol>
     <p class="small muted">Opened this from Instagram, Snapchat or TikTok? Open it in Safari first: tap ••• then Open in browser.</p>
     <button class="btn btn-mint btn-block" data-close>Got it</button>
@@ -905,7 +907,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
 <dialog id="dlg-restore" aria-labelledby="restore-h">
   <form class="px dlg" id="restoreform" novalidate>
     <h2 id="restore-h">Restore a save</h2>
-    <p class="small muted">Paste a save code copied from Settings on another device. Your progress here is kept and combined with it.</p>
+    <p class="small muted">Paste a save code copied from Profile on another device. Your progress here is kept and combined with it.</p>
     <textarea id="restore-text" aria-label="Save code" placeholder="PP1.…"></textarea>
     <div class="btnrow"><button class="btn btn-mint" type="submit">Restore</button><button class="btn btn-ghost" type="button" data-close>Cancel</button></div>
   </form>
@@ -916,7 +918,7 @@ html[data-season="xmas"] .mode.m-fact{box-shadow:var(--sh-card),inset 0 0 0 2px 
     <h2 id="rec-h">Save your recovery code</h2>
     <p class="small" id="rec-first">Your account is saved. There’s no email to reset a forgotten PIN, so this code is your way back in.</p>
     <p class="reccode mono" id="rec-code" aria-label="Recovery code"></p>
-    <p class="small">Screenshot it, or keep it in your notes or password manager. You’ll only see it this once (you can make a new one in Settings).</p>
+    <p class="small">Screenshot it, or keep it in your notes or password manager. You’ll only see it this once (you can make a new one in Profile).</p>
     <div class="btnrow"><button class="btn btn-sky" data-act="reccopy">Copy code</button><button class="btn btn-mint" data-close>I’ve saved it</button></div>
   </div>
 </dialog>
@@ -2877,9 +2879,9 @@ const Backend = {
     let note = '';
     if (h.get('access_token')) {
       try { this.keep({ access_token:h.get('access_token'), refresh_token:h.get('refresh_token'), expires_in:h.get('expires_in'), user:{ id: JSON.parse(atob(h.get('access_token').split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub } }); note = 'You’re signed in.'; }
-      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Settings.'; }
+      catch(e){ note = 'That sign-in link didn’t work. Try sending a new one from Profile.'; }
     } else if (h.get('error_description')) note = /expired|invalid/i.test(h.get('error_description'))
-      ? 'That email link has expired or was already used. Send a new one from Settings.' : 'Email link problem: ' + h.get('error_description');
+      ? 'That email link has expired or was already used. Send a new one from Profile.' : 'Email link problem: ' + h.get('error_description');
     else if (h.get('message')) note = /confirmation link accepted/i.test(h.get('message')) ? 'Email linked to your profile.' : h.get('message');
     try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
     return note;
@@ -4209,6 +4211,14 @@ const freeRunLeft = () => !isPremium() && S.endless.freeDay !== App.today;
 function requireName(next){
   if (!S.player.name) { S.player.name = randomName(); save(); Backend.nameSent = ''; }
   return next();
+}
+// Battles are the exception: friends see each other's names, and typing the same name is how a player gets their
+// seat back after reopening an invite in another app. So joining or hosting a Battle asks for a name first.
+function askName(next){
+  if (S.player.name) return next();
+  App.afterName = next;
+  $('#pname').value = ''; $('#pname').placeholder = randomName();
+  openDialog('dlg-name'); setTimeout(() => $('#pname').focus(), 50);
 }
 
 /* ---- Shared question pieces ---- */
@@ -5713,7 +5723,8 @@ function viewBattle(){
         <div class="codeboxes big">${MP.code.split('').map(d => `<span>${d}</span>`).join('')}</div>
         <button class="btn btn-sky" data-act="mpinvite">Invite friends</button>
       </div>
-      <div class="px card"><p class="label">Players ${R.roster.length}/${st.max}</p><ul class="seats">${seats}</ul></div>
+      <div class="px card"><p class="label">Players ${R.roster.length}/${st.max}</p><ul class="seats">${seats}</ul>
+        <p class="small muted center res-name">Playing as <b>${esc(displayName())}</b> · <button class="link" data-act="rename">Change name</button></p></div>
       <div class="px card stack">
         <p class="label">${host ? 'Game mode (you choose)' : 'Game mode'}</p>
         ${factOn() ? `<div class="opts modeopts" role="group" aria-label="Game mode"><button class="opt" data-act="mpmode" data-mode="dial" aria-pressed="${!MP.isFact(R)}" ${host ? '' : 'disabled'}>Standard</button><button class="opt" data-act="mpmode" data-mode="fact" aria-pressed="${MP.isFact(R)}" ${host ? '' : 'disabled'}>Fact Check</button></div>` : ''}
@@ -5795,7 +5806,7 @@ function viewBattle(){
   return `<section><p>Loading…</p></section>`;
 }
 async function mpCreate(){
-  requireName(async () => {
+  askName(async () => {
     App.joining = true; render(false);
     try { await MP.create(); App.view = 'battle'; render(); Sfx.land(750); }
     catch(e){ toast(e.message || 'Couldn’t create a room.'); }
@@ -5807,7 +5818,7 @@ function openRoomLink(code){
   App.pendingRoom = null;
   if (S.mp && S.mp.code === code) { MP.enter(code); go('battle'); return; }
   App.view = 'battle'; render(false);
-  requireName(async () => {
+  askName(async () => {
     App.joining = true;
     try { if (MP.code && MP.code !== code) await MP.leave(); await MP.join(code); App.joinEntry = ''; go('battle'); Sfx.land(750); }
     catch(e){ toast(e.message || 'Couldn’t join that room.', 4500); render(false); }
@@ -5821,7 +5832,7 @@ function mpFact(v){
 function mpJoin(){
   const code = App.joinEntry;
   if (!/^\d{4}$/.test(code)) { showError('Room codes are 4 digits.'); return; }
-  requireName(async () => {
+  askName(async () => {
     App.joining = true;
     try { await MP.join(code); App.joinEntry = ''; render(); Sfx.land(750); }
     catch(e){ showError(e.message || 'Couldn’t join that room.'); }
@@ -5855,7 +5866,7 @@ function accountHTML(){
           <p class="small">Your old recovery code stops working once you make a new one.</p>
           ${pinInput('pincheck', 'Your PIN', 'current-password')}
           <div class="btnrow"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Make a new code</button><button class="btn btn-ghost" type="button" data-act="acctpanel" data-p="">Cancel</button></div></form>`
-      : A.panel === 'device' ? `<div class="stack center"><p class="small">On your other phone or computer, open DIAL IN, go to Settings, tap <b>Sign in</b>, then <b>Use a code from another device</b>, and type:</p>
+      : A.panel === 'device' ? `<div class="stack center"><p class="small">On your other phone or computer, open DIAL IN, go to Profile, tap <b>Account &amp; devices</b>, then <b>Sign in</b>, then <b>Use a code from another device</b>, and type:</p>
           <p class="devcode mono" aria-label="Device code">${esc(A.devCode || '······')}</p><p class="small muted">Works once, for 10 minutes.</p>
           <button class="btn btn-ghost" data-act="acctpanel" data-p="">Done</button></div>`
       : A.panel === 'out' ? `<div class="stack"><p class="small">This removes your game from this device. Your account keeps everything: sign back in any time with <b>@${esc(Backend.acct)}</b> and your PIN.</p>
@@ -5881,7 +5892,7 @@ function accountHTML(){
       ${pinInput('acctpin', 'New PIN', 'new-password')}${pinInput('acctpin2', 'New PIN again', 'new-password')}
       <button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Reset PIN and sign in</button></form>${alt}`;
   if (A.step === 'device') return `<form id="deviceform" class="stack" novalidate>
-      <p class="small">On a phone or computer where you’re already signed in, open Settings and tap <b>Add a device</b>. Type the 6-character code it shows.</p>
+      <p class="small">On a phone or computer where you’re already signed in, open Profile → <b>Account &amp; devices</b> and tap <b>Add a device</b>. Type the 6-character code it shows.</p>
       <div class="formrow"><input id="devcodein" class="mono" autocapitalize="characters" autocomplete="one-time-code" spellcheck="false" maxlength="7" placeholder="ABC123" aria-label="Code from your other device"><button class="btn btn-mint" type="submit" ${A.busy ? 'disabled' : ''}>Sign in</button></div></form>${alt}`;
   if (A.step === 'code') return `<form id="codeform" class="stack" novalidate>
       <p class="small">We’ve emailed <b>${esc(A.email)}</b>. Type the code from the email here, or tap the link in it on this device. Check your spam folder if it isn’t there in a minute.</p>
@@ -5994,7 +6005,7 @@ function lbRows(rows, meId, kind, extra){
     return `${gap}<li class="${me?'me':''}"><span class="r">#${r.rank}</span><span class="nm">${esc(r.display_name)}${me?' (you)':''}${r.verified === true ? '<span class="vtick" role="img" aria-label="Verified account" title="Verified: saved account">✓</span>' : ''}${flame}${r.supporter === true ? '<span class="sup" title="Bought DIAL IN+ to support DIAL IN">SUPPORTER</span>' : ''}<small>${sub}</small></span><span class="sc">${sc}</span></li>`; }).join('')}</ol>`;
 }
 function emptyState(msg, mood){ return `<div class="empty">${mascot(mood||'meh', 48)}<p>${msg}</p></div>`; }
-const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Settings, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
+const noFriendsState = () => emptyState(`No friends added yet. Swap friend codes: add theirs in Profile → Friends, and send them yours${Backend.profile ? ':' : '.'}</p>${Backend.profile ? `<p><code class="mono">${esc(Backend.profile.code)}</code></p>` : ''}<p><button class="btn btn-sky" data-act="settings">Add a friend</button>`, 'happy');
 function demoBoard(){
   const kind = boardKind(), st = getStats(App.today), day = S.days[App.today];
   if (BOARDS[kind].friends) return emptyState('Friends leaderboards need online mode. For now, share your results card with friends to compare.');
@@ -6076,7 +6087,7 @@ const leagueInviteText = (name, code) => `Join my DIAL IN league “${name}”! 
 
 function leagueListShell(){
   return `<p class="small muted">Private leaderboards for your group chat, office or family. Make one, share the link, and see who’s best every day.</p>
-    ${Backend.acct ? '' : '<p class="small muted">No account needed. Tip: save one in Settings to keep your leagues if you change phone.</p>'}
+    ${Backend.acct ? '' : '<p class="small muted">No account needed. Tip: save one in Profile to keep your leagues if you change phone.</p>'}
     <div id="league-list"><p class="empty">Loading…</p></div>
     <form id="leaguecreate" class="px card stack" novalidate>
       <label class="label" for="lgname">Start a league</label>
@@ -6199,7 +6210,7 @@ function viewStats(){
       <div class="px stat"><span class="label">Runs</span><b>${S.endless.runs}</b></div>
       <div class="px stat"><span class="label">Unlimited Qs</span><b>${fmtNum(S.endless.answered)}</b></div>
     </div>
-    ${st.played ? `<div><p class="label">Last ${recent.length} daily games</p><div class="bars" role="img" aria-label="Bar chart of your recent daily scores">${bars}</div></div>
+    ${st.played ? `<div><p class="label">${recent.length === 1 ? "Your first daily game" : `Last ${recent.length} daily games`}</p><div class="bars" role="img" aria-label="Bar chart of your recent daily scores">${bars}</div></div>
       <div><p class="label">Daily history</p><ul class="hist">${hist}</ul></div>` : emptyState('No completed daily puzzles yet. Your history will appear here.', 'happy')}
   </section>`;
 }
@@ -6216,7 +6227,7 @@ function viewSettings(){
     : 'Saved on this device. To move to another phone, copy your save code and restore it there.';
   const st = getStats(App.today);
   if (App.afterEmail || (App.acct && App.acct.step && !['create','pin','out'].includes(App.acct.step))) App.folds.add('acct');
-  const status = Backend.member ? '<span class="chip ok">✓ Verified account</span>' : Backend.on && !DEV.on ? '<span class="chip">Guest · not saved yet</span>' : '<span class="chip">Saved on this device</span>';
+  const status = Backend.member ? '<span class="chip ok">✓ Verified account</span>' : Backend.on && !DEV.on ? '<button class="chip chip-btn" data-act="acctopen">Guest · save or sign in</button>' : '<span class="chip">Saved on this device</span>';
   return `<section class="stack profile">
     <div class="px card phead">
       ${mascot('happy', 56)}
@@ -6325,7 +6336,7 @@ async function confirmPurchase(manual){
     } catch(e){}
     if (fromCheckout) await new Promise(r => setTimeout(r, 2000));
   }
-  if (fromCheckout || manual) toast(manual ? 'No purchase found for this profile.' : 'Payment received? It can take a minute. Use “Restore purchase” in Settings.', 5000);
+  if (fromCheckout || manual) toast(manual ? 'No purchase found for this profile.' : 'Payment received? It can take a minute. Use “Restore purchase” in Profile.', 5000);
 }
 
 /* ---- Render ---- */
@@ -6345,7 +6356,7 @@ function render(focus = true){
   const inGame = ['play','pinball','factplay','arch','dev'].includes(App.view) || (App.view === 'endless' && S.run && !S.run.over)
     || (App.view === 'battle' && !!MP.code && !!MP.room && ['question','reveal'].includes(MP.room.status));
   document.body.classList.toggle('in-game', inGame);
-  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', settings:'Settings · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', modes:'Play · DIAL IN', settings:'Profile · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
+  document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', modes:'Play · DIAL IN', settings:'Profile · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
@@ -6726,6 +6737,7 @@ function onClick(e){
     case 'mpinvite': share(inviteText()); break;
     case 'board': go('board'); break;
     case 'modes': go('modes'); break;
+    case 'acctopen': App.folds.add('acct'); render(false); focusEmailBox(); break;
     case 'rename': App.afterName = null; $('#pname').value = S.player.name || ''; $('#pname').placeholder = randomName(); openDialog('dlg-name'); setTimeout(() => $('#pname').focus(), 50); break;
     case 'stats': go('stats'); break;
     case 'settings': go('settings'); if (Backend.on && !Backend.profile) Backend.sync().then(() => App.view==='settings' && render(false)).catch(()=>{}); loadFriendNames(); break;
@@ -6805,6 +6817,7 @@ async function onSubmit(e){
     if (!n) return toast('Pick a name with letters or numbers.');
     if (!nameOk(n)) return toast(NAME_NOT_OK, 3500);
     S.player.name = n; save(); Backend.nameSent = ''; closeDialog('dlg-name');
+    if (MP.code) MP.heartbeat();   // in a Battle room: everyone sees the new name straight away
     const next = App.afterName; App.afterName = null; if (next) next(); else render(false);
     return;
   }
