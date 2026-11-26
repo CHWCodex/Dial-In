@@ -7,7 +7,7 @@ export function loadGame(root = new URL('..', import.meta.url)) {
   const start = html.indexOf('/* ---------------------------- CONFIG');
   const end = html.indexOf('/* Unlimited: the n-th question');
   if (start < 0 || end < 0) throw new Error('index.html layout changed: update scripts/load-game.mjs');
-  const code = html.slice(start, end) + '\n;({ CONFIG, BANK, BY_ID, DateUK, Scoring, dailyIds, legacyDailyIds, hasDaily, factOf, QUALITY, QUARANTINED, DAILY_V2, FACT_V2, fmtAns, fmtNum })';
+  const code = html.slice(start, end) + '\n;({ CONFIG, BANK, BY_ID, DateUK, Scoring, Entry, parseAnswer, rangeHint, dailyIds, legacyDailyIds, hasDaily, factOf, QUALITY, QUARANTINED, DAILY_V2, FACT_V2, fmtAns, fmtNum })';
   return vm.runInNewContext(code, { console, Intl, Date, Math, Map, Set, JSON, Number, String, Array, Object, RegExp, Error, isFinite });
 }
 

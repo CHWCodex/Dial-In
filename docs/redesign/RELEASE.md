@@ -10,8 +10,12 @@
 - `how-to-play.html`, `privacy.html`, `terms.html` (wording)
 - tests and docs, which aren't deployed (`.assetsignore`)
 
+**Database (question integrity, added 26 Nov):** migration `20261126000000_question_integrity_sync.sql`. Apply it right after the merge; see `docs/content/RUNBOOK.md`. It:
+- adds question metadata and a usage view;
+- adds the `daily_sets` guard;
+- replaces the unpublished future days with the reviewed schedule.
+
 **Not changing:**
-- database and migrations (none needed)
 - edge functions
 - Stripe links and prices
 - `config.js`
@@ -19,9 +23,16 @@
 
 ## Deploy
 
-1. Merge `main` into the branch, then re-run `node --test tests/unit.test.mjs`.
+1. Merge `main` into the branch.
+   - If it's now 28 Nov 2026 or later, re-cut the reviewed schedule so it starts tomorrow:
+     ```bash
+     node scripts/build-content.mjs --from <tomorrow>
+     ```
+     then `node scripts/build-db-sync.mjs > supabase/migrations/20261126000000_question_integrity_sync.sql`.
+   - Then run `node --test tests/*.test.mjs`, `node scripts/validate-questions.mjs` and `tests/db/guard.sh`.
 2. Open the PR, then merge it. The merge auto-deploys through Cloudflare Workers static assets.
-3. Health checks within 10 minutes:
+3. Apply the migration in Supabase, before UK midnight on the first reviewed day. It refuses anything that would change a published day.
+4. Health checks within 10 minutes:
    1. `https://playdialin.com/sw.js` contains `dialin-v45`.
    2. Home shows the bottom navigation, and Play now opens question 1.
    3. Ranks loads the daily board.
@@ -29,14 +40,15 @@
    5. Finish one test daily on a QA account, then confirm it appears on the board. Delete the QA player afterwards.
    6. Supabase logs show no new errors on `submit_result`.
    7. The Stripe webhook log is quiet. No payment test on live.
-4. Returning players get v45 on their next visit. Pages are network-first, so no hard refresh is needed. Their old cache is removed automatically.
+5. Returning players get v45 on their next visit. Pages are network-first, so no hard refresh is needed. Their old cache is removed automatically.
 
 ## Rollback (about 2 minutes, no data risk)
 
 1. Revert the merge commit on `main`. That redeploys v44 automatically.
    - Alternatively, use Cloudflare → Workers → dial-in → Deployments → roll back to the previous deployment.
 2. Bump `sw.js` to `dialin-v46` in the revert, so phones already on v45 drop its cache.
-3. Nothing in the database needs undoing. Player progress lives in the same storage keys in both versions, so it survives a downgrade too.
+3. If the question-integrity migration was applied, run `supabase/rollback/20261126_question_integrity_rollback.sql` in Supabase as well. It restores the original schedule for unpublished days, so v44 players' results are accepted; published days stay as they are. This was tested on the local production copy: after it, the database matches the original 1,100-day schedule exactly.
+4. Player progress lives in the same storage keys in both versions, so it survives a downgrade.
 
 ## Known limits of the testing
 

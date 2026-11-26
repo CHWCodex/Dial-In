@@ -19,7 +19,7 @@ import { analyse, candidates } from './question-audit.mjs';
 
 const ROOT = new URL('..', import.meta.url), at = f => new URL(f, ROOT);
 const args = process.argv.slice(2), flag = k => { const i = args.indexOf(k); return i < 0 ? null : (args[i + 1] || true); };
-const CHECK = args.includes('--check'), USAGE_ONLY = args.includes('--usage-only');   // --usage-only: refresh question-usage.json, schedule nothing new
+const CHECK = args.includes('--check'), USAGE_ONLY = args.includes('--usage-only') || CHECK;   // --check never schedules anything: it only confirms index.html matches content/   // --usage-only: refresh question-usage.json, schedule nothing new
 export const RULES = { reserve: 35, relatedGapDays: [14, 7, 3, 1], crossModeGapDays: 3, perCategory: 2, perDayYears: 2 };
 
 const groupsFile = JSON.parse(readFileSync(at('content/question-groups.json'), 'utf8'));
@@ -85,21 +85,31 @@ const reserve = kept.concat(pool.filter(id => !kept.includes(id)).slice(-(RULES.
 const avail = pool.filter(id => !reserve.includes(id));
 sched.reserve = reserve.slice().sort();
 const relaxLog = [];
-function fillDay(date, queue, opts) {
-  // at most 2 "what year" questions a day, or 3 while the remaining pool is year-heavy (so they're spread out, not stranded at the end)
-  const yearShare = queue.filter(id => G.BY_ID.get(id).scoring === 'year').length / queue.length, yearCap = yearShare > RULES.perDayYears / 7 ? RULES.perDayYears + 1 : RULES.perDayYears;
-  for (const gap of RULES.relatedGapDays) {
-    const day = [], cats = {}; let years = 0;
-    for (const id of queue) {
-      if (day.length === 7) break;
+// Variety (soft, relaxed step by step only when a day can't otherwise be filled; uniqueness is never relaxed):
+// at most 2 "what year" questions, at least 1 easy and at most 3 hard ones, at most 3 UK-only questions, and related
+// questions (same subject, different fact) kept 14 days apart.
+const VARIETY = [
+  { gap: 14, years: 2, minEasy: 1, maxHard: 3, maxUK: 3 },
+  { gap: 7, years: 2, minEasy: 1, maxHard: 3, maxUK: 3 },
+  { gap: 7, years: 2, minEasy: 0, maxHard: 4, maxUK: 4 },
+  { gap: 3, years: 2, minEasy: 0, maxHard: 7, maxUK: 7 },
+  { gap: 1, years: 2, minEasy: 0, maxHard: 7, maxUK: 7 }
+];
+function fillDay(date, queue) {
+  for (const v of VARIETY) {
+    const day = [], cats = {}; let years = 0, hard = 0, uk = 0;
+    const take = id => { const q = G.BY_ID.get(id); day.push(id); cats[q.category] = (cats[q.category] || 0) + 1; if (q.scoring === 'year') years++; if (q.difficulty === 3) hard++; if (q.geo === 'UK') uk++; };
+    const fits = id => {
       const q = G.BY_ID.get(id);
-      if ((cats[q.category] || 0) >= RULES.perCategory) continue;
-      if (q.scoring === 'year' && years >= yearCap) continue;
-      const near = [...(related.get(id) || [])].some(r => day.includes(r) || (placed.has(r) && Math.abs(G.DateUK.diff(placed.get(r), date)) < gap));
-      if (near) continue;
-      day.push(id); cats[q.category] = (cats[q.category] || 0) + 1; if (q.scoring === 'year') years++;
-    }
-    if (day.length === 7) { if (gap !== RULES.relatedGapDays[0]) relaxLog.push(`${date}: related questions ${gap} days apart (not ${RULES.relatedGapDays[0]})`); return day; }
+      if (day.includes(id) || (cats[q.category] || 0) >= RULES.perCategory) return false;
+      if (q.scoring === 'year' && years >= v.years) return false;
+      if (q.difficulty === 3 && hard >= v.maxHard) return false;
+      if (q.geo === 'UK' && uk >= v.maxUK) return false;
+      return ![...(related.get(id) || [])].some(r => day.includes(r) || (placed.has(r) && Math.abs(G.DateUK.diff(placed.get(r), date)) < v.gap));
+    };
+    if (v.minEasy) { const e = queue.find(id => G.BY_ID.get(id).difficulty === 1 && fits(id)); if (!e) continue; take(e); }
+    for (const id of queue) { if (day.length === 7) break; if (fits(id)) take(id); }
+    if (day.length === 7) { if (v !== VARIETY[0]) relaxLog.push(`${date}: variety relaxed to ${JSON.stringify(v)}`); return day; }
   }
   return null;
 }

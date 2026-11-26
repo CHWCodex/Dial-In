@@ -2469,7 +2469,7 @@ function rangeHint(q){
   const r = mulberry32(hashStr('hint|' + q.id));
   if (q.scoring === 'year') {
     let lo = Math.floor((q.answer - (8 + Math.floor(r() * 25))) / 10) * 10, hi = lo + 50;
-    if (q.unit === 'year' && hi > 2026) { hi = 2026; lo = hi - 50; }
+    if (q.unit === 'year' && hi > 2026 && q.answer <= 2026) { hi = 2026; lo = hi - 50; }   // no future years, unless the answer is one (“In what year will…”)
     if (q.range) { lo = Math.min(lo, Math.floor(q.range[0] / 10) * 10); hi = Math.max(hi, Math.ceil(q.range[1] / 10) * 10); }
     return [lo, hi];
   }
@@ -2522,8 +2522,8 @@ function legacyDailyIds(iso){
    treat the group as one question. Quarantined questions are never served anywhere. */
 /*QUALITY:START*/
 const QUALITY = {"groups":[["g03","lm33"],["g42","lm34"],["x285","y121"],["x317","y082"],["fm06","y129"],["sc15","y063"],["p09","p35"],["p51","y118"],["x329","y136"],["x351","y140"],["x398","y131"],["lm15","y113"],["p22","y122"],["x379","y127"],["g62","y103"],["x185","y107"],["x362","y128"],["x133","y137"],["r02","y033"],["s52","y138"],["sp03","y119"],["b03","y042"],["c46","y024"],["x025","y002"],["x022","y006"],["b17","y068"],["x076","y052"],["x079","y031"],["sc05","y060"],["x393","y130"],["f10","fd13"],["u09","y003"],["h45","z030"],["x247","x266"],["h26","z055"]],"quarantine":["y049","z245"],"fgroups":[["f067","f068"]],"fquarantine":[]};
-const DAILY_V2 = {"from":"2026-11-28","days":"c08,x295,g38,lm19,m50,y115,y036;h35,s11,x116,x325,x412,r01,sp26;x005,n01,n14,z143,z217,x088,x235;h25,p01,x095,x403,x405,z034,z218;h27,sc05,x255,x272,y016,x019,y009;p06,g21,h68,x276,z042,z047,x210;g16,gm12,c18,x109,x269,x385,z021;u43,x293,x329,y014,y088,y122,sc12;mu14,b11,x108,y085,y120,x149,x172;y010,h50,p30,x140,x349,y048,y062;z115,f14,sp03,x076,lm25,x333,y046;x104,x388,y022,y097,g41,lm05,y064;p02,tc03,b08,y133,z145,s48,y055;p52,c01,p53,y033,g65,s61,x352;z025,p37,x182,z027,z150,lm32,y075;p31,z117,fd13,fd16,h21,lm24,y114;sp01,u09,c39,sp21,y135,z231,x170;f06,p32,s52,z219,f18,x404,x421;an15,fm14,g03,x166,y131,x317,y047;x141,z029,lm34,sp23,y017,y083,x017;a07,x043,fm26,y061,f15,x187,x266;h11,x089,z010,n06,x038,y101,y106;h38,an01,c30,s06,x212,x240,z059;h44,z212,hs10,x362,x067,x136,x277;h23,y020,fm21,y045,y111,z061,x106;fm02,x284,y021,an09,g48,z028,sp25;h41,p15,sp30,x394,tc10,x168,y023;x139,lm16,x040,x120,hs04,x347,y065;c05,b12,g46,hs01,x135,y053,z151;x184,x283,y059,z209,z216,x271,x415;sp33,y040,z201,lm14,sp22,x124,z227;p55,x070,g40,x363,x420,an03,x025;fm25,h36,y001,h06,s47,x190,p49;c28,g47,x154,x286,z052,x023,y050;mu12,y116,z018,f09,gm03,p23,z202;a01,tv10,x093,x131,y028,y137,z116;gm04,lm17,sc06,x101,y042,y091,n18;z203,an06,x209,z102,z229,c42,tv05;lm31,g07,n17,x215,y092,z205,z240;tv14,p51,x052,z122,z225,sc04,x125;gm11,p42,tc04,x085,z119,x355,x401;c11,c40,p33,fd01,fm16,x297,y087;c10,fd02,gm13,s49,z008,a10,g20;y041,x159,x354,x375,z242,x112,x243;h40,s02,k02,y113,z007,g17,x156;mu01,x096,x102,x353,z204,p47,z134;c06,x318,x356,z210,y067,y093,z140;x374,lm18,x092,x163,x226,x233,x058;z125,fm27,m51,y107,g28,k17,z057;p12,s60,x012,fd22,x224,y095,y105;gm18,h71,m05,x056,an23,c38,y125;z221,x003,x372,x397,x199,y057,y112;g13,x181,x274,y121,f16,x028,x144;hs06,x302,h05,sp31,x015,z207,x408;u45,y026,h10,p44,sp11,x122,y070;g45,h59,sp07,x024,z015,z109,gm02;p10,s10,z022,z132,z249,x143,y134;fd03,x228,s01,sc16,y140,y109,y126;c02,s64,x035,x192,x407,x241,x345;g35,x387,x308,y077,z243,sc14,z237;c32,x090,x097,x202,x292,z011,x062;fm20,x034,y039,g04,gm05,lm04,z127;y005,z053,lm26,x296,x365,x380,y019;c29,fm10,g57,tv12,x219,x335,y011;fm04,sp37,x129,z118,z233,lm21,x054;x121,lm29,n20,z224,fm22,x026,x402;c24,c09,h43,k14,an12,x048,y078;x050,y037,y086,g27,x099,x261,z128;f01,x289,z154,z251,x077,x127,x225;sp02,y008,fd10,fd23,x091,z016,z043;k10,m03,x013,x232,z032,mu11,x346;z020,g62,sc07,x138,x201,x245,s56;s09,tv17,h32,x186,x246,y124,n16;g02,x004,y076,z056,z139,x393,z050;fm11,x360,f12,x016,y072,c37,x194;gm17,x071,x146,x263,x275,x419,z215;sp35,x218,p34,fd06,x357,y004,y063;tv06,z149,z244,c48,f17,x422,y071;fm01,x238,mu20,p46,s63,z252,fd12;g11,x390,y141,z137,z232,x287,y139;x009,x326,x410,z019,z144,x254,z220;c03,c27,g67,x072,x334,x195,y054;an04,x130,x242,z108,z124,z235,tc09;c33,an10,p14,x113,x288,k11,x211;x137,s59,x086,x169,y015,z030,x244;g36,m47,p35,x036,x379,y038,f11;lm35,a02,x234,an21,x011,x105,y094;s13,x332,c35,z031,z138,gm07,x162;sp05,h72,s43,x171,fd17,x248,y034;n05,n19,y132,h62,x155,x249,z223;h42,p48,z123,z234,x098,x197,x264;f02,z012,tc07,tv01,x359,g30,x180;b01,sp19,x126,x381,z129,x142,y098;z120,k07,p45,x206,x391,x409,x014;x001,x306,g08,g19,x364,fd18,tv11;hs05,s53,z141,z247,b15,hs11,y117;n02,p38,x237,x386,x298,sc09,x341;h17,u25,x257,y080,z113,sc08,y013;gm14,x047,z004,x152,x350,y090,z036;x029,y110,z211,c14,x307,z136,lm28;p04,x117,z111,x207,x358,lm13,s51;p13,sp24,x060,x260,x327,n04,z152;s44,x268,x399,lm03,z238,p24,z009;an18,mu02,mu10,tv03,z153,fd14,x114;sp12,sp14,x064,y018,z236,hs12,x061;x320,b05,n15,x065,x303,x338,x382;gm16,n03,fd19,y074,z037,z135,x223;mu09,k18,z121,lm22,x299,x389,y025;y012,p19,x148,x392,y051,tv13,y058;g01,x150,z017,b04,s67,y007,y108;lm27,x367,z126,gm01,x300,y066,z054;m48,x132,x370,z013,fd24,g05,y099;fm15,x371,gm06,p07,tv02,g31,p21;x343,fm08,h08,x082,x229,sc02,x204;s14,sp34,h61,lm12,p41,y084,z049;c15,mu03,sp16,x008,x045,z228,y081;x239,an02,p40,tc08,h52,sp29,x198;a15,s58,x262,x413,y073,z142,y032;h13,p29,fm28,n07,x339,z112,lm11;n11,sp17,x083,z250,f13,fd21,y056;c20,p26,x057,y100,x094,x259,x324;g34,sc11,x053,x340,c13,lm06,x118;an22,k12,tc01,x059,x145,lm02,x221;x007,an17,mu16,x196,z014,x151,x416;sc13,s46,tc06,y027,y104,g18,z130;fm05,z222,b17,x078,x084,x110,x214;m07,z213,c44,fd20,lm01,x039,h48;g61,gm19,mu08,x027,x081,x383,z226;x200,sp09,x208,x282,x395,z206,k03;g14,x010,x205,z044,z103,z214,x273;s54,gm08,x119,x160,x164,z147,r03;p16,k06,x227,y096,z248,y029,y044;s03,z045,c31,g63,mu21,x167,x313;c19,c22,c23,z133,an07,x115,y030;x348,tv16,x414,z114,y069,z033,z110;b18,s26,u08,x279,x111,x165,n09;fm12,h04,h07,y035,y079,z241,y089;y043,u02,x368,x411,x417,z023,x051;h34,fd04,p17,s12,x258,g37,z131;x066,x378,h47,x042,y123,b09,z058;p25,x031,z148,h18,x220,x331,x406;z107,fm09,tc02,x217,x330,z062,z146;m24,mu04,x032,c07,x270,g39,p43;fm19,z105,a09,c26,x203,x291,z239"};
-const FACT_V2 = {"from":"2026-11-28","days":"f170,f115,f159,f128,f004,f056,f012;f258,f138,f139,f207,f144,f219,f117;f202,f109,f172,f229,f041,f203,f064;f059,f230,f157,f183,f150,f121,f114;f024,f265,f089,f090,f107,f111,f187;f062,f160,f042,f177,f108,f120,f268;f238,f082,f220,f166,f032,f054,f098;f009,f083,f210,f020,f084,f190,f181;f239,f124,f237,f035,f099,f070,f293;f101,f262,f217,f278,f276,f257,f053;f235,f152,f045,f231,f029,f291,f096;f299,f232,f036,f097,f021,f145,f266;f132,f026,f086,f080,f158,f126,f193;f137,f022,f078,f161,f102,f247,f222;f194,f071,f007,f234,f116,f092,f254;f277,f040,f072,f148,f094,f075,f065;f123,f057,f110,f140,f087,f146,f001;f034,f264,f130,f221,f125,f133,f283;f018,f066,f173,f212,f296,f189,f085;f008,f168,f093,f046,f188,f076,f227;f285,f233,f269,f013,f079,f073,f213;f175,f028,f255,f019,f185,f143,f215;f050,f030,f198,f263,f154,f294,f147;f003,f243,f051,f156,f162,f043,f205;f038,f002,f240,f214,f081,f280,f195;f063,f165,f282,f074,f295,f289,f031;f048,f273,f182,f151,f122,f052,f104;f169,f033,f179,f015,f206,f131,f055;f167,f261,f253,f037,f044,f218,f260;f191,f047,f058,f060,f025,f228,f201;f226,f290,f287,f171,f184,f141,f208;f279,f174,f017,f077,f267,f225,f298;f246,f270,f134,f211,f155,f274,f223"};
+const DAILY_V2 = {"from":"2026-11-28","days":"c08,x295,g38,lm19,m50,y115,y036;x005,h35,s11,x116,x412,r01,sp26;p01,n01,n14,x325,z143,z217,x235;h25,sc05,x403,x405,z034,z218,x088;p06,x095,x272,y016,x019,x210,y009;g16,gm12,c18,g21,h27,x109,x276;mu14,h68,u43,x255,x269,y122,sc12;y010,b11,p30,x108,x329,z047,x172;z115,x349,y120,z042,lm25,x333,y062;p02,sp03,x385,x388,z021,g41,y048;tc03,b08,x076,y014,z145,lm05,y064;p52,c01,x104,x293,y033,y088,y055;z025,h50,p53,y085,z027,g65,y075;z117,fd13,fd16,p37,lm24,lm32,x149;p31,sp01,u09,f14,x140,x170,x404;f06,p32,sp21,y097,y131,x421,y046;an15,fm14,g03,lm34,x166,y022,x017;a07,x043,x141,z029,z219,n06,x187;h44,an01,x089,y133,s06,s48,y106;h23,c30,sp23,z150,x038,x212,x266;y020,z212,z028,z061,s61,x277,x352;fm02,x284,fm21,x182,x067,x106,x136;y021,an09,sp30,x394,h21,sp25,y114;h41,p15,x139,c39,x168,x347,y065;c05,z201,b12,z231,g46,hs04,x135;h38,lm14,x184,x283,y059,y135,an03;h36,sp33,x070,y040,g40,s52,x415;y001,y116,z018,x154,x190,f18,p49;c28,mu12,f09,p23,x317,y047,z116;p55,g47,sp22,x093,x131,y017,y083;fm25,y042,y061,y091,y137,f15,n18;z203,an06,fm26,g07,x101,c42,tv05;gm11,lm31,n17,y092,z010,z119,sc04;tv14,m05,p42,x052,x286,x240,y101;c11,c40,p33,fd01,h11,x085,x401;c10,fd02,h40,z122,g20,x297,z059;y041,hs10,x159,x209,x362,x375,a10;s02,k02,y045,y111,z242,g17,x156;mu01,g48,x102,z210,p47,tc10,z134;x374,z221,c06,x092,z227,y067,z140;z125,x120,x163,y107,g28,x058,y023;x302,lm16,m51,p12,x012,y095,y105;h59,gm18,x040,x056,x372,an23,x199;u45,x003,x015,x274,hs01,y057,z151;x228,s10,sp31,x024,sp11,x144,y053;fd03,p10,sc16,z216,x028,x271,x408;x387,g13,sp07,z109,z209,x143,y070;hs06,s01,x124,x420,z132,p44,y109;g35,c02,x192,x363,x407,x025,z016;c32,h06,x308,y077,y113,sc14,x062;fm10,s47,x034,x090,x202,g04,lm04;g45,lm26,s64,x296,x023,y050,z127;y005,z053,x335,z052,z233,lm21,y019;c29,fm04,g57,gm03,x129,z118,y011;c24,x121,c09,lm29,n20,z202,x402;f01,a01,tv10,x050,an12,g27,x048;z020,y028,y037,z154,fm22,x077,z128;k10,gm04,lm17,x013,y008,x091,x346;tv17,g62,m03,sc06,x138,x201,z102;s09,g02,x186,x215,z229,n16,s56;sp02,sc07,x004,y076,z205,z240,z050;fm11,x360,p51,x016,x289,y072,x194;sp35,gm17,x071,x263,x275,z225,x125;x218,p34,x390,z244,x355,x357,y063;fm01,p46,tc04,z252,c48,x422,y071;g11,x009,x238,s63,x287,y087,y139;c27,gm13,x334,x410,z008,z019,z220;c03,g67,s49,x072,x112,x195,y054;c33,an04,an10,x130,x354,z235,x243;x137,x288,x353,z007,z108,k11,x211;s13,p14,x086,x096,y015,z030,z204;x332,m47,p35,x169,x318,x356,x379;sp05,fm16,g36,y038,an21,x011,y093;lm35,lm18,mu20,z031,fd17,x122,x162;f02,x171,x226,x233,x105,x155,y034;z120,n05,n19,z124,z234,z057,z223;z012,fm27,p48,tv01,g30,x197,x264;b01,x306,s60,x206,k17,x142,x180;x001,x237,k07,z129,fd22,x014,y098;x386,g08,x409,z141,b15,x224,y117;n02,p38,y012,hs05,sc09,x341,y125;y110,h71,u25,y080,z113,sc08,x152;gm14,p04,x047,x117,x307,c38,x350;s44,x029,z111,z211,x358,x397,lm28;x268,x320,sp24,x060,lm13,n04,y112;x399,lm03,p13,tv03,y121,f16,p24;an18,mu02,h05,sp14,z207,fd14,x061;mu09,b05,n15,sp12,x064,x303,h10;gm16,n03,x065,y026,y074,z037,gm02;x371,p19,z015,z126,lm22,x389,y025;fm15,x150,y051,z249,b04,tv13,y058;m48,g01,lm27,z022,y066,y134,z054;x343,k18,x132,y140,fd24,g05,y126;sp34,tv02,x035,y084,p21,x345,y108;s14,g19,p07,x082,g31,x241,z237;mu03,lm12,p41,x045,x181,z243,sc02;c15,sp16,x008,x097,z011,x198,x204;s58,x239,an02,p40,x292,x413,y032;h13,n07,y039,z142,lm11,sp29,x324;n11,p29,fm20,x083,z112,gm05,y056;c20,p26,sp17,tv12,x057,x365,lm06;g34,k12,sc11,x219,x380,c13,lm02;a15,an17,an22,sp37,x059,x196,x054;fm05,sc13,x007,y104,g18,x026,z130;z222,b17,x078,x084,x214,z224,x151;m07,z213,c44,g61,h43,k14,lm01;x200,gm19,mu08,sp09,x081,y086,y078;s54,g14,x282,x395,k03,x099,x261;z045,x010,x160,z214,z251,r03,x273;p16,k06,x164,x313,x127,x225,y044;c19,c23,s03,z133,g63,x167,z043;c22,an07,tv16,x203,x232,fd23,y069;b18,s26,x348,x165,z032,fd10,z110;u08,x279,x245,x246,x411,n09,x051;h04,p17,s12,y035,g37,y004,y089;fm12,y043,y079,y123,z241,mu11,z131;h34,p25,x066,h32,u02,b09,y029;x378,z148,c07,x042,y124,x393,x406;x031,x032,x331,z056,z062,z139,z146;mu04,z107,f12,x270,z239,c37,g39;m24,a09,x111,x258,x310,x330,p43"};
+const FACT_V2 = {"from":"2026-11-28","days":"f170,f115,f159,f128,f004,f056,f012;f258,f138,f139,f207,f144,f219,f117;f202,f109,f172,f229,f041,f203,f064;f059,f230,f157,f183,f150,f121,f114;f024,f265,f089,f090,f107,f111,f187;f062,f160,f042,f177,f108,f120,f268;f238,f082,f220,f166,f032,f054,f098;f009,f083,f210,f020,f084,f190,f181;f239,f124,f237,f035,f099,f070,f293;f101,f262,f217,f278,f276,f257,f053;f235,f152,f045,f231,f029,f291,f096;f299,f232,f018,f036,f097,f145,f266;f132,f021,f026,f086,f080,f158,f126;f277,f193,f022,f078,f161,f102,f247;f222,f194,f071,f007,f234,f116,f072;f092,f040,f254,f148,f094,f075,f065;f123,f057,f110,f140,f087,f146,f001;f034,f264,f130,f221,f125,f133,f283;f066,f173,f212,f296,f189,f085,f093;f168,f046,f188,f285,f076,f227,f233;f137,f269,f079,f073,f213,f175,f255;f028,f019,f185,f198,f143,f215,f147;f050,f030,f263,f154,f294,f243,f051;f038,f008,f156,f162,f205,f240,f214;f003,f043,f081,f280,f195,f063,f165;f002,f282,f074,f191,f295,f289,f047;f031,f048,f273,f182,f151,f122,f052;f013,f169,f104,f033,f179,f206,f131;f246,f015,f055,f167,f261,f253,f037;f044,f218,f260,f058,f060,f025,f279;f228,f201,f226,f290,f287,f171,f184;f174,f141,f208,f017,f077,f267,f225;f298,f270,f134,f209,f211,f155,f274"};
 /*QUALITY:END*/
 const FACT_OF = new Map(); QUALITY.groups.forEach(g => g.forEach(id => FACT_OF.set(id, g[0])));
 const factOf = id => FACT_OF.get(id) || id;
@@ -2540,6 +2540,14 @@ const hasDaily = iso => !!dailyIds(iso);
 /* Unlimited: the n-th question for this player. Each player gets their own shuffled
    order of the whole bank; when they've seen every question it reshuffles. */
 const PLAY_POOL = BANK.filter(q => !QUARANTINED.has(q.id) && factOf(q.id) === q.id);
+// Unlimited and Battles never serve a fact that is (or soon will be) a daily question, so nobody meets today's or an
+// upcoming puzzle early. The window is configurable; if it ever left too little to play with, the modes fall back to the full pool.
+const DAILY_GUARD = { before: 3, after: 30 };
+function dailyWindow(){
+  const t = App.today || DateUK.today();
+  if (dailyWindow.t !== t) { const s = new Set(); for (let i = -DAILY_GUARD.before; i <= DAILY_GUARD.after; i++) (dailyIds(DateUK.add(t, i)) || []).forEach(id => s.add(factOf(id))); dailyWindow.t = t; dailyWindow.s = s; }
+  return dailyWindow.s;
+}
 function endlessQ(playerId, n){
   const L = PLAY_POOL.length, cycle = Math.floor(n / L), idx = n - cycle * L, key = playerId + '|' + cycle;
   if (endlessQ.key !== key) {
@@ -2551,14 +2559,15 @@ function endlessQ(playerId, n){
 }
 // The run's next question, moving past anything the player saw recently (the last 800, across runs): returns it and its position.
 function pickEndless(playerId, n, recent){
-  const seen = new Set((recent || []).map(factOf));
-  for (let k = 0; k < PLAY_POOL.length; k++) { const q = endlessQ(playerId, n + k); if (!seen.has(factOf(q.id))) return { q, n: n + k }; }
+  const seen = new Set((recent || []).map(factOf)), daily = dailyWindow();
+  for (let k = 0; k < PLAY_POOL.length; k++) { const q = endlessQ(playerId, n + k); if (!seen.has(factOf(q.id)) && !daily.has(factOf(q.id))) return { q, n: n + k }; }
+  for (let k = 0; k < PLAY_POOL.length; k++) { const q = endlessQ(playerId, n + k); if (!daily.has(factOf(q.id))) return { q, n: n + k }; }
   return { q: endlessQ(playerId, n), n };   // they've seen everything recently: carry on round the shuffle
 }
 /* Battles: a random bank question the room hasn't had yet. */
 function battleQ(seed, round, used){
-  const r = mulberry32(hashStr('battle|' + seed + '|' + round)), done = new Set((used || []).map(factOf));
-  for (let g = 0; g < 200; g++) { const q = PLAY_POOL[Math.floor(r() * PLAY_POOL.length)]; if (!done.has(factOf(q.id))) return q; }
+  const r = mulberry32(hashStr('battle|' + seed + '|' + round)), done = new Set((used || []).map(factOf)), daily = dailyWindow();
+  for (let g = 0; g < 400; g++) { const q = PLAY_POOL[Math.floor(r() * PLAY_POOL.length)]; if (!done.has(factOf(q.id)) && !daily.has(factOf(q.id))) return q; }
   return PLAY_POOL.find(q => !done.has(factOf(q.id))) || PLAY_POOL[Math.floor(r() * PLAY_POOL.length)];
 }
 const qPayload = q => ({ id:q.id, category:q.category, difficulty:q.difficulty, question:q.question, answer:q.answer, unit:q.unit,
@@ -2857,7 +2866,15 @@ const Backend = {
       if (auth && this.sess) headers.Authorization = 'Bearer ' + this.sess.access_token;
       const r = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, '') + path, { method, headers, body: body === undefined || method === 'GET' ? undefined : JSON.stringify(body), signal: ctrl && ctrl.signal });
       const txt = await r.text(); let data = null; try { data = txt ? JSON.parse(txt) : null; } catch(e){}
-      if (!r.ok) throw new Error((data && (data.message || data.msg || data.error_description || data.error)) || ('Server error ' + r.status));
+      if (!r.ok) {
+        // Messages our own database functions raise on purpose (code P0001) and sign-in messages are written for players.
+        // Anything else (constraint names, missing functions, expired tokens, 5xx) is technical: say something useful instead.
+        const raw = (data && (data.message || data.msg || data.error_description || data.error)) || '';
+        const code = data && data.code ? String(data.code) : '';
+        const technical = (code && code !== 'P0001' && /^(PGRST|[0-9A-Z]{5}$)/.test(code)) || r.status >= 500 || !raw;
+        if (technical) { console.warn('DIAL IN server error', r.status, code, raw); const e = new Error(/JWT|PGRST30/i.test(raw + code) ? 'Your session needs refreshing. Try that again.' : 'DIAL IN hit a problem on our side. Try again in a moment.'); e.technical = raw; throw e; }
+        throw new Error(raw);
+      }
       return data;
     } catch(e) {
       if (e.name === 'AbortError') throw new Error('The server took too long to respond.');
@@ -2929,7 +2946,7 @@ const Backend = {
     catch(e) {
       // the sign-in was ended elsewhere (e.g. the PIN was set on another phone) while this device's pass was still valid:
       // refresh now, which falls back to a guest and asks the player to sign back in
-      if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message) || !this.sess) throw e;
+      if (!/session|jwt|token|expired|invalid|not found|403|401/i.test(e.message + " " + (e.technical || "")) || !this.sess) throw e;
       this.sess.expires_at = 0; await this.auth();
       u = await this.rest('GET', '/auth/v1/user'); st = status();   // the earlier answer was for the old sign-in
     }
@@ -3644,7 +3661,7 @@ function icon(name, size, color, cls){
   return `<svg class="ico ${cls || ''}" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"${st}>${LINE_ICONS[name] || ''}</svg>`;
 }
 const heart = (full, size = 14) => icon('heart', size, full ? 'var(--heart)' : 'var(--heart-off)');
-const hearts = (n, max, size) => `<span class="hearts" aria-label="${n} of ${max} lives">${Array.from({ length:max }, (_, i) => heart(i < n, size)).join('')}</span>`;
+const hearts = (n, max, size) => `<span class="hearts" role="img" aria-label="${n} of ${max} lives">${Array.from({ length:max }, (_, i) => heart(i < n, size)).join('')}</span>`;
 
 /* Knobby: a tuning knob with a face. Mood changes the eyes, the mouth and how far the knob is turned. */
 function mascot(mood, size, extraCls, col){
@@ -4464,7 +4481,18 @@ function factDailyIds(iso){
   return day ? day.slice() : null;
 }
 const hasFactDaily = iso => FACTS.length >= 7 && !!factDailyIds(iso);
+function factWindow(){
+  const t = App.today || DateUK.today();
+  if (factWindow.t !== t) { const s = new Set(); for (let i = -DAILY_GUARD.before; i <= DAILY_GUARD.after; i++) (factDailyIds(DateUK.add(t, i)) || []).forEach(id => s.add(ffactOf(id))); factWindow.t = t; factWindow.s = s; }
+  return factWindow.s;
+}
 // Unlimited: each player works through their own shuffle of the whole bank before anything repeats
+// the next Unlimited Fact Check claim, moving past anything in the current daily window (see DAILY_GUARD)
+function factNextRunId(){
+  const daily = factWindow();
+  for (let k = 0; k < FACT_POOL.length; k++) { const id = factEndlessId(S.player.id, S.facts.pos); if (!daily.has(ffactOf(id))) return id; S.facts.pos++; }
+  return factEndlessId(S.player.id, S.facts.pos);
+}
 function factEndlessId(playerId, n){
   const L = FACT_POOL.length, cycle = Math.floor(n / L), key = playerId + '|' + cycle + '|' + L;
   if (factEndlessId.key !== key) { const ids = FACT_POOL.map(f => f.id), r = mulberry32(hashStr('factrun|' + key)); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } factEndlessId.key = key; factEndlessId.ids = ids; }
@@ -4472,7 +4500,8 @@ function factEndlessId(playerId, n){
 }
 // Battles: a statement this room hasn't had yet (across rematches too)
 function factBattlePick(seed, round, used){
-  const r = mulberry32(hashStr('factbattle|' + seed + '|' + round)), seen = new Set((used || []).map(ffactOf)), fresh = FACT_POOL.filter(f => !seen.has(ffactOf(f.id)));
+  const r = mulberry32(hashStr('factbattle|' + seed + '|' + round)), seen = new Set((used || []).map(ffactOf)), daily = factWindow();
+  const fresh = FACT_POOL.filter(f => !seen.has(ffactOf(f.id)) && !daily.has(ffactOf(f.id)));
   const pool = fresh.length ? fresh : FACT_POOL;
   return pool[Math.floor(r() * pool.length)];
 }
@@ -4513,7 +4542,7 @@ function startFactRun(){
   if (!isPremium()) { openPay(); return; }
   App.fmode = 'run';
   if (S.frun && !S.frun.over) { go('factplay'); return; }
-  S.frun = { id:factEndlessId(S.player.id, S.facts.pos), lives:FACT_LIVES, st:0, ans:null, count:0, right:0, score:0, streak:0, bestStreak:0, over:false, startedAt:Date.now() };
+  S.frun = { id:factNextRunId(), lives:FACT_LIVES, st:0, ans:null, count:0, right:0, score:0, streak:0, bestStreak:0, over:false, startedAt:Date.now() };
   App.ffresh = -1; save(); go('factplay');
 }
 function recordFactRun(v, msLeft){
@@ -4543,7 +4572,7 @@ function nextFact(){
       if (r.score > 0 && r.score >= S.facts.best) setTimeout(() => Hype.party(true), 300);
       return;
     }
-    r.id = factEndlessId(S.player.id, S.facts.pos); r.st = 0; r.ans = null; App.ffresh = -1; save(); go('factplay'); return;
+    r.id = factNextRunId(); r.st = 0; r.ans = null; App.ffresh = -1; save(); go('factplay'); return;
   }
   const d = getFactDay(App.fdate, false); App.ffresh = -1;
   if (!d || d.done) { go('factres'); return; }
@@ -4619,7 +4648,7 @@ function viewFactPlay(){
     : `<div class="fc-verdict ${a.ok ? 'ok' : 'no'} ${f.truth ? 'ans-t' : 'ans-f'} ${fresh ? 'pop' : ''}" role="status">${a.to ? '⏱ Time’s up!' : a.ok ? (a.p >= 140 ? 'Lightning fast!' : 'Correct!') : 'Not quite!'}${a.ok ? ` <b>+${a.p}</b>` : ''}</div>
        <div class="fc-truth ${f.truth ? 't' : 'f'} ${fresh ? 'pop' : ''}"><span class="ft-label">The truth</span><b class="ft-word">${f.truth ? 'TRUE' : 'FALSE'}</b><p class="ft-why">${esc(f.explanation)}</p></div>
        <button class="btn btn-mint btn-block btn-xl next" data-act="factnext" id="nextbtn">${run ? (run.lives <= 0 ? 'See my run' : 'Next claim →') : cur.day.done ? 'See my results' : 'Next claim →'}</button>`;
-  return `<section class="play fc">
+  return `<section class="play fc"><h1 class="sr-only">Fact Check, claim ${(App.fcur || 0) + 1}</h1>
     <p class="small muted center fc-title">${run ? 'Unlimited Fact Check' : `Fact Check #${factNo(App.fdate)} · claim ${App.fcur + 1} of 7`}</p>
     ${head}
     ${factCardHTML(f, !!a, fresh)}
@@ -4727,7 +4756,7 @@ function viewArch(){
     return `<li><button class="pip ${x ? 'done t' + x.s : ''}" data-act="archq" data-i="${k}" ${k === i ? 'aria-current="step"' : ''} ${can ? '' : 'disabled'} aria-label="Question ${k + 1}${x ? ', ' + x.s + ' points' : ', unanswered'}">${x ? (x.to ? '⏱' : x.s === 1000 ? '★' : k + 1) : k + 1}</button></li>`; }).join('');
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, '')}<button class="btn btn-mint btn-block btn-xl next" data-act="archnext" id="nextbtn">${A.done ? 'See my score' : 'Next question →'}</button>`;
-  return `<section class="play">
+  return `<section class="play"><h1 class="sr-only">Past puzzle #${DateUK.puzzleNo(App.archDate)}, question ${App.cur + 1} of 7</h1>
     <p class="small muted center" style="margin:0 0 6px">Past puzzle #${DateUK.puzzleNo(App.archDate)} · ${esc(DateUK.pretty(App.archDate))}</p>
     <ol class="pips" aria-label="Progress">${pips}</ol>
     ${qcardHTML(q, `Q<b>${i + 1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
@@ -4954,7 +4983,7 @@ function viewPlay(){
   const bank = ballsFor(day) - (fresh && a && !reducedMotion() ? BALLS_FOR[a.s] || 0 : 0);
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, ballLineHTML(a))}<button class="btn btn-mint btn-block btn-xl next" data-act="next" id="nextbtn">${day.done ? (pinDone(day) ? 'See my results' : 'Bonus round →') : 'Next question →'}</button>`;
-  return `<section class="play">
+  return `<section class="play"><h1 class="sr-only">Daily #${DateUK.puzzleNo(App.today)}, question ${i + 1} of 7</h1>
     <ol class="pips" aria-label="Progress">${pips}</ol>
     <div class="ballbank" aria-label="Bonus round balls earned so far: ${bank}"><span>Dial Ball bonus</span><span class="bb-dots" id="bb-dots">${'●'.repeat(bank)}${bank ? '' : '<i>none yet</i>'}</span><b id="ballcount">${bank}</b><span>${bank === 1 ? 'ball' : 'balls'}</span></div>
     ${qcardHTML(q, `Q<b>${i+1}</b>/7 · ${answered} done`, `Score <b id="runscore" data-prefix="">${fmtNum(shown)}</b>`, !a)}
@@ -5669,7 +5698,7 @@ function viewEndless(){
   const head = `<div class="runbar"><span id="runhearts">${hearts(heartsShown, CONFIG.ENDLESS_LIVES, 16)}</span><span class="label">Q<b>${r.count + (a ? 0 : 1)}</b></span><span class="label">${r.free ? 'FREE RUN' : 'UNLIMITED'}</span></div>`;
   const body = !a ? entryHTML(q)
     : `${revealHTML(q, a, fresh, lost ? `<p class="lifelost" id="lifelost">${heart(false, 14)} −1 heart${r.lives === 0 ? ' · run over' : ''}</p>` : '')}<button class="btn btn-mint btn-block btn-xl next" data-act="nextrun" id="nextbtn">${r.lives > 0 ? 'Next question →' : 'See my run'}</button>`;
-  return `<section class="play">${head}
+  return `<section class="play"><h1 class="sr-only">Unlimited, question ${(S.run ? S.run.count : 0) + 1}</h1>${head}
     ${qcardHTML(q, 'Unlimited', `Score <b id="runscore" data-prefix="">${fmtNum(fresh ? r.score - a.s : r.score)}</b>`, !a)}
     ${body}</section>`;
 }
@@ -6401,6 +6430,8 @@ function render(focus = true){
   document.body.classList.toggle('in-game', inGame);
   document.title = { play:`Q${App.cur+1} · DIAL IN`, results:'Results · DIAL IN', pinball:'Bonus round · DIAL IN', board:'Leaderboards · DIAL IN', stats:'Stats · DIAL IN', endless:'Unlimited · DIAL IN', battle:'Battle · DIAL IN', archive:'Past puzzles · DIAL IN', modes:'Play · DIAL IN', settings:'Profile · DIAL IN', arch:'Past puzzle · DIAL IN', archres:'Past puzzle · DIAL IN', facthome:'Fact Check! · DIAL IN', factplay:'Fact Check! · DIAL IN', factres:'Fact Check! · DIAL IN' }[App.view] || 'DIAL IN – Play Dial In, the Free Daily Number Trivia Game';
   if ($('#enterkey')) $('#enterkey').setAttribute('aria-disabled', (App.view === 'battle' && !MP.code ? App.joinEntry.length === 4 : !!App.entry) ? 'false' : 'true');
+  // every screen has a main heading for screen-reader users; screens without a visible one get a hidden one from the page title
+  if (!main.querySelector('h1')) main.insertAdjacentHTML('afterbegin', `<h1 class="sr-only">${esc(document.title.split(' · ')[0].replace(/ – .*/, ''))}</h1>`);
   if (focus) { const nb = $('#nextbtn'); const h = nb || main.querySelector('[tabindex="-1"]') || main; h.focus({ preventScroll:true }); window.scrollTo(0, 0); }
   postRender();
   Season.paint();

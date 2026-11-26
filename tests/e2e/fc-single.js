@@ -22,18 +22,20 @@ const wide = p => p.evaluate(() => document.documentElement.scrollWidth > innerW
   const sched = await A.evaluate(() => {
     const out = { badDays:[], repeats:0, days:0, perCycle: Math.floor(FACTS.length / 7) };
     const seen = new Set(); let d = FACT_EPOCH;
-    for (let i = 0; i < out.perCycle * 2 + 5; i++) {
+    for (let i = 0; factDailyIds(d); i++) {   // every scheduled day, to the end of the reviewed list
       const ids = factDailyIds(d), fs = ids.map(id => FACT_BY_ID.get(id)), t = fs.filter(f => f.truth).length, cats = {};
       fs.forEach(f => cats[f.category] = (cats[f.category] || 0) + 1);
       if (ids.length !== 7 || new Set(ids).size !== 7 || t < 2 || t > 5 || Math.max(...Object.values(cats)) > 2) out.badDays.push(d + ':' + t + 'T');
-      if (i < out.perCycle) { ids.forEach(id => { if (seen.has(id)) out.repeats++; seen.add(id); }); }
+      ids.forEach(id => { if (seen.has(id)) out.repeats++; seen.add(id); });
       d = DateUK.add(d, 1); out.days++;
     }
     out.stable = JSON.stringify(factDailyIds(App.today)) === JSON.stringify(factDailyIds(App.today));
+    out.afterEnd = factDailyIds(d);   // the day after the last reviewed one: no claims (holding message), never a repeat
     return out;
   });
   ok(`Daily mixes are valid for ${sched.days} days (7 different claims, 2–5 true, ≤2 per topic)`, !sched.badDays.length, sched.badDays.slice(0, 5).join(', '));
-  ok(`No claim repeats within a ${sched.perCycle}-day cycle`, sched.repeats === 0);
+  ok(`No claim repeats across all ${sched.days} scheduled days`, sched.repeats === 0);
+  ok('After the last reviewed day there are no claims, not a repeat', sched.afterEnd === null);
   const B = await open(b);
   ok('Two different players get the same daily claims', JSON.stringify(await A.evaluate(() => factDailyIds(App.today))) === JSON.stringify(await B.evaluate(() => factDailyIds(App.today))));
   // ---- playing the daily

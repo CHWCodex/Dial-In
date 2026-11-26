@@ -1,0 +1,1054 @@
+{
+ "_about": "DRAFT Fact Check! statements written 26 Nov 2026 to extend the schedule past 30 Dec 2026. Status: pending owner approval. They were checked editorially, not against the named sources; none is served or scheduled until approved. To approve: append the approved rows to facts.js, then run node scripts/build-content.mjs and node scripts/validate-questions.mjs (see docs/content/RUNBOOK.md).",
+ "status": "pending-approval",
+ "rows": [
+  [
+   "f301",
+   "History",
+   "Queen Victoria became queen at the age of 28.",
+   0,
+   "She was 18.",
+   "Royal Collection Trust"
+  ],
+  [
+   "f302",
+   "History",
+   "The Battle of Trafalgar was fought in 1905.",
+   0,
+   "It was fought a century earlier, in Nelson's day.",
+   "Royal Museums Greenwich"
+  ],
+  [
+   "f303",
+   "History",
+   "The Gunpowder plotters hid 36 barrels of gunpowder under Parliament.",
+   1,
+   "Guy Fawkes was caught guarding them.",
+   "UK Parliament"
+  ],
+  [
+   "f304",
+   "History",
+   "The Great Fire of London destroyed about 13,200 houses.",
+   1,
+   "Along with 87 parish churches.",
+   "Museum of London"
+  ],
+  [
+   "f305",
+   "History",
+   "Henry VIII became king at the age of 27.",
+   0,
+   "He was 17.",
+   "Historic Royal Palaces"
+  ],
+  [
+   "f306",
+   "History",
+   "The Berlin Wall was about 15 km long.",
+   0,
+   "About 155 km: it ran all the way round West Berlin.",
+   "Berlin Wall Foundation"
+  ],
+  [
+   "f307",
+   "History",
+   "The Titanic was about 269 metres long.",
+   1,
+   "882 ft 9 in, the largest ship afloat when she sailed.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f308",
+   "History",
+   "The Wars of the Roses lasted about 30 years.",
+   1,
+   "From the 1450s to the 1480s.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f309",
+   "History",
+   "The Great Pyramid was the world's tallest building for about 3,800 years.",
+   1,
+   "Until Lincoln Cathedral's spire overtook it around 1311.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f310",
+   "History",
+   "Cleopatra died more than 2,000 years after the Great Pyramid was built.",
+   1,
+   "The pyramid dates from about 2560 BC; Cleopatra died in 30 BC.",
+   "British Museum"
+  ],
+  [
+   "f311",
+   "History",
+   "The first modern Olympics had athletes from 40 countries.",
+   0,
+   "About 241 athletes from 14 countries, in Athens.",
+   "International Olympic Committee"
+  ],
+  [
+   "f312",
+   "History",
+   "George Washington became the first US President in 1789.",
+   1,
+   "Sworn in on 30 April 1789.",
+   "The White House"
+  ],
+  [
+   "f313",
+   "History",
+   "The USA bought Alaska from Russia for about $72 million.",
+   0,
+   "About $7.2 million, in 1867.",
+   "US Department of State"
+  ],
+  [
+   "f314",
+   "Landmarks",
+   "The Eiffel Tower took about 10 years to build.",
+   0,
+   "About 2 years, finished in time for the World's Fair.",
+   "Société d'Exploitation de la Tour Eiffel"
+  ],
+  [
+   "f315",
+   "Landmarks",
+   "Each face on Mount Rushmore is about 18 metres tall.",
+   1,
+   "About 60 feet from chin to forehead.",
+   "US National Park Service"
+  ],
+  [
+   "f316",
+   "Landmarks",
+   "The Colosseum in Rome could seat more than 40,000 spectators.",
+   1,
+   "Estimates run from about 50,000 to 80,000.",
+   "Parco archeologico del Colosseo"
+  ],
+  [
+   "f317",
+   "Landmarks",
+   "The Leaning Tower of Pisa took about 20 years to finish.",
+   0,
+   "About 200 years, with long pauses for war.",
+   "Opera della Primaziale Pisana"
+  ],
+  [
+   "f318",
+   "Landmarks",
+   "Each of Big Ben's clock faces is about 7 metres across.",
+   1,
+   "About 6.9 m (23 ft).",
+   "UK Parliament"
+  ],
+  [
+   "f319",
+   "Landmarks",
+   "Stonehenge's biggest stones weigh around 25 tonnes.",
+   1,
+   "The largest sarsens weigh about 25 to 30 tonnes.",
+   "English Heritage"
+  ],
+  [
+   "f320",
+   "Landmarks",
+   "Buckingham Palace has 78 bathrooms.",
+   1,
+   "According to the Royal Household.",
+   "Royal Collection Trust"
+  ],
+  [
+   "f321",
+   "Space",
+   "Light takes about 1.3 seconds to reach Earth from the Moon.",
+   1,
+   "Moonlight is reflected sunlight, so it's about 8 minutes old by the time you see it.",
+   "NASA"
+  ],
+  [
+   "f322",
+   "Space",
+   "Saturn has fewer than 10 known moons.",
+   0,
+   "It has well over 200 confirmed moons, the most of any planet.",
+   "NASA"
+  ],
+  [
+   "f323",
+   "Space",
+   "Jupiter is about 3 times wider than Earth.",
+   0,
+   "About 11 times wider.",
+   "NASA"
+  ],
+  [
+   "f324",
+   "Space",
+   "Neptune is the 8th planet from the Sun.",
+   1,
+   "The farthest planet since Pluto was reclassified.",
+   "NASA"
+  ],
+  [
+   "f325",
+   "Science",
+   "A water molecule has 2 hydrogen atoms and 1 oxygen atom.",
+   1,
+   "Hence H₂O.",
+   "Royal Society of Chemistry"
+  ],
+  [
+   "f326",
+   "Science",
+   "Human DNA is about 99% the same as a chimpanzee's.",
+   1,
+   "Usually quoted as about 98.8%.",
+   "Smithsonian Institution"
+  ],
+  [
+   "f327",
+   "Body",
+   "Most people blink about 15 to 20 times a minute.",
+   1,
+   "More when talking, less when reading or staring at a screen.",
+   "American Academy of Ophthalmology"
+  ],
+  [
+   "f328",
+   "Body",
+   "Fingernails grow about 3 mm a month.",
+   1,
+   "Toenails grow about a third as fast.",
+   "American Academy of Dermatology"
+  ],
+  [
+   "f329",
+   "Body",
+   "The brain makes up about 2% of an adult's body weight.",
+   1,
+   "About 1.3 to 1.4 kg in an adult.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f330",
+   "Science",
+   "Lightning is about 5 times hotter than the surface of the Sun.",
+   1,
+   "A bolt can heat the air to around 30,000 °C.",
+   "Met Office"
+  ],
+  [
+   "f331",
+   "Geography",
+   "The Pacific Ocean covers about a tenth of Earth's surface.",
+   0,
+   "About a third: more than all the land put together.",
+   "NOAA"
+  ],
+  [
+   "f332",
+   "Geography",
+   "The Dead Sea is about 10 times saltier than the ocean.",
+   1,
+   "Around 34% salt, against about 3.5% for sea water.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f333",
+   "Geography",
+   "Antarctica holds about 70% of the world's fresh water.",
+   1,
+   "Locked up in its ice sheet.",
+   "British Antarctic Survey"
+  ],
+  [
+   "f334",
+   "Nature",
+   "The Amazon rainforest covers about 5.5 million km².",
+   1,
+   "Spread across nine countries.",
+   "WWF"
+  ],
+  [
+   "f335",
+   "Geography",
+   "Russia covers about 17 million km², an eighth of Earth's land.",
+   1,
+   "The largest country by far.",
+   "CIA World Factbook"
+  ],
+  [
+   "f336",
+   "Geography",
+   "Mainland Australia is about 4,000 km wide, wider than the Moon.",
+   1,
+   "From Steep Point in the west to Cape Byron in the east.",
+   "Geoscience Australia"
+  ],
+  [
+   "f337",
+   "Geography",
+   "Scotland has fewer than 50 Munros.",
+   0,
+   "It has 282 mountains over 3,000 feet.",
+   "Scottish Mountaineering Club"
+  ],
+  [
+   "f338",
+   "Geography",
+   "Wales has 6 national parks.",
+   0,
+   "It has 3: Eryri, the Pembrokeshire Coast and Bannau Brycheiniog.",
+   "National Parks UK"
+  ],
+  [
+   "f339",
+   "Geography",
+   "Lough Neagh covers about 390 km², the UK's largest lake by area.",
+   1,
+   "In Northern Ireland.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f340",
+   "Geography",
+   "The Isle of Wight covers about 380 km².",
+   1,
+   "England's largest island.",
+   "Isle of Wight Council"
+  ],
+  [
+   "f341",
+   "Nature",
+   "A giraffe's heart weighs about 11 kg.",
+   1,
+   "It has to pump blood up a 2-metre neck.",
+   "Smithsonian's National Zoo"
+  ],
+  [
+   "f342",
+   "Nature",
+   "An elephant's trunk has about 400 muscles.",
+   0,
+   "About 40,000, and no bones.",
+   "WWF"
+  ],
+  [
+   "f343",
+   "Nature",
+   "A blue whale's tongue can weigh around 2.7 tonnes.",
+   1,
+   "About as much as an elephant.",
+   "NOAA Fisheries"
+  ],
+  [
+   "f344",
+   "Nature",
+   "A hummingbird beats its wings about 5 times a second.",
+   0,
+   "Around 50 times a second, often more.",
+   "Smithsonian Institution"
+  ],
+  [
+   "f345",
+   "Nature",
+   "A cheetah can go from 0 to 60 mph in about 3 seconds.",
+   1,
+   "Quicker than most sports cars.",
+   "Smithsonian's National Zoo"
+  ],
+  [
+   "f346",
+   "Nature",
+   "A polar bear can smell a seal about 1.5 km away.",
+   1,
+   "Nearly a mile, even under snow.",
+   "WWF"
+  ],
+  [
+   "f347",
+   "Nature",
+   "Sharks have existed for about 450 million years, longer than trees.",
+   1,
+   "Trees appeared about 385 million years ago.",
+   "Natural History Museum"
+  ],
+  [
+   "f348",
+   "Nature",
+   "Bees visit about 2 million flowers to make 1 lb of honey.",
+   1,
+   "About 450 g.",
+   "National Honey Board"
+  ],
+  [
+   "f349",
+   "Nature",
+   "Arctic terns fly about 7,000 km a year on migration.",
+   0,
+   "About 70,000 km, pole to pole and back.",
+   "RSPB"
+  ],
+  [
+   "f350",
+   "Nature",
+   "A male seahorse can give birth to more than 1,000 babies at once.",
+   1,
+   "The female lays her eggs in his pouch.",
+   "Natural History Museum"
+  ],
+  [
+   "f351",
+   "Nature",
+   "There are more than 10,000 known species of bird.",
+   1,
+   "About 11,000.",
+   "BirdLife International"
+  ],
+  [
+   "f352",
+   "Nature",
+   "Insects make up about 2% of known animal species.",
+   0,
+   "More than half of all known animal species are insects.",
+   "Natural History Museum"
+  ],
+  [
+   "f353",
+   "Nature",
+   "Dogs have about 300 million smell receptors in their noses.",
+   1,
+   "Humans have about 6 million.",
+   "PBS NOVA"
+  ],
+  [
+   "f354",
+   "Sport",
+   "The pitch at Wembley Stadium is 150 metres long.",
+   0,
+   "It's 105 m by 68 m.",
+   "Wembley Stadium"
+  ],
+  [
+   "f355",
+   "Sport",
+   "Today's marathon distance was fixed at the first London Olympics.",
+   1,
+   "So the race could start at Windsor Castle and finish in front of the royal box.",
+   "World Athletics"
+  ],
+  [
+   "f356",
+   "Sport",
+   "Wimbledon gets through about 55,000 tennis balls each year.",
+   1,
+   "Balls are changed every 7 to 9 games.",
+   "The All England Club"
+  ],
+  [
+   "f357",
+   "Sport",
+   "An Olympic gold medal is at least 92.5% silver.",
+   1,
+   "It's covered with at least 6 g of gold.",
+   "International Olympic Committee"
+  ],
+  [
+   "f358",
+   "Sport",
+   "The Tour de France covers about 1,000 km.",
+   0,
+   "About 3,500 km over about three weeks.",
+   "Amaury Sport Organisation"
+  ],
+  [
+   "f359",
+   "Sport",
+   "Golf's Open Championship is played over 54 holes.",
+   0,
+   "72 holes: four rounds of 18.",
+   "The R&A"
+  ],
+  [
+   "f360",
+   "Sport",
+   "A Test cricket match can last up to 5 days.",
+   1,
+   "With six hours' play scheduled each day.",
+   "ICC"
+  ],
+  [
+   "f361",
+   "Sport",
+   "An American football field is about 53 yards wide.",
+   1,
+   "53⅓ yards (160 ft).",
+   "NFL"
+  ],
+  [
+   "f362",
+   "Sport",
+   "A doubles tennis court is 27 feet wide.",
+   0,
+   "It's 36 ft; a singles court is 27 ft.",
+   "ITF"
+  ],
+  [
+   "f363",
+   "Sport",
+   "Michael Jordan won 4 NBA titles.",
+   0,
+   "He won 6, all with the Chicago Bulls.",
+   "NBA"
+  ],
+  [
+   "f364",
+   "Sport",
+   "Pelé scored more than 1,000 goals in his career, by his own count.",
+   1,
+   "Over 1,200, counting friendlies.",
+   "FIFA"
+  ],
+  [
+   "f365",
+   "Sport",
+   "The Grand National is run over more than 4 miles.",
+   1,
+   "About 4 miles 2 furlongs at Aintree.",
+   "Aintree Racecourse"
+  ],
+  [
+   "f366",
+   "Music",
+   "Elvis Presley had 3 US number-one singles.",
+   0,
+   "He had 18 on the Billboard Hot 100.",
+   "Billboard"
+  ],
+  [
+   "f367",
+   "Music",
+   "'Happy Birthday to You' dates from the 1890s.",
+   1,
+   "Its tune began as 'Good Morning to All' (1893).",
+   "Library of Congress"
+  ],
+  [
+   "f368",
+   "Music",
+   "ABBA had 9 UK number-one singles.",
+   1,
+   "From 'Waterloo' to 'Super Trouper'.",
+   "Official Charts Company"
+  ],
+  [
+   "f369",
+   "Music",
+   "Adele's album '21' is named after her age when she made it.",
+   1,
+   "She was 21 while writing and recording it.",
+   "Official Charts Company"
+  ],
+  [
+   "f370",
+   "Film",
+   "The first 'Toy Story' film is about 3 hours long.",
+   0,
+   "It's 81 minutes long.",
+   "BFI"
+  ],
+  [
+   "f371",
+   "Film",
+   "There are 6 Indiana Jones films.",
+   0,
+   "There are 5, from 1981 to 2023.",
+   "Lucasfilm"
+  ],
+  [
+   "f372",
+   "TV",
+   "'The Simpsons' has run for more than 35 seasons.",
+   1,
+   "The longest-running US scripted primetime series.",
+   "Fox"
+  ],
+  [
+   "f373",
+   "TV",
+   "'Coronation Street' has aired more than 11,000 episodes.",
+   1,
+   "The world's longest-running TV soap.",
+   "ITV"
+  ],
+  [
+   "f374",
+   "Film",
+   "The original 'Star Wars' cost about $110 million to make.",
+   0,
+   "About $11 million.",
+   "Lucasfilm"
+  ],
+  [
+   "f375",
+   "Film",
+   "Walt Disney voiced Mickey Mouse for about 20 years.",
+   1,
+   "Until 1947, when Jimmy MacDonald took over.",
+   "The Walt Disney Company"
+  ],
+  [
+   "f376",
+   "Film",
+   "The 'Harry Potter' films came out over 10 years.",
+   1,
+   "The last one arrived in 2011.",
+   "Warner Bros."
+  ],
+  [
+   "f377",
+   "Books",
+   "J. K. Rowling's first Harry Potter book was turned down by 12 publishers.",
+   1,
+   "Bloomsbury took it on in 1996.",
+   "Bloomsbury"
+  ],
+  [
+   "f378",
+   "Books",
+   "The Very Hungry Caterpillar eats through 5 oranges on Friday.",
+   1,
+   "One more piece of fruit each day, starting with 1 apple on Monday.",
+   "Eric Carle"
+  ],
+  [
+   "f379",
+   "Books",
+   "Agatha Christie wrote 16 detective novels.",
+   0,
+   "She wrote 66, plus 14 short-story collections.",
+   "Agatha Christie Ltd"
+  ],
+  [
+   "f380",
+   "Books",
+   "Roald Dahl's BFG is 24 feet tall.",
+   1,
+   "Small for a giant: the others are about twice his size.",
+   "Roald Dahl Story Company"
+  ],
+  [
+   "f381",
+   "Food",
+   "A Jaffa Cake has 5 layers.",
+   0,
+   "Just 3: sponge, orange jelly and chocolate.",
+   "McVitie's"
+  ],
+  [
+   "f382",
+   "Food",
+   "Fry's made the first solid chocolate bar in the 1840s.",
+   1,
+   "In Bristol, in 1847.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f383",
+   "Food",
+   "Tomatoes are about 95% water.",
+   1,
+   "Cucumbers are even wetter.",
+   "US Department of Agriculture"
+  ],
+  [
+   "f384",
+   "Food",
+   "A Big Mac has 2 beef patties.",
+   1,
+   "Plus the 'special sauce'.",
+   "McDonald's"
+  ],
+  [
+   "f385",
+   "Food",
+   "Ketchup was sold as a medicine in the 1830s.",
+   1,
+   "Tomato pills were claimed to cure indigestion.",
+   "Smithsonian Magazine"
+  ],
+  [
+   "f386",
+   "Food",
+   "People in the UK drink about 10 million cups of tea a day.",
+   0,
+   "Around 100 million.",
+   "UK Tea & Infusions Association"
+  ],
+  [
+   "f387",
+   "Food",
+   "Coca-Cola was first sold for 5 cents a glass.",
+   1,
+   "At a pharmacy in Atlanta.",
+   "The Coca-Cola Company"
+  ],
+  [
+   "f388",
+   "Food",
+   "A pineapple takes about 2 months to grow.",
+   0,
+   "About 2 years, one fruit per plant at a time.",
+   "Dole"
+  ],
+  [
+   "f389",
+   "Tech",
+   "The first iPhone had a 3.5-inch screen.",
+   1,
+   "Tiny by today's standards.",
+   "Apple"
+  ],
+  [
+   "f390",
+   "Tech",
+   "The QWERTY keyboard layout dates from the 1870s.",
+   1,
+   "Designed for early typewriters.",
+   "Smithsonian Institution"
+  ],
+  [
+   "f391",
+   "Tech",
+   "A gigabyte is 1,000 megabytes.",
+   1,
+   "Or 1,024 in the older binary usage.",
+   "International Bureau of Weights and Measures"
+  ],
+  [
+   "f392",
+   "Tech",
+   "The World Wide Web went public in 1991.",
+   1,
+   "Tim Berners-Lee's project at CERN.",
+   "CERN"
+  ],
+  [
+   "f393",
+   "Tech",
+   "The first YouTube video is 19 minutes long.",
+   0,
+   "Just 19 seconds: 'Me at the zoo'.",
+   "YouTube"
+  ],
+  [
+   "f394",
+   "Tech",
+   "A QR code can hold more than 4,000 characters.",
+   1,
+   "Up to 7,089 digits.",
+   "DENSO WAVE"
+  ],
+  [
+   "f395",
+   "Tech",
+   "The first computer mouse, built in 1964, was made of wood.",
+   1,
+   "Invented by Douglas Engelbart.",
+   "Computer History Museum"
+  ],
+  [
+   "f396",
+   "Money",
+   "Alan Turing appears on the £50 note.",
+   1,
+   "Since 2021.",
+   "Bank of England"
+  ],
+  [
+   "f397",
+   "Money",
+   "The painter J. M. W. Turner appears on the £20 note.",
+   1,
+   "On the polymer note since 2020.",
+   "Bank of England"
+  ],
+  [
+   "f398",
+   "Money",
+   "A UK 1p coin is solid copper.",
+   0,
+   "Since 1992 it's been copper-plated steel.",
+   "The Royal Mint"
+  ],
+  [
+   "f399",
+   "Money",
+   "The Royal Mint has made coins in Wales since 1968.",
+   1,
+   "At Llantrisant, near Cardiff.",
+   "The Royal Mint"
+  ],
+  [
+   "f400",
+   "Life",
+   "An adult UK passport lasts 15 years.",
+   0,
+   "10 years (5 years for children).",
+   "GOV.UK"
+  ],
+  [
+   "f401",
+   "Life",
+   "A UK driving test lasts about 2 hours.",
+   0,
+   "About 40 minutes.",
+   "DVSA"
+  ],
+  [
+   "f402",
+   "Life",
+   "Royal Mail delivers to more than 30 million addresses.",
+   1,
+   "Six days a week for letters.",
+   "Royal Mail"
+  ],
+  [
+   "f403",
+   "Life",
+   "Britain's first roadside post boxes appeared in the 1850s.",
+   1,
+   "They weren't painted red until 1874.",
+   "The Postal Museum"
+  ],
+  [
+   "f404",
+   "Travel",
+   "The Trans-Siberian Railway from Moscow to Vladivostok is about 9,300 km long.",
+   1,
+   "About a week's journey.",
+   "Russian Railways"
+  ],
+  [
+   "f405",
+   "Travel",
+   "The world's shortest scheduled flight lasts under 2 minutes.",
+   1,
+   "Westray to Papa Westray in Orkney.",
+   "Loganair"
+  ],
+  [
+   "f406",
+   "Landmarks",
+   "The Shard has 95 storeys.",
+   1,
+   "72 of them can be used.",
+   "The Shard"
+  ],
+  [
+   "f407",
+   "Landmarks",
+   "The London Eye takes about 3 minutes to go round once.",
+   0,
+   "About 30 minutes.",
+   "London Eye"
+  ],
+  [
+   "f408",
+   "Landmarks",
+   "Tower Bridge opens about 800 times a year.",
+   1,
+   "For tall ships on the Thames.",
+   "Tower Bridge"
+  ],
+  [
+   "f409",
+   "Landmarks",
+   "The Angel of the North weighs about 20 tonnes.",
+   0,
+   "About 200 tonnes.",
+   "Gateshead Council"
+  ],
+  [
+   "f410",
+   "Landmarks",
+   "The Statue of Liberty's face is about 2.5 metres tall.",
+   1,
+   "From chin to forehead.",
+   "US National Park Service"
+  ],
+  [
+   "f411",
+   "Landmarks",
+   "The Sydney Harbour Bridge opened in 1962.",
+   0,
+   "It opened in 1932.",
+   "Transport for NSW"
+  ],
+  [
+   "f412",
+   "Landmarks",
+   "The Taj Mahal took about 20 years to build.",
+   1,
+   "Built by Shah Jahan in memory of his wife.",
+   "UNESCO"
+  ],
+  [
+   "f413",
+   "Landmarks",
+   "Machu Picchu was built in the 1400s.",
+   1,
+   "By the Inca, around 1450.",
+   "UNESCO"
+  ],
+  [
+   "f414",
+   "Geography",
+   "Venice is built on more than 100 small islands.",
+   1,
+   "118, linked by over 400 bridges.",
+   "UNESCO"
+  ],
+  [
+   "f415",
+   "Geography",
+   "Lake Superior covers about 82,000 km².",
+   1,
+   "The largest freshwater lake by area.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f416",
+   "Language",
+   "The word 'set' has more than 400 meanings in the Oxford English Dictionary.",
+   1,
+   "One of the longest entries in the dictionary.",
+   "Oxford English Dictionary"
+  ],
+  [
+   "f417",
+   "Language",
+   "Shakespeare is credited with inventing about 1,700 English words.",
+   1,
+   "Including 'lonely' and 'bedroom'.",
+   "Folger Shakespeare Library"
+  ],
+  [
+   "f418",
+   "Language",
+   "About 18% of people in Wales said they could speak Welsh in the 2021 Census.",
+   1,
+   "About 538,000 people.",
+   "Office for National Statistics"
+  ],
+  [
+   "f419",
+   "Body",
+   "An adult heart pumps about 75 litres of blood a day.",
+   0,
+   "About 7,500 litres.",
+   "British Heart Foundation"
+  ],
+  [
+   "f420",
+   "Body",
+   "Most people lose about 50 to 100 hairs a day.",
+   1,
+   "Normal shedding; new ones grow back.",
+   "American Academy of Dermatology"
+  ],
+  [
+   "f421",
+   "Body",
+   "The thigh bone is about a quarter of a person's height.",
+   1,
+   "It's the longest bone in the body.",
+   "Encyclopaedia Britannica"
+  ],
+  [
+   "f422",
+   "Games",
+   "A Rubik's Cube has about 43 quintillion possible positions.",
+   1,
+   "43,252,003,274,489,856,000.",
+   "Rubik's"
+  ],
+  [
+   "f423",
+   "Games",
+   "Cluedo was invented in Birmingham in the 1940s.",
+   1,
+   "By Anthony Pratt, a musician.",
+   "Hasbro"
+  ],
+  [
+   "f424",
+   "Games",
+   "Minecraft has sold more than 300 million copies.",
+   1,
+   "The best-selling video game of all time.",
+   "Mojang Studios"
+  ],
+  [
+   "f425",
+   "Games",
+   "Mario has appeared in more than 200 video games.",
+   1,
+   "A Guinness World Record.",
+   "Guinness World Records"
+  ],
+  [
+   "f426",
+   "Games",
+   "The Nintendo Switch sold more than 100 million consoles.",
+   1,
+   "About 150 million by 2025.",
+   "Nintendo"
+  ],
+  [
+   "f427",
+   "Aviation",
+   "A Boeing 747 has about 60,000 parts.",
+   0,
+   "About 6 million.",
+   "Boeing"
+  ],
+  [
+   "f428",
+   "Aviation",
+   "Concorde cruised at about 60,000 feet.",
+   1,
+   "High enough to see the curve of the Earth.",
+   "British Airways"
+  ],
+  [
+   "f429",
+   "Travel",
+   "Le Shuttle takes about 35 minutes to cross under the Channel.",
+   1,
+   "Folkestone to Calais.",
+   "Getlink (Eurotunnel)"
+  ],
+  [
+   "f430",
+   "Travel",
+   "London black cabs must turn in a circle about 25 feet wide.",
+   1,
+   "So they can turn round in narrow streets.",
+   "Transport for London"
+  ],
+  [
+   "f431",
+   "Travel",
+   "The M6 is Britain's longest motorway, at about 230 miles.",
+   1,
+   "From the M1 near Rugby to the Scottish border.",
+   "National Highways"
+  ]
+ ]
+}

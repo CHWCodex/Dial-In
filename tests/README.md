@@ -1,12 +1,35 @@
 # DIAL IN tests
 
-## Unit (no browser, no network)
+## Unit, property and integration (no browser, no network)
 
 ```bash
-node --test tests/unit.test.mjs
+node --test tests/unit.test.mjs tests/input.test.mjs tests/content.test.mjs
 ```
 
-19 tests: the UK midnight reset (GMT, BST and both clock changes), puzzle numbers, the daily schedule, scoring bands, and the name filter.
+| Suite | Tests | Covers |
+|---|---|---|
+| `unit` | 19 | UK midnight reset (GMT, BST, both clock changes), puzzle numbers, daily schedule, scoring bands, name filter |
+| `input` | 10 | Property and fuzz tests for the keypad, pasted text and scoring: about 50,000 generated cases per run, every band boundary, monotonic scoring, range hints |
+| `content` | 15 | Duplicate detection (the Everest family, punctuation, units, reversed wording, flipped claims), distinct questions stay eligible, schedule and history protection, cross-mode spacing, simulated future days running out |
+
+Then validate the questions and schedules (this is CI's release gate):
+
+```bash
+node scripts/validate-questions.mjs
+```
+
+## Database guard (throwaway local PostgreSQL, never a real project)
+
+```bash
+tests/db/guard.sh
+```
+
+17 checks:
+- loads a copy of production's structure, question bank and schedule;
+- applies the integrity migration;
+- proves published days can't change, facts can't be reused, and quarantined questions are refused;
+- proves two simultaneous schedulers can't both take the same question;
+- proves the migration is idempotent.
 
 ## End to end (Playwright, Chromium, against a **staging** copy only)
 
@@ -44,6 +67,9 @@ node tests/e2e/journey.js
 | verify / acct-day1 | Verified accounts, the same-connection rule, an account's first day |
 | more | Leaderboard "show more" paging |
 | clock | A wrong phone clock, two tabs, simultaneous posts, an impossible bonus |
+| adversarial | Tapping and pressing Enter repeatedly, a timer race, refreshing and backgrounding mid-question, two tabs, blocked/full/corrupted storage, offline play, refreshing during the bonus round, link abuse, landscape/zoom/large text/reduced motion, keyboard-only play, and the daily window for Unlimited and Battles |
+| battle-edge | Unknown room codes, full and finished rooms, one player in two tabs, simultaneous rematches, no repeated facts across rematches |
+| final-pass | Midnight with the game open, a long session (memory and element count), every static page, internal link and asset |
 | widths | 10 screen widths × 12 screens: sideways scroll, clipped content, tap targets. Takes an output folder. |
 | visual | 21 screenshots of the key states. Takes an output folder. |
 | upgrade | Live version → new version with a game in progress. Needs both builds on `https://localhost:8443`. |
