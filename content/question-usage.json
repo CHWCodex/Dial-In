@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-26",
+ "generated": "2026-11-27",
  "rules": {
   "reserve": 35,
   "relatedGapDays": [
@@ -411,10 +411,12 @@
    "unit": "letters",
    "range": null,
    "source": "QWERTY layout",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -5477,10 +5479,12 @@
    "unit": "metres",
    "range": null,
    "source": "World Athletics",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -12049,10 +12053,12 @@
    "unit": "categories",
    "range": null,
    "source": "Hasbro",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -16796,10 +16802,12 @@
    "unit": "metres",
    "range": null,
    "source": "Tokyo Skytree",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -18251,10 +18259,12 @@
    "unit": "year",
    "range": null,
    "source": "All England Lawn Tennis Club",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -18914,10 +18924,12 @@
    "unit": "year",
    "range": null,
    "source": "McVitie’s",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -19165,10 +19177,12 @@
    "unit": "wins",
    "range": null,
    "source": "European Broadcasting Union",
-   "status": "scheduled",
-   "firstPublished": null,
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "firstPublished": "2026-11-27",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "quarantineReason": null,
    "reworded": null,
    "verification": {
@@ -28618,9 +28632,11 @@
    "category": "Geography",
    "truth": false,
    "source": "US Government",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -29620,9 +29636,11 @@
    "category": "Sport",
    "truth": false,
    "source": "World Athletics",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -29820,9 +29838,11 @@
    "category": "Sport",
    "truth": true,
    "source": "IndyCar",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -30438,9 +30458,11 @@
    "category": "TV",
    "truth": false,
    "source": "Standard TV history",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -30780,9 +30802,11 @@
    "category": "Tech",
    "truth": false,
    "source": "Google",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -30996,9 +31020,11 @@
    "category": "Landmarks",
    "truth": false,
    "source": "London Eye",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -31184,9 +31210,11 @@
    "category": "Everyday",
    "truth": true,
    "source": "Standard measures",
-   "status": "scheduled",
-   "publishedDates": [],
-   "scheduledDate": "2026-11-27",
+   "status": "published",
+   "publishedDates": [
+    "2026-11-27"
+   ],
+   "scheduledDate": null,
    "verification": {
     "status": "editorial-review",
     "date": "2026-11-26",
@@ -33190,11 +33218,11 @@
  },
  "inventory": {
   "dailyScheduledThrough": "2027-03-27",
-  "dailyDaysAhead": 121,
+  "dailyDaysAhead": 120,
   "reserveQuestions": 35,
   "unplacedQuestions": 169,
   "factCheckScheduledThrough": "2027-01-17",
-  "factCheckDaysAhead": 52,
+  "factCheckDaysAhead": 51,
   "factCheckUnplaced": 10,
   "relaxations": []
  }
